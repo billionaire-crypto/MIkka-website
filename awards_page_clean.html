@@ -21,9 +21,17 @@ body {
   line-height: 1.7;
   font-weight: 300;
 }
-/* Fill viewport width on wide monitors. Was capped at 1300px which left the awards section sitting in a narrow centered column with big empty peach margins. */
+/* Centered layout that scales with viewport — symmetric margins both sides
+   instead of dumping all empty space to the right. */
 html, body { min-height: 100vh; }
-.wrap { max-width: 100%; width: 100%; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+.wrap {
+  max-width: clamp(1100px, 92vw, 1700px);
+  margin: 0 auto;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 .wrap > section.section { flex: 1; display: flex; flex-direction: column; }
 .wrap > section.section > .grid-host { flex: 1; }
 .explainer { display: none; }
