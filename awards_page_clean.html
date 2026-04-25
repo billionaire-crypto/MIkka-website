@@ -173,7 +173,7 @@ z-index: 1;
 /* CORE: category row = sidebar + content */
 .cat-row {
 display: grid;
-grid-template-columns: 200px 1fr;
+grid-template-columns: 240px 1fr;
 border-bottom: 1.5px solid #2a1528;
 }
 .cat-row:last-of-type { border-bottom: none; }
@@ -197,8 +197,8 @@ font-weight: 500;
 }
 .cat-name {
 font-family: 'Bebas Neue', sans-serif;
-font-size: clamp(32px, 4vw, 48px);
-line-height: .92;
+font-size: clamp(28px, 2.8vw, 40px);
+line-height: 1;
 letter-spacing: .02em;
 text-transform: uppercase;
 color: #2a1528;
@@ -302,6 +302,7 @@ font-weight: 600;
 margin-bottom: 10px;
 display: inline-block;
 padding: 4px 8px;
+white-space: nowrap;
 border: 1px solid #c44860;
 border-radius: 2px;
 background: rgba(196, 72, 96, 0.05);
@@ -363,7 +364,8 @@ min-height: 180px;
 perspective: 1400px;
 position: relative;
 border-right: 1.5px solid #2a1528;
-min-height: 180px;
+height: 240px;
+min-height: 240px;
 cursor: pointer;
 }
 .flip-scene:last-child { border-right: none; }
@@ -372,7 +374,7 @@ cursor: pointer;
 position: relative;
 width: 100%;
 height: 100%;
-min-height: 180px;
+min-height: 240px;
 transform-style: preserve-3d;
 transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
 }
@@ -386,7 +388,7 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-min-height: 180px;
+min-height: 240px;
 -webkit-backface-visibility: hidden;
 backface-visibility: hidden;
 overflow: hidden;
@@ -408,10 +410,10 @@ border-bottom-color: #c44860;
 font-weight: 500;
 }
 .flip-face.front.hero .a-name {
-font-size: clamp(20px, 2.2vw, 28px);
+font-size: clamp(18px, 1.8vw, 23px);
 font-weight: 500;
-line-height: 1.25;
-margin-bottom: 10px;
+line-height: 1.22;
+margin-bottom: 8px;
 }
 .flip-face.front.hero .a-badge {
 font-family: 'IBM Plex Mono', monospace;
@@ -423,6 +425,7 @@ font-weight: 600;
 margin-bottom: 10px;
 display: inline-block;
 padding: 4px 8px;
+white-space: nowrap;
 border: 1px solid #c44860;
 border-radius: 2px;
 background: rgba(196, 72, 96, 0.05);
@@ -471,14 +474,27 @@ z-index: 10;
 .flip-scene:hover::after { opacity: 1; }
 .flip-scene.flipped::after { opacity: 0; }
 
+/* Narrow-desktop / tablet: 4 cells in a row get tight — grow card height
+   and scale hero content down so it never clips. */
+@media (min-width: 881px) and (max-width: 1200px) {
+  .flip-scene { min-height: 240px; }
+  .flip-card-3d { height: 240px; min-height: 240px; }
+  .flip-face { height: 240px; min-height: 240px; }
+  .flip-face.front.hero .a-name { font-size: 18px; line-height: 1.22; margin-bottom: 6px; }
+  .flip-face.front .a-name { font-size: 15px; line-height: 1.28; }
+  .flip-face.front.hero .a-badge { font-size: 8px; letter-spacing: .22em; padding: 3px 7px; margin-bottom: 8px; }
+  .flip-face.front.hero .a-year { margin-bottom: 8px; }
+  .flip-face.front { padding: 16px 14px; }
+}
+
 /* Mobile: 2x2 grid + image splits into 4 quadrants */
 @media (max-width: 880px) {
 .cat-content.split-4-3d {
 grid-template-columns: 1fr 1fr;
 }
 .flip-scene {
-height: 220px;
-min-height: 220px;
+height: 240px;
+min-height: 240px;
 border-right: 1.5px solid #2a1528;
 border-bottom: 1.5px solid #2a1528;
 }
@@ -488,12 +504,19 @@ Bottom row (cells 3 & 4) removes border-bottom -> avoids doubling with .cat-row 
 .cat-content.split-4-3d .flip-scene:nth-child(3),
 .cat-content.split-4-3d .flip-scene:nth-child(4) { border-bottom: none; }
 
-.flip-card-3d { height: 220px; min-height: 220px; }
-.flip-face { height: 220px; min-height: 220px; }
-.flip-face.front { padding: 18px 16px; }
-.flip-face.front .a-name { font-size: 16px; }
-.flip-face.front.hero .a-name { font-size: 18px; }
-.flip-face.front.hero .a-badge { font-size: 8px; }
+.flip-scene { min-height: 240px; }
+.flip-card-3d { height: 240px; min-height: 240px; }
+.flip-face { height: 240px; min-height: 240px; }
+.flip-face.front { padding: 16px 14px; }
+.flip-face.front .a-name { font-size: 15.5px; line-height: 1.28; }
+.flip-face.front.hero .a-name { font-size: 17px; line-height: 1.2; margin-bottom: 6px; }
+.flip-face.front.hero .a-year { margin-bottom: 8px; }
+.flip-face.front.hero .a-badge {
+  font-size: 7.5px;
+  letter-spacing: .22em;
+  padding: 3px 6px;
+  margin-bottom: 8px;
+}
 
 .flip-face.back { background-size: 200% 200%; }
 .cat-content.split-4-3d .flip-scene:nth-child(1) .flip-face.back { background-position:   0%   0%; }
@@ -628,12 +651,12 @@ color: #fff;
       <!-- first copy -->
       <div class="award-cell hero sz-hero">
         <span class="a-badge">HIGHEST HONOR</span>
-        <div class="a-year">2014 -- 2019</div>
-        <div class="a-name">Red Diploma <em>-- highest academic distinction</em></div>
+        <div class="a-year">2014 – 2019</div>
+        <div class="a-name">Red Diploma <em>— highest academic distinction</em></div>
         <div class="a-org">Mongolian State Conservatory</div>
       </div>
       <div class="award-cell sz-mid">
-        <div class="a-year">2019 -- 2023</div>
+        <div class="a-year">2019 – 2023</div>
         <div class="a-name">Bachelor of Music</div>
         <div class="a-org">MSUAC · Traditional Music</div>
       </div>
@@ -641,12 +664,12 @@ color: #fff;
       <!-- duplicate copy for seamless loop -->
       <div class="award-cell hero sz-hero">
         <span class="a-badge">HIGHEST HONOR</span>
-        <div class="a-year">2014 -- 2019</div>
-        <div class="a-name">Red Diploma <em>-- highest academic distinction</em></div>
+        <div class="a-year">2014 – 2019</div>
+        <div class="a-name">Red Diploma <em>— highest academic distinction</em></div>
         <div class="a-org">Mongolian State Conservatory</div>
       </div>
       <div class="award-cell sz-mid">
-        <div class="a-year">2019 -- 2023</div>
+        <div class="a-year">2019 – 2023</div>
         <div class="a-name">Bachelor of Music</div>
         <div class="a-org">MSUAC · Traditional Music</div>
       </div>
@@ -665,12 +688,11 @@ color: #fff;
   </div>
   <div class="cat-content split-4-3d">
 
-```
 <div class="flip-scene">
   <div class="flip-card-3d">
     <div class="flip-face front">
       <div class="a-year">2015</div>
-      <div class="a-name">3rd Place <em>-- Ulaanbaatar Future Star</em></div>
+      <div class="a-name">3rd Place <em>— Ulaanbaatar Future Star</em></div>
       <div class="a-org">National Competition</div>
     </div>
     <div class="flip-face back" aria-hidden="true"></div>
@@ -681,7 +703,7 @@ color: #fff;
   <div class="flip-card-3d">
     <div class="flip-face front">
       <div class="a-year">2016</div>
-      <div class="a-name">3rd Place <em>-- Golden Autumn</em></div>
+      <div class="a-name">3rd Place <em>— Golden Autumn</em></div>
       <div class="a-org">Composition Competition</div>
     </div>
     <div class="flip-face back" aria-hidden="true"></div>
@@ -704,13 +726,12 @@ color: #fff;
     <div class="flip-face front hero">
       <span class="a-badge">HIGHEST PLACEMENT</span>
       <div class="a-year">2019</div>
-      <div class="a-name">Excellence Award <em>-- Heritage Performance</em></div>
+      <div class="a-name">Excellence Award <em>— Heritage Performance</em></div>
       <div class="a-org">National Competition</div>
     </div>
     <div class="flip-face back" aria-hidden="true"></div>
   </div>
 </div>
-```
 
   </div>
 </div>
@@ -727,12 +748,12 @@ color: #fff;
     <div class="award-cell hero">
       <span class="a-badge">COMMERCIAL RECORDING</span>
       <div class="a-year">2023</div>
-      <div class="a-name"><em>Daughters of Heaven</em> -- featured performer</div>
+      <div class="a-name"><em>Daughters of Heaven</em> — featured performer</div>
       <div class="a-org">12-track album · Mongolia &amp; China release</div>
     </div>
     <div class="award-cell">
       <div class="a-year">2026</div>
-      <div class="a-name">Registered Performer <em>-- DIA</em></div>
+      <div class="a-name">Registered Performer <em>— DIA</em></div>
       <div class="a-org">Detroit Institute of Arts · Film Theatre</div>
     </div>
     <div class="award-cell hatch" aria-hidden="true"></div>
@@ -755,5 +776,109 @@ color: #fff;
 <div class="explainer">
 
 </div>
+
+<script>
+(function () {
+  'use strict';
+  var section = document.querySelector('section.section');
+  if (!section) return;
+
+  var doodles = [
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><circle cx="12" cy="13" r=".9" fill="currentColor" stroke="none"/><circle cx="20" cy="13" r=".9" fill="currentColor" stroke="none"/><path d="M11 19 Q16 23 21 19"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><path d="M10 13 L14 13"/><circle cx="20" cy="13" r=".9" fill="currentColor" stroke="none"/><path d="M11 19 Q16 23 21 19"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><ellipse cx="12" cy="21" rx="3" ry="2.2" transform="rotate(-20 12 21)"/><path d="M15 20 L15 10 Q20 11 20 14"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><ellipse cx="10" cy="22" rx="2.2" ry="1.6"/><ellipse cx="20" cy="22" rx="2.2" ry="1.6"/><path d="M12 21 L12 10 L22 11 L22 21"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><path d="M16 8 L17.2 14.8 L24 16 L17.2 17.2 L16 24 L14.8 17.2 L8 16 L14.8 14.8 Z"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><path d="M16 9 L18.1 13.8 L23.2 14.3 L19.3 17.6 L20.7 22.6 L16 19.9 L11.3 22.6 L12.7 17.6 L8.8 14.3 L13.9 13.8 Z"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><path d="M8 16 Q12 10 16 16 T24 16"/></svg>',
+    '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="13"/><path d="M8 13 Q12 8 16 13 T24 13"/><path d="M8 19 Q12 14 16 19 T24 19"/></svg>'
+  ];
+
+  var excludedZones = section.querySelectorAll('.band, .legend');
+  function isExcluded(el) {
+    for (var i = 0; i < excludedZones.length; i++) {
+      if (excludedZones[i].contains(el)) return true;
+    }
+    return false;
+  }
+
+  function spawnDoodles(clientX, clientY) {
+    var rect = section.getBoundingClientRect();
+    var x = clientX - rect.left;
+    var y = clientY - rect.top;
+    var count = 5 + Math.floor(Math.random() * 3);
+    for (var i = 0; i < count; i++) {
+      var d = document.createElement('div');
+      d.className = 'doodle';
+      d.innerHTML = doodles[Math.floor(Math.random() * doodles.length)];
+      var size = 24 + Math.floor(Math.random() * 13);
+      var angle = Math.random() * Math.PI * 2;
+      var dist = 50 + Math.random() * 70;
+      var dx = Math.cos(angle) * dist;
+      var dy = Math.sin(angle) * dist;
+      var dr = (Math.random() - 0.5) * 120;
+      d.style.left = x + 'px';
+      d.style.top = y + 'px';
+      d.style.width = size + 'px';
+      d.style.height = size + 'px';
+      d.style.setProperty('--dx', dx + 'px');
+      d.style.setProperty('--dy', dy + 'px');
+      d.style.setProperty('--dr', dr + 'deg');
+      d.style.animationDelay = (Math.random() * 80) + 'ms';
+      section.appendChild(d);
+      (function (node) {
+        setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 1250);
+      })(d);
+    }
+  }
+
+  var scenes = [].slice.call(section.querySelectorAll('.flip-scene'));
+  var autoPeekStopped = false;
+  var autoPeekNextTimer = null;
+  var autoPeekResetTimer = null;
+  var autoPeekCell = null;
+
+  function scheduleAutoPeek() {
+    if (autoPeekStopped) return;
+    var delay = 3000 + Math.random() * 500;
+    autoPeekNextTimer = setTimeout(function () {
+      if (autoPeekStopped) return;
+      var cell = scenes[Math.floor(Math.random() * scenes.length)];
+      cell.classList.add('flipped');
+      autoPeekCell = cell;
+      autoPeekResetTimer = setTimeout(function () {
+        if (autoPeekCell && !autoPeekStopped) autoPeekCell.classList.remove('flipped');
+        autoPeekCell = null;
+        scheduleAutoPeek();
+      }, 2000);
+    }, delay);
+  }
+
+  function stopAutoPeek() {
+    if (autoPeekStopped) return;
+    autoPeekStopped = true;
+    clearTimeout(autoPeekNextTimer);
+    clearTimeout(autoPeekResetTimer);
+    if (autoPeekCell) {
+      autoPeekCell.classList.remove('flipped');
+      autoPeekCell = null;
+    }
+  }
+
+  section.addEventListener('click', function (e) {
+    var scene = e.target.closest ? e.target.closest('.flip-scene') : null;
+    if (scene) {
+      stopAutoPeek();
+      scene.classList.toggle('flipped');
+      return;
+    }
+    if (isExcluded(e.target)) return;
+    spawnDoodles(e.clientX, e.clientY);
+  });
+
+  setTimeout(scheduleAutoPeek, 1500);
+})();
+</script>
+
 </body>
 </html>
