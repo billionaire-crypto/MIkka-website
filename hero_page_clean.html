@@ -35,7 +35,8 @@
   /* Fill-the-viewport layout: stage = 100vh, hero-wrap flex-fills between legend
      and ticker, hero-row stretches and hero-content space-between distributes
      zones so there's no empty peach gap between content and the ticker. */
-  .pagewrap { max-width: 1100px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  /* Fill the full viewport width on wide monitors. Was capped at 1100px which left the page sitting in a narrow column with empty peach margins on either side. */
+  .pagewrap { max-width: 100%; width: 100%; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
   .pagewrap > .stage { flex: 1; display: flex; flex-direction: column; }
   .stage > .hero-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .stage > .hero-wrap > .hero-row { flex: 1; min-height: 0; }
@@ -1037,7 +1038,7 @@ white-space: pre-line;
 }
 .layout-full .h-name {
 color: #2a1529;
-font-size: clamp(58px, 12vw, 180px);
+font-size: clamp(58px, 12vw, 260px);
 line-height: .86;
 }
 @media (max-width: 640px) {
@@ -1120,13 +1121,13 @@ to   { opacity: .85; transform: translateY(-50%) translateX(0); }
   .layout-full .h-sub     { font-size: clamp(10px, 1.35vw, 24px); line-height: 1.9; }
   .layout-full .zone-label { font-size: clamp(10px, 1.1vw, 20px); letter-spacing: .22em; }
   .layout-full .hero-zone.z-portrait .portrait-frame {
-    width: clamp(120px, 22vw, 360px);
-    border-radius: clamp(7px, .65vw, 14px);
+    width: clamp(120px, 22vw, 480px);
+    border-radius: clamp(7px, .65vw, 18px);
   }
   .layout-full .vertical-signature {
     right: auto;
-    left: clamp(140px, 26vw, 420px);
-    max-height: clamp(260px, 32vw, 540px);
+    left: clamp(140px, 26vw, 540px);
+    max-height: clamp(260px, 32vw, 700px);
   }
   .hero-legend { font-size: clamp(10px, 1.25vw, 22px); padding: clamp(12px, 1.4vw, 28px) clamp(20px, 2.2vw, 48px); gap: clamp(16px, 1.6vw, 36px); }
   .hero-legend .legend-nav { font-size: clamp(10px, 1.25vw, 22px); gap: clamp(34px, 4vw, 76px); letter-spacing: .22em; }
