@@ -8144,7 +8144,7 @@ window.__mikkaLazyInit("page-02", function(){
     style.textContent = ''
       + '@keyframes doodleFly{'
       +   '0%{opacity:0;transform:translate(-50%,-50%) scale(0.3) rotate(0deg);}'
-      +   '20%{opacity:1;transform:translate(calc(-50% + var(--dx) * 0.3),calc(-50% + var(--dy) * 0.3)) scale(1) rotate(calc(var(--rot) * 0.3));}'
+      +   '20%{opacity:0.45;transform:translate(calc(-50% + var(--dx) * 0.3),calc(-50% + var(--dy) * 0.3)) scale(1) rotate(calc(var(--rot) * 0.3));}'
       +   '100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(0.9) rotate(var(--rot));}'
       + '}'
       + '.mikka-doodle{position:fixed;pointer-events:none;z-index:1000;'
@@ -8187,7 +8187,7 @@ window.__mikkaLazyInit("page-02", function(){
           var dx = Math.cos(angle) * distance;
           var dy = Math.sin(angle) * distance;
           var rot = (Math.random() - 0.5) * 120;
-          var size = 10 + Math.random() * 8;
+          var size = 6 + Math.random() * 6;
 
           doodle.style.left = clientX + 'px';
           doodle.style.top = clientY + 'px';
