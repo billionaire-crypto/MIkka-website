@@ -8049,6 +8049,44 @@ signoff.classList.add('reveal-in');
 }
 })();
 });
+/* ─── page-02 · Awards script (flip-card interactions) ─── */
+window.__mikkaLazyInit("page-02", function(){
+  "use strict";
+  var scenes = document.querySelectorAll('.page-02 .flip-scene');
+  if (!scenes.length) return;
+
+  var hasFinePointer = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  scenes.forEach(function(scene){
+    scene.setAttribute('role', 'button');
+    scene.setAttribute('tabindex', '0');
+    if (!scene.hasAttribute('aria-pressed')) scene.setAttribute('aria-pressed', 'false');
+
+    var toggle = function(){
+      var flipped = scene.classList.toggle('flipped');
+      scene.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    };
+
+    scene.addEventListener('click', toggle);
+    scene.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+
+    if (hasFinePointer) {
+      scene.addEventListener('mouseenter', function(){
+        scene.classList.add('flipped');
+        scene.setAttribute('aria-pressed', 'true');
+      });
+      scene.addEventListener('mouseleave', function(){
+        scene.classList.remove('flipped');
+        scene.setAttribute('aria-pressed', 'false');
+      });
+    }
+  });
+});
 /* ─── page-03 · Work script ─── */
 window.__mikkaLazyInit("page-03", function(){
   "use strict";
