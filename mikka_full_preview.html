@@ -8093,14 +8093,13 @@ window.__mikkaLazyInit("page-02", function(){
   if (!page02 || prefersReduced) return;
   if (typeof page02.animate !== 'function' && !document.body.animate) return;
 
-  /* Inject scoped styles for the stamp particles (drawn as outline SVGs to
-     match the existing .page-02 .doodle aesthetic). */
+  /* Inject scoped styles for the stamp particles — fine-line ink sketches. */
   if (!document.getElementById('mikka-stamp-style')) {
     var style = document.createElement('style');
     style.id = 'mikka-stamp-style';
     style.textContent = ''
       + '.music-stamp{position:fixed;pointer-events:none;z-index:9999;'
-      + 'will-change:transform,opacity;user-select:none;}'
+      + 'color:#2A1528;will-change:transform,opacity;user-select:none;}'
       + '.music-stamp svg{display:block;width:100%;height:100%;overflow:visible;}'
       + '.music-stamp svg *{fill:none;stroke:currentColor;stroke-width:1.6;'
       + 'stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;}';
@@ -8108,22 +8107,15 @@ window.__mikkaLazyInit("page-02", function(){
   }
 
   var STAMPS = [
-    /* eighth note */
-    '<svg viewBox="0 0 32 32"><ellipse cx="10" cy="22" rx="5" ry="4" transform="rotate(-18 10 22)"/><path d="M15 20 L15 5 Q22 5 24 11"/></svg>',
+    /* treble clef */
+    '<svg viewBox="0 0 32 40"><path d="M17 5 C12 6 11 12 14 14 C18 16 22 13 22 9 C22 6 19 5 18 8 C17 11 18 17 18 23 L18 33 C18 36 14 37 12 35 C11 34 12 32 14 33"/></svg>',
+    /* single eighth note with flag */
+    '<svg viewBox="0 0 32 32"><ellipse cx="10" cy="24" rx="5" ry="4" transform="rotate(-22 10 24)"/><path d="M15 22 L15 5 Q22 5 24 11"/></svg>',
+    /* beamed eighth notes */
+    '<svg viewBox="0 0 32 32"><ellipse cx="7" cy="25" rx="4.5" ry="3.5" transform="rotate(-18 7 25)"/><ellipse cx="22" cy="22" rx="4.5" ry="3.5" transform="rotate(-18 22 22)"/><path d="M11 24 L11 5 L26 3 L26 21"/></svg>',
     /* beamed sixteenth notes */
-    '<svg viewBox="0 0 32 32"><ellipse cx="8" cy="24" rx="4" ry="3" transform="rotate(-18 8 24)"/><ellipse cx="22" cy="22" rx="4" ry="3" transform="rotate(-18 22 22)"/><path d="M12 23 L12 6 L26 4 L26 21"/><path d="M12 11 L26 9"/></svg>',
-    /* four-point star */
-    '<svg viewBox="0 0 32 32"><path d="M16 3 L18.5 13.5 L29 16 L18.5 18.5 L16 29 L13.5 18.5 L3 16 L13.5 13.5 Z"/></svg>',
-    /* smiley face */
-    '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><circle cx="12" cy="14" r="1.4"/><circle cx="20" cy="14" r="1.4"/><path d="M11 19 Q16 23 21 19"/></svg>',
-    /* plus in circle */
-    '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M16 9 L16 23 M9 16 L23 16"/></svg>',
-    /* double wave */
-    '<svg viewBox="0 0 32 32"><path d="M4 14 Q8 9 12 14 T20 14 T28 14"/><path d="M4 22 Q8 17 12 22 T20 22 T28 22"/></svg>',
-    /* heart outline */
-    '<svg viewBox="0 0 32 32"><path d="M16 27 C7 21 4 15 7 10 C10 5 15 8 16 11 C17 8 22 5 25 10 C28 15 25 21 16 27 Z"/></svg>'
+    '<svg viewBox="0 0 32 32"><ellipse cx="7" cy="25" rx="4" ry="3" transform="rotate(-18 7 25)"/><ellipse cx="22" cy="23" rx="4" ry="3" transform="rotate(-18 22 23)"/><path d="M11 24 L11 5 L26 3 L26 22"/><path d="M11 11 L26 9"/></svg>'
   ];
-  var COLORS = ['#2A1528', '#C44860', '#6E3E5A', '#D4B8FF', '#F5A89A'];
 
   var burst = function(x, y){
     var count = 10 + Math.floor(Math.random() * 5);
@@ -8132,12 +8124,11 @@ window.__mikkaLazyInit("page-02", function(){
       el.className = 'music-stamp';
       el.setAttribute('aria-hidden', 'true');
       el.innerHTML = STAMPS[Math.floor(Math.random() * STAMPS.length)];
-      var size = 22 + Math.random() * 16;
+      var size = 24 + Math.random() * 18;
       el.style.left = (x - size / 2) + 'px';
       el.style.top = (y - size / 2) + 'px';
       el.style.width = size + 'px';
       el.style.height = size + 'px';
-      el.style.color = COLORS[Math.floor(Math.random() * COLORS.length)];
       document.body.appendChild(el);
 
       var angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
