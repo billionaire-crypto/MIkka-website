@@ -8143,10 +8143,10 @@ window.__mikkaLazyInit("page-02", function(){
     style.id = 'mikka-doodle-style';
     style.textContent = ''
       + '@keyframes doodleFly{'
-      +   '0%{opacity:0;transform:translate(-50%,-50%) scale(0.3) rotate(0deg);}'
-      +   '12%{opacity:0.6;transform:translate(calc(-50% + var(--dx) * 0.22),calc(-50% + var(--dy) * 0.18 - 8px)) scale(1.12) rotate(calc(var(--rot) * 0.18));}'
-      +   '45%{opacity:0.5;transform:translate(calc(-50% + var(--dx) * 0.72),calc(-50% + var(--dy) * 0.55 - 4px)) scale(1) rotate(calc(var(--rot) * 0.55));}'
-      +   '100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 28px)) scale(0.85) rotate(var(--rot));}'
+      +   '0%{opacity:0;transform:translate(-50%,-50%) scale(0.55) rotate(0deg);}'
+      +   '22%{opacity:0.55;transform:translate(calc(-50% + var(--dx) * 0.3),calc(-50% + var(--dy) * 0.22 - 5px)) scale(1) rotate(calc(var(--rot) * 0.22));}'
+      +   '62%{opacity:0.55;transform:translate(calc(-50% + var(--dx) * 0.78),calc(-50% + var(--dy) * 0.6 - 2px)) scale(0.98) rotate(calc(var(--rot) * 0.65));}'
+      +   '100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 22px)) scale(0.86) rotate(var(--rot));}'
       + '}'
       + '.mikka-doodle{position:fixed;pointer-events:none;z-index:1000;'
       + 'animation-name:doodleFly;animation-fill-mode:forwards;'
@@ -8192,12 +8192,14 @@ window.__mikkaLazyInit("page-02", function(){
           var dy = Math.sin(angle) * distance;
           var rot = (Math.random() - 0.5) * 200;
           var size = 20 + Math.random() * 14;
-          var duration = 1000 + Math.random() * 700;
+          var duration = 1300 + Math.random() * 700;
+          /* All ease-out curves with no overshoot — keeps motion smooth
+             and avoids the bouncy/snappy feel of curves that pass 1.0. */
           var easings = [
-            'cubic-bezier(0.18, 0.7, 0.3, 1)',
-            'cubic-bezier(0.22, 0.95, 0.4, 1.05)',
-            'cubic-bezier(0.32, 0.6, 0.45, 1)',
-            'cubic-bezier(0.16, 0.85, 0.5, 1)'
+            'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            'cubic-bezier(0.215, 0.61, 0.355, 1)',
+            'cubic-bezier(0.165, 0.84, 0.44, 1)',
+            'cubic-bezier(0.39, 0.575, 0.565, 1)'
           ];
 
           doodle.style.left = clientX + 'px';
