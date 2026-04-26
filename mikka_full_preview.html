@@ -8056,28 +8056,63 @@ window.__mikkaLazyInit("page-02", function(){
   var hasFinePointer = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ── 1. Flip-card interactions on the Competition row ── */
+  /* ── 1. Flip-card interactions + auto-flip "explore me" hint ── */
   var scenes = document.querySelectorAll('.page-02 .flip-scene');
+  var autoFlipInterval = null;
+  var autoFlipKickoff = null;
+  var userInteracted = false;
+
+  function stopAutoFlip(){
+    if (userInteracted) return;
+    userInteracted = true;
+    if (autoFlipInterval) { clearInterval(autoFlipInterval); autoFlipInterval = null; }
+    if (autoFlipKickoff) { clearTimeout(autoFlipKickoff); autoFlipKickoff = null; }
+  }
+
+  function autoFlipOnce(){
+    if (userInteracted) return;
+    var candidates = [];
+    scenes.forEach(function(s){
+      if (!s.classList.contains('flipped')) candidates.push(s);
+    });
+    if (!candidates.length) return;
+    var pick = candidates[Math.floor(Math.random() * candidates.length)];
+    pick.classList.add('flipped', 'auto-flipped');
+    setTimeout(function(){
+      if (userInteracted) return;
+      if (pick.classList.contains('auto-flipped')) {
+        pick.classList.remove('flipped', 'auto-flipped');
+      }
+    }, 1500);
+  }
+
   scenes.forEach(function(scene){
     scene.setAttribute('role', 'button');
     scene.setAttribute('tabindex', '0');
     if (!scene.hasAttribute('aria-pressed')) scene.setAttribute('aria-pressed', 'false');
 
     var toggle = function(){
+      scene.classList.remove('auto-flipped');
       var flipped = scene.classList.toggle('flipped');
       scene.setAttribute('aria-pressed', flipped ? 'true' : 'false');
     };
 
-    scene.addEventListener('click', toggle);
+    scene.addEventListener('click', function(){
+      stopAutoFlip();
+      toggle();
+    });
     scene.addEventListener('keydown', function(e){
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
         e.preventDefault();
+        stopAutoFlip();
         toggle();
       }
     });
 
     if (hasFinePointer) {
       scene.addEventListener('mouseenter', function(){
+        stopAutoFlip();
+        scene.classList.remove('auto-flipped');
         scene.classList.add('flipped');
         scene.setAttribute('aria-pressed', 'true');
       });
@@ -8087,6 +8122,16 @@ window.__mikkaLazyInit("page-02", function(){
       });
     }
   });
+
+  /* Kick off the random auto-flip hint after the page settles. Stops the
+     instant the user hovers, taps, or keys into any flip card. */
+  if (scenes.length) {
+    autoFlipKickoff = setTimeout(function(){
+      if (userInteracted) return;
+      autoFlipOnce();
+      autoFlipInterval = setInterval(autoFlipOnce, 2600);
+    }, 1800);
+  }
 
   /* ── 2. Doodle confetti easter egg on tap inside the awards section ── */
   var section = document.querySelector('.page-02 .section');
@@ -8142,7 +8187,7 @@ window.__mikkaLazyInit("page-02", function(){
           var dx = Math.cos(angle) * distance;
           var dy = Math.sin(angle) * distance;
           var rot = (Math.random() - 0.5) * 120;
-          var size = 16 + Math.random() * 10;
+          var size = 10 + Math.random() * 8;
 
           doodle.style.left = clientX + 'px';
           doodle.style.top = clientY + 'px';
@@ -8162,7 +8207,6 @@ window.__mikkaLazyInit("page-02", function(){
   section.addEventListener('click', function(e){
     if (e.target.closest('.band')) return;        /* dark header/footer bands */
     if (e.target.closest('.legend')) return;      /* READ ↓ legend strip */
-    if (e.target.closest('.flip-scene')) return;  /* flip cards own their tap */
     spawnDoodles(e.clientX, e.clientY);
   });
 });
