@@ -670,9 +670,9 @@ font-family: var(--mono);
 font-size: 11px;
 letter-spacing: .16em;
 text-transform: uppercase;
-color: var(--ink);
+color: var(--muted);
 font-weight: 400;
-line-height: 1.75;
+line-height: 1.7;
 padding-right: 28px;
 }
 .page-00 .h-name{
@@ -691,9 +691,9 @@ color: transparent;
 }
 .page-00 .h-sub{
 font-family: var(--mono);
-font-size: 10px;
-line-height: 2;
-letter-spacing: .2em;
+font-size: 11px;
+line-height: 1.85;
+letter-spacing: .08em;
 text-transform: uppercase;
 color: var(--muted);
 font-weight: 400;
@@ -805,14 +805,14 @@ z-index: 2;
 }
 .page-00 .layout-full .cat-num{
 font-family: var(--mono);
-font-size: 10px;
+font-size: 11px;
 letter-spacing: .28em;
 color: var(--accent);
 font-weight: 500;
 }
 .page-00 .layout-full .cat-name{
 font-family: var(--cond);
-font-size: 28px;
+font-size: clamp(32px, 4vw, 48px);
 line-height: .92;
 letter-spacing: .02em;
 text-transform: uppercase;
@@ -821,20 +821,22 @@ margin: 8px 0 6px;
 }
 .page-00 .layout-full .cat-count{
 font-family: var(--mono);
-font-size: 9px;
+font-size: 10px;
 letter-spacing: .16em;
 color: var(--muted);
 text-transform: uppercase;
+font-weight: 400;
 }
 .page-00 .layout-full .sidebar-bottom{
 padding-top: 12px;
-font-size: 8px;
-letter-spacing: .2em;
+font-size: 10px;
+letter-spacing: .16em;
 text-transform: uppercase;
 color: var(--muted);
-line-height: 1.8;
+line-height: 1.7;
+font-weight: 400;
 }
-.page-00 .layout-full .sidebar-bottom .lbl{ color: var(--accent); display: block; font-weight: 500; }
+.page-00 .layout-full .sidebar-bottom .lbl{ color: var(--accent); display: block; font-weight: 500; letter-spacing: .28em; font-size: 11px; }
 .page-00 .layout-full .hero-content{
 padding: 24px 24px;
 position: relative;
@@ -868,11 +870,11 @@ pointer-events: none;
 }
 .page-00 .layout-full .zone-label{
 font-family: var(--mono);
-font-size: 8px;
+font-size: 11px;
 letter-spacing: .28em;
 text-transform: uppercase;
 color: var(--accent);
-margin-bottom: 8px;
+margin-bottom: 10px;
 font-weight: 500;
 }
 .page-00 .layout-full .hero-zone.z-name{ flex: 1; }
