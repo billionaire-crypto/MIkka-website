@@ -543,13 +543,14 @@ overflow: hidden;
 }
 
 .page-00 .site-header{
-background: #2A1528;
+background: linear-gradient(135deg, #2A1528 0%, #4A2640 35%, #6E3E5A 70%, #8A4A95 100%);
 padding: 12px 20px;
 display: flex;
 justify-content: space-between;
 align-items: center;
 position: relative;
 z-index: 5;
+border-bottom: 1px solid rgba(245, 228, 220, 0.12);
 }
 .page-00 .logo-svg svg{ display: block; }
 .page-00 .logo-svg svg path{ stroke: #F5E4DC; }
@@ -622,13 +623,7 @@ white-space: nowrap;
 
 .page-00 .hero-wrap{
 position: relative;
-background:
-radial-gradient(ellipse 65% 55% at 15% 25%, #8a4a95 0%, transparent 55%),
-radial-gradient(ellipse 60% 50% at 85% 18%, #ee9078 0%, transparent 55%),
-radial-gradient(ellipse 55% 55% at 75% 85%, #b04890 0%, transparent 55%),
-radial-gradient(ellipse 55% 50% at 20% 90%, #ee7890 0%, transparent 55%),
-radial-gradient(ellipse 45% 45% at 50% 50%, #d06aa8 0%, transparent 60%),
-var(--bg);
+background: var(--gradient);
 border-bottom: 1.5px solid var(--ink);
 }
 
@@ -7688,9 +7683,9 @@ function startStrings() {
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
   var CW = 0, CH = 0;
   var S = {
-    nLines: 16, opacity: 20, thick: 7, wobble: 5, speed: 2,
+    nLines: 22, opacity: 28, thick: 6, wobble: 7, speed: 2,
     pull: 34, radius: 28, tension: 9, damp: 84, pluck: 11,
-    lineColor: '#2A1528', noteColor: '#C44860',
+    lineColor: '#6E3E5A', noteColor: '#C44860',
     noteSize: 17, cooldown: 120
   };
   var N_PTS = 60;
@@ -7784,7 +7779,7 @@ function startStrings() {
         else ctx.lineTo(x, py);
       }
       var al = S.opacity / 100;
-      ctx.strokeStyle = 'rgba(42,21,40,' + al + ')';
+      ctx.strokeStyle = 'rgba(110,62,90,' + al + ')';
       ctx.lineWidth = S.thick / 10;
       ctx.stroke();
     }
@@ -7937,7 +7932,7 @@ function startSidebarStrings() {
       }
       var relX = Math.abs(li/(n-1) - .5) * 2;
       var al = (S.opacity/100) * (.55 + .45*(1 - relX*relX));
-      ctx.strokeStyle = 'rgba(42,21,40,' + al + ')';
+      ctx.strokeStyle = 'rgba(110,62,90,' + al + ')';
       ctx.lineWidth = S.thick / 10;
       ctx.stroke();
     }
