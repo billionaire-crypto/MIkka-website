@@ -189,6 +189,32 @@ body {
   transform: perspective(1400px) translate3d(0, 0, 0) rotateX(0);
 }
 
+/* Teaching page stagger: when a group of cards is reached, they reveal
+   in sequence (90-110ms apart) instead of all at once. Specificity is
+   higher than the base [data-reveal] rule so transition-delay overrides. */
+.page-04 .tenets > .tenet:nth-child(2) { transition-delay:  90ms; }
+.page-04 .tenets > .tenet:nth-child(3) { transition-delay: 180ms; }
+.page-04 .tenets > .tenet:nth-child(4) { transition-delay: 270ms; }
+.page-04 .tenets > .tenet:nth-child(5) { transition-delay: 360ms; }
+
+.page-04 .reels-track > .reel:nth-child(2) { transition-delay: 110ms; }
+.page-04 .reels-track > .reel:nth-child(3) { transition-delay: 220ms; }
+.page-04 .reels-track > .reel:nth-child(4) { transition-delay: 330ms; }
+
+.page-04 .who > .item:nth-child(2) { transition-delay:  60ms; }
+.page-04 .who > .item:nth-child(3) { transition-delay: 120ms; }
+.page-04 .who > .item:nth-child(4) { transition-delay: 180ms; }
+.page-04 .who > .item:nth-child(5) { transition-delay: 240ms; }
+.page-04 .who > .item:nth-child(6) { transition-delay: 300ms; }
+.page-04 .who > .item:nth-child(7) { transition-delay: 360ms; }
+
+.page-04 .list-wrap .day-row:nth-of-type(2) { transition-delay:  60ms; }
+.page-04 .list-wrap .day-row:nth-of-type(3) { transition-delay: 120ms; }
+.page-04 .list-wrap .day-row:nth-of-type(4) { transition-delay: 180ms; }
+.page-04 .list-wrap .day-row:nth-of-type(5) { transition-delay: 240ms; }
+.page-04 .list-wrap .day-row:nth-of-type(6) { transition-delay: 300ms; }
+.page-04 .list-wrap .day-row:nth-of-type(7) { transition-delay: 360ms; }
+
 [data-reveal="divider"] .line {
   transform: scaleX(0);
   transition: transform 1500ms cubic-bezier(.22,.7,.2,1);
@@ -7348,9 +7374,30 @@ margin-right: 8px;
     { value: 'depth', selectors: [
         '.page-00 .plaque',
         '.page-02 .cat-row',
-        '.page-03 .mvmt'
+        '.page-03 .mvmt',
+        '.page-04 .tenet',
+        '.page-04 .reel',
+        '.page-04 .first-lesson',
+        '.page-04 .grid-table'
       ] }
   ];
+
+  /* Teaching page extras — fade-and-lift on the rest of page-04
+     so the section feels alive instead of static. */
+  REVEAL_GROUPS[0].selectors.push(
+    '.page-04 .topmeta',
+    '.page-04 .pagenum',
+    '.page-04 .h1-tagline',
+    '.page-04 .h1-sub',
+    '.page-04 .intro',
+    '.page-04 .sec-head',
+    '.page-04 .reels-eyebrow',
+    '.page-04 .who .item',
+    '.page-04 .grid-legend',
+    '.page-04 .list-head',
+    '.page-04 .day-row',
+    '.page-04 .book-hint'
+  );
   var revealEls = [];
   REVEAL_GROUPS.forEach(function(group){
     document.querySelectorAll(group.selectors.join(', ')).forEach(function(el){
