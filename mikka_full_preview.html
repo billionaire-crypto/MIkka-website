@@ -7309,8 +7309,14 @@ margin-right: 8px;
   var rafTick = 0;
   var docEl   = document.documentElement;
 
-  /* mobile breakpoint -> halve parallax so it isn't jarring on phones */
-  function parallaxFactor(){ return window.innerWidth < 480 ? 0.04 : 0.08; }
+  /* mobile breakpoint -> parallax disabled below tablet width.
+     On phones the portrait has filter() + 4 layered box-shadows,
+     and translating it per frame forces re-rasterisation that
+     reads as lag. Desktop keeps a subtle 5% lag. */
+  function parallaxFactor(){
+    if (window.innerWidth < 768) return 0;
+    return 0.05;
+  }
   var pxFactor = parallaxFactor();
 
   if (portrait) {
@@ -7331,8 +7337,9 @@ margin-right: 8px;
       var pct = (window.scrollY / scrollMaxCache) * 100;
       docEl.style.setProperty('--scroll-pct', pct.toFixed(1));
     }
-    /* Hero portrait parallax — only if on-screen and reduced-motion is off. */
-    if (portrait && portraitInView && !prefersReduced) {
+    /* Hero portrait parallax — only if on-screen, reduced-motion is off,
+       and parallaxFactor() is non-zero (skipped on phones). */
+    if (pxFactor > 0 && portrait && portraitInView && !prefersReduced) {
       var rect   = portrait.getBoundingClientRect();
       var vh     = window.innerHeight;
       var delta  = vh / 2 - (rect.top + rect.height / 2);
@@ -7346,6 +7353,9 @@ margin-right: 8px;
   function refreshScrollMetrics(){
     scrollMaxCache = docEl.scrollHeight - window.innerHeight;
     pxFactor       = parallaxFactor();
+    /* Clear any leftover transform if parallax just got disabled
+       (e.g. resized from desktop down into the mobile breakpoint). */
+    if (pxFactor === 0 && portrait) portrait.style.transform = '';
     schedule();
   }
   refreshScrollMetrics();
