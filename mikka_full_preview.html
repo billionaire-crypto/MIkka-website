@@ -7165,16 +7165,16 @@ margin-right: 8px;
   /* ── 1. Lenis smooth/inertia scroll ─────────────────────── */
   if (window.Lenis && !prefersReduced) {
     var lenis = new window.Lenis({
-      duration: 1.15,
+      duration: 1.0,
       easing: function(t){ return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-      smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.4
+      smoothWheel: true
+      /* default wheelMultiplier (1) and touchMultiplier (1) — no override.
+         syncTouch defaults to false in v1, so iOS native touch scroll
+         passes through untouched. */
     });
     window.__lenis = lenis;
     function raf(time){ lenis.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
-    /* Cancel CSS smooth-scroll on individual page wrappers — Lenis owns it now */
     document.documentElement.style.scrollBehavior = 'auto';
   }
 
@@ -7294,45 +7294,68 @@ margin-right: 8px;
     revealEls.forEach(function(el){ el.classList.add('is-in'); });
   }
 
-  /* ── 5. Hero portrait parallax ──────────────────────────────
-     Translates the .portrait figure ~8% slower than the page scroll,
-     centred around the moment its mid-line crosses the viewport
-     centre, so the photo lags subtly as you scroll past the hero. */
-  if (!prefersReduced) {
-    var portrait = document.querySelector('.page-00 .portrait');
-    if (portrait) {
-      var parallaxRaf = 0;
-      var parallax = function(){
-        parallaxRaf = 0;
-        var rect = portrait.getBoundingClientRect();
-        var vh = window.innerHeight;
-        if (rect.bottom < -200 || rect.top > vh + 200) return;   /* off-screen, skip */
-        var center = rect.top + rect.height / 2;
-        var delta  = vh / 2 - center;
-        var offset = delta * 0.08;
-        portrait.style.transform = 'translate3d(0, ' + offset.toFixed(1) + 'px, 0)';
-      };
-      var schedule = function(){
-        if (!parallaxRaf) parallaxRaf = requestAnimationFrame(parallax);
-      };
-      parallax();
-      window.addEventListener('scroll', schedule, { passive: true });
-      window.addEventListener('resize', schedule);
-      if (window.__lenis) window.__lenis.on('scroll', schedule);
+  /* ── 5. Single rAF tick: parallax + reading-progress ────────
+     One requestAnimationFrame callback runs at most once per frame
+     and updates everything that responds to scroll. Heavy reads
+     (scrollHeight, portrait getBoundingClientRect) are minimised:
+       - scrollMaxCache only recomputed on resize
+       - parallax skipped entirely when portrait is off-screen
+         (gated by IntersectionObserver)
+     This replaces the three independent scroll listeners that
+     Phase 3 left, which were causing visible jank. */
+  var portrait      = document.querySelector('.page-00 .portrait');
+  var portraitInView = false;
+  var scrollMaxCache = 0;
+  var rafTick = 0;
+  var docEl   = document.documentElement;
+
+  /* mobile breakpoint -> halve parallax so it isn't jarring on phones */
+  function parallaxFactor(){ return window.innerWidth < 480 ? 0.04 : 0.08; }
+  var pxFactor = parallaxFactor();
+
+  if (portrait) {
+    portrait.style.willChange = 'transform';
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function(entries){
+        portraitInView = entries[0].isIntersecting;
+      }, { rootMargin: '300px 0px' }).observe(portrait);
+    } else {
+      portraitInView = true;
     }
   }
 
-  /* ── 6. Reading-progress percentage ─────────────────────────
-     Drives the gradient strip drawn under the site-bar. */
-  function updateScrollPct(){
-    var max = document.documentElement.scrollHeight - window.innerHeight;
-    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
-    document.documentElement.style.setProperty('--scroll-pct', pct.toFixed(2));
+  function tick(){
+    rafTick = 0;
+    /* Reading-progress strip on the site-bar. */
+    if (scrollMaxCache > 0) {
+      var pct = (window.scrollY / scrollMaxCache) * 100;
+      docEl.style.setProperty('--scroll-pct', pct.toFixed(1));
+    }
+    /* Hero portrait parallax — only if on-screen and reduced-motion is off. */
+    if (portrait && portraitInView && !prefersReduced) {
+      var rect   = portrait.getBoundingClientRect();
+      var vh     = window.innerHeight;
+      var delta  = vh / 2 - (rect.top + rect.height / 2);
+      portrait.style.transform = 'translate3d(0,' + (delta * pxFactor).toFixed(1) + 'px,0)';
+    }
   }
-  updateScrollPct();
-  window.addEventListener('scroll', updateScrollPct, { passive: true });
-  window.addEventListener('resize', updateScrollPct);
-  if (window.__lenis) window.__lenis.on('scroll', updateScrollPct);
+  function schedule(){
+    if (!rafTick) rafTick = requestAnimationFrame(tick);
+  }
+
+  function refreshScrollMetrics(){
+    scrollMaxCache = docEl.scrollHeight - window.innerHeight;
+    pxFactor       = parallaxFactor();
+    schedule();
+  }
+  refreshScrollMetrics();
+  window.addEventListener('resize', refreshScrollMetrics);
+  /* Layout can shift after fonts and images load — recompute then. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshScrollMetrics);
+  window.addEventListener('load', refreshScrollMetrics);
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  if (window.__lenis) window.__lenis.on('scroll', schedule);
 })();
 </script>
 <script>
