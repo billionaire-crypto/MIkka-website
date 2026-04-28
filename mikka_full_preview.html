@@ -560,12 +560,11 @@ body {
   background-color: var(--ink);
   aspect-ratio: 4/5;
   filter: contrast(1.04) brightness(0.97);
-  /* inward purple matte: layered inset shadows give a thin ink hairline,
-     a ~6px plum band, and a soft inner falloff onto the photo */
+  /* inward matte: thicker dark-plum band (var(--ink), same colour as
+     the plate) plus a soft inner falloff onto the photo */
   box-shadow:
-    inset 0 0 0 1px var(--ink),
-    inset 0 0 0 7px var(--plum),
-    inset 0 0 18px -4px rgba(42, 21, 40, 0.55),
+    inset 0 0 0 16px var(--ink),
+    inset 0 0 24px -6px rgba(42, 21, 40, 0.6),
     0 18px 44px -16px rgba(42, 21, 40, 0.45);
 }
 .page-00 .portrait .pdot {
