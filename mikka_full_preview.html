@@ -1001,7 +1001,31 @@ body {
   position: absolute;
   font-family: var(--serif);
   color: rgba(42, 21, 40, 0.22);
+  /* Ambient drift — different durations + delays per nth-child below
+     so they don't sync. Underlying animation runs forever, paused
+     before page-01 is revealed (along with the rest of page-01). */
+  animation: glyphDrift__p01 9s ease-in-out infinite;
+  will-change: transform;
 }
+@keyframes glyphDrift__p01 {
+  0%, 100% { transform: translate3d(0, 0, 0)         rotate(0deg); }
+  25%      { transform: translate3d(2px, -10px, 0)   rotate(3deg); }
+  50%      { transform: translate3d(-3px, -16px, 0)  rotate(-2deg); }
+  75%      { transform: translate3d(4px, -8px, 0)    rotate(2deg); }
+}
+.page-01 .glyphs span:nth-child(1) { animation-duration: 8.2s;  animation-delay: -0.0s; }
+.page-01 .glyphs span:nth-child(2) { animation-duration: 10.4s; animation-delay: -1.4s; }
+.page-01 .glyphs span:nth-child(3) { animation-duration: 7.6s;  animation-delay: -2.8s; }
+.page-01 .glyphs span:nth-child(4) { animation-duration: 11.2s; animation-delay: -4.2s; }
+.page-01 .glyphs span:nth-child(5) { animation-duration: 9.4s;  animation-delay: -5.6s; }
+.page-01 .glyphs span:nth-child(6) { animation-duration: 8.6s;  animation-delay: -6.8s; }
+.page-01 .glyphs span:nth-child(7) { animation-duration: 10.0s; animation-delay: -3.4s; }
+.page-01 .glyphs span:nth-child(8) { animation-duration: 9.2s;  animation-delay: -7.6s; }
+.page-01 .glyphs span:nth-child(9) { animation-duration: 11.0s; animation-delay: -2.0s; }
+.page-01 .glyphs span:nth-child(10){ animation-duration: 8.4s;  animation-delay: -5.2s; }
+.page-01 .glyphs span:nth-child(11){ animation-duration: 10.2s; animation-delay: -8.0s; }
+.page-01 .glyphs span:nth-child(12){ animation-duration: 7.8s;  animation-delay: -3.6s; }
+.page-01 .glyphs span:nth-child(13){ animation-duration: 9.8s;  animation-delay: -6.4s; }
 /* Right side glyphs */
 .page-01 .glyphs .g1{ top: 320px;  right: 18%; font-size: 14px; }
 .page-01 .glyphs .g2{ top: 480px;  right: 8%;  font-size: 18px; color: rgba(196, 72, 96, 0.32); }
@@ -1661,6 +1685,21 @@ body {
      1.95  footer slides up from bottom
      2.05  Q1 auto-opens
    ═══════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────────────
+   The whole page-01 entrance sequence below (section-divider slide,
+   intro-greeting word-rise, underline draw, meta-cell stagger, Q&A
+   cascade, footer drift, signature draw, plus the ambient glyph drift)
+   is GATED on .page-01.is-revealed. JS adds that class via an
+   IntersectionObserver only when page-01 first enters the viewport —
+   so the choreography plays as the user arrives, not in the background
+   while they are still on the hero.
+   The ambient glyph drift (always-running) is paused with the rest. */
+.page-01:not(.is-revealed) *,
+.page-01:not(.is-revealed) *::before,
+.page-01:not(.is-revealed) *::after {
+  animation-play-state: paused !important;
+}
 
 /* ─── 01 · PAGE ENTRANCE — section divider slides down ─── */
 .page-01 .section-divider{
@@ -7301,6 +7340,35 @@ margin-right: 8px;
   } else {
     revealEls.forEach(function(el){ el.classList.add('is-in'); });
   }
+
+  /* ── 4b. Per-page entrance gate ─────────────────────────────
+     The about page (.page-01) carries a long pre-built CSS animation
+     sequence — section-divider slide, intro word-rise, underline draw,
+     meta-cell stagger, Q&A cascade, footer drift, signature draw,
+     ambient glyph drift. By default those animations fire from the
+     moment the page is parsed, which means they're already over by
+     the time the user scrolls down to them.
+     CSS pauses every page-01 animation (animation-play-state: paused)
+     while .page-01 is missing the .is-revealed class. We add that
+     class here, the first time page-01 crosses 18% of the viewport.
+     Same pattern can be applied to other pages later. */
+  ['.page-01'].forEach(function(sel){
+    var el = document.querySelector(sel);
+    if (!el) return;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) {
+            e.target.classList.add('is-revealed');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.18 });
+      io.observe(el);
+    } else {
+      el.classList.add('is-revealed');
+    }
+  });
 
   /* ── 5. Single rAF tick: parallax + reading-progress ────────
      One requestAnimationFrame callback runs at most once per frame
