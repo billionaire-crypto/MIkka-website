@@ -146,6 +146,7 @@ body {
   box-shadow: 0 4px 18px rgba(0,0,0,.35);
 }
 .pagejump button {
+  position: relative;                       /* host the progress ring */
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
   padding: 0; margin: 0;
@@ -157,6 +158,23 @@ body {
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
+/* Page progress ring: conic gradient fills the perimeter as the user
+   scrolls through that section. --progress is set per-button by JS. */
+.pagejump button::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from -90deg,
+    var(--accent-warm, #EE9078) calc(var(--progress, 0) * 360deg),
+    transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
+          mask: radial-gradient(circle, transparent 60%, black 62%);
+  opacity: .85;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+.pagejump button[aria-current="true"]::before { opacity: 0; }   /* active dot is solid; no ring */
 .pagejump button:hover {
   border-color: rgba(238, 144, 120, 0.9);
   color: rgba(245, 228, 220, 1);
@@ -169,9 +187,26 @@ body {
 }
 .pagejump .num { font-weight: 500; letter-spacing: .04em; }
 
+/* Universal fade-and-lift on enter ────────────────────────────────────────
+   JS adds [data-reveal] to a curated set of editorial elements
+   (quote slots, awards rows, recital movements, etc.) and toggles .is-in
+   when each crosses the viewport. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 900ms cubic-bezier(.22,.7,.2,1), transform 900ms cubic-bezier(.22,.7,.2,1);
+  will-change: opacity, transform;
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .pagejump button { transition: none; }
+  .pagejump button::before { display: none; }
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
 
 </style>
@@ -7042,6 +7077,8 @@ margin-right: 8px;
 
 </section>
 
+<!-- Smooth scroll engine: Lenis (loaded synchronously so inline init below is safe) -->
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
 <script>
 
 (function(){
@@ -7077,12 +7114,14 @@ margin-right: 8px;
   if (!nav) return;
   var buttons = Array.prototype.slice.call(nav.querySelectorAll('button'));
 
-  // Tap-to-scroll
+  // Tap-to-scroll (uses Lenis when available, falls back to native scrollIntoView)
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
       var id = btn.getAttribute('data-target');
       var el = document.querySelector('.' + id);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!el) return;
+      if (window.__lenis) window.__lenis.scrollTo(el, { offset: 0, duration: 1.4 });
+      else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
@@ -7112,6 +7151,106 @@ margin-right: 8px;
   }
 })();
 
+</script>
+<script>
+/* ───────────────────────────────────────────────────────────
+   Phase 1 immersive scroll: Lenis + page-jump progress + reveal
+   ─────────────────────────────────────────────────────────── */
+(function(){
+  'use strict';
+
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── 1. Lenis smooth/inertia scroll ─────────────────────── */
+  if (window.Lenis && !prefersReduced) {
+    var lenis = new window.Lenis({
+      duration: 1.15,
+      easing: function(t){ return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 1.4
+    });
+    window.__lenis = lenis;
+    function raf(time){ lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+    /* Cancel CSS smooth-scroll on individual page wrappers — Lenis owns it now */
+    document.documentElement.style.scrollBehavior = 'auto';
+  }
+
+  /* ── 2. Site-bar nav (top sticky bar) ── */
+  document.querySelectorAll('.site-bar-nav a[data-page-jump]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var target = a.getAttribute('data-page-jump');
+      var el = document.querySelector('.' + target);
+      if (!el) return;
+      if (window.__lenis) window.__lenis.scrollTo(el, { offset: 0, duration: 1.4 });
+      else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  /* ── 3. Page-jump progress fill ────────────────────────────
+     Each .pagejump button gets a --progress (0..1) custom property
+     that maps to scroll progress through its corresponding .page-XX
+     section, drawn as a conic-gradient ring around the dot. */
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var pjButtons = Array.prototype.slice.call(document.querySelectorAll('.pagejump button[data-target]'));
+  function btnFor(page){
+    var cls = Array.prototype.slice.call(page.classList).find(function(c){ return /^page-\d{2}$/.test(c); });
+    return pjButtons.find(function(b){ return b.getAttribute('data-target') === cls; });
+  }
+  function updateProgress(){
+    var vh = window.innerHeight;
+    pages.forEach(function(page){
+      var rect = page.getBoundingClientRect();
+      var h = page.offsetHeight;
+      var span = Math.max(1, h - vh);
+      var p;
+      if (rect.bottom < 0) p = 1;
+      else if (rect.top > 0) p = 0;
+      else p = Math.max(0, Math.min(1, -rect.top / span));
+      var btn = btnFor(page);
+      if (btn) btn.style.setProperty('--progress', p.toFixed(3));
+    });
+  }
+  updateProgress();
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  window.addEventListener('resize', updateProgress);
+  if (window.__lenis) window.__lenis.on('scroll', updateProgress);
+
+  /* ── 4. Universal fade-and-lift on enter ────────────────────
+     Tags a curated list of editorial elements with [data-reveal]
+     and toggles .is-in once they cross the viewport threshold.
+     Honours prefers-reduced-motion (handled in CSS). */
+  var REVEAL_SELECTORS = [
+    '.page-00 .quote-slot',
+    '.page-00 .plaque',
+    '.page-00 .turn',
+    '.page-02 .cat-row',
+    '.page-02 .legend',
+    '.page-02 .band.center',
+    '.page-03 .act-divider',
+    '.page-03 .intermission',
+    '.page-03 .mvmt',
+    '.page-03 .footer-band',
+    '.page-04 .footer-band'
+  ].join(', ');
+  var revealEls = document.querySelectorAll(REVEAL_SELECTORS);
+  revealEls.forEach(function(el){ el.setAttribute('data-reveal', ''); });
+  if ('IntersectionObserver' in window) {
+    var revealIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          e.target.classList.add('is-in');
+          revealIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    revealEls.forEach(function(el){ revealIO.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-in'); });
+  }
+})();
 </script>
 <script>
 /* ─── page-00 · Hero script (interactive strings + portrait) ─── */
