@@ -729,6 +729,7 @@ body {
   .site-bar-nav a { font-size: 8.5px; letter-spacing: 0.22em; padding: 18px 2px; }
   .site-bar-mark { padding: 18px 14px; }
   .site-bar-mark .mc { font-size: 19px; }
+  .page-03 .kb-strip { top: 48px; }   /* shorter site-bar on phones */
 }
 @media (prefers-reduced-motion: reduce) {
   .page-00, .page-00 .stage[data-bg="gradient"] { animation: none; }
@@ -2441,7 +2442,7 @@ During intermission: dims and says "INTERMISSION"
 ═══════════════════════════════════════════════════════ */
 .page-03 .kb-strip{
 position: sticky;
-top: 0;
+top: 52px;            /* clear the global .site-bar so the keyboard sits below it */
 z-index: 50;
 background:
 linear-gradient(to bottom, rgba(245, 228, 220, 0.96), rgba(245, 228, 220, 0.88));
