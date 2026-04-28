@@ -205,16 +205,23 @@ body {
   mix-blend-mode: multiply;
 }
 
-/* ───── LEGEND BAR (top dark navigation strip) ───── */
-.page-00 .legend {
-  position: relative; z-index: 6;
+/* ───── STICKY SITE BAR (sits above all pages) ─────
+   Sits at body level, NOT inside any .page section, so it stays
+   pinned to the viewport top across the whole booklet. */
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   background: var(--ink); color: var(--paper);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: stretch;
   border-bottom: 1px solid rgba(238, 144, 120, 0.12);
 }
-.page-00 .legend-mark {
+.site-bar-mark {
   padding: 20px 16px 20px 20px;
   border-right: 1px solid rgba(238, 144, 120, 0.18);
   display: flex; align-items: center; gap: 10px;
@@ -222,21 +229,21 @@ body {
   color: var(--paper); text-transform: uppercase; font-weight: 500;
   text-decoration: none;
 }
-.page-00 .legend-mark .mc {
+.site-bar-mark .mc {
   font-family: var(--cond); font-size: 22px;
   letter-spacing: 0.04em; color: var(--accent-warm);
   line-height: 1;
 }
-.page-00 .legend-mark .yr {
+.site-bar-mark .yr {
   color: rgba(251, 242, 236, 0.55);
   font-size: 9px;
 }
-.page-00 .legend-nav {
+.site-bar-nav {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-items: stretch;
 }
-.page-00 .legend-nav a {
+.site-bar-nav a {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   padding: 20px 4px;
@@ -247,13 +254,13 @@ body {
   border-left: 1px solid rgba(238, 144, 120, 0.14);
   transition: color 0.2s ease, background 0.2s ease;
 }
-.page-00 .legend-nav a:first-child { border-left: 0; }
-.page-00 .legend-nav a:hover, .page-00 .legend-nav a:focus {
+.site-bar-nav a:first-child { border-left: 0; }
+.site-bar-nav a:hover, .site-bar-nav a:focus {
   color: var(--paper);
   background: rgba(196, 72, 96, 0.18);
   outline: none;
 }
-.page-00 .legend-nav a::before {
+.site-bar-nav a::before {
   content: ''; position: absolute;
   top: 6px; left: 8px;
   width: 3px; height: 3px; border-radius: 50%;
@@ -719,9 +726,9 @@ body {
 @media (max-width: 380px) {
   .page-00 .stage { height: 480px; }
   .page-00 .stage-name h1 { font-size: clamp(64px, 17vw, 84px); }
-  .page-00 .legend-nav a { font-size: 8.5px; letter-spacing: 0.22em; padding: 18px 2px; }
-  .page-00 .legend-mark { padding: 18px 14px; }
-  .page-00 .legend-mark .mc { font-size: 19px; }
+  .site-bar-nav a { font-size: 8.5px; letter-spacing: 0.22em; padding: 18px 2px; }
+  .site-bar-mark { padding: 18px 14px; }
+  .site-bar-mark .mc { font-size: 19px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page-00, .page-00 .stage[data-bg="gradient"] { animation: none; }
@@ -5485,14 +5492,13 @@ margin-right: 8px;
 </nav>
 
 
-<section class="page page-00" data-page="00" data-name="Hero">
-<!-- ───── LEGEND BAR ───── -->
-<header class="legend">
-  <a class="legend-mark" href="#" aria-label="Mikka Chinbaatar — home">
+<!-- ───── STICKY SITE BAR (sits above all pages) ───── -->
+<header class="site-bar">
+  <a class="site-bar-mark" href="#" aria-label="Mikka Chinbaatar — home">
     <span class="mc">MC</span>
     <span class="yr">2026</span>
   </a>
-  <nav class="legend-nav" aria-label="Site navigation">
+  <nav class="site-bar-nav" aria-label="Site navigation">
     <a href="#" data-page-jump="page-01">About</a>
     <a href="#" data-page-jump="page-02">Awards</a>
     <a href="#" data-page-jump="page-03">Work</a>
@@ -5500,6 +5506,7 @@ margin-right: 8px;
   </nav>
 </header>
 
+<section class="page page-00" data-page="00" data-name="Hero">
 <!-- ───── RUNNER STRIP ───── -->
 <div class="runner">
   <div class="runner-l">Mikka / 2026</div>
@@ -7135,7 +7142,7 @@ window.__mikkaLazyInit("page-00", function(){
   }
 
   /* Wire the legend nav to the booklet's existing pagejump scroll. */
-  var legendLinks = document.querySelectorAll('.page-00 .legend-nav a[data-page-jump]');
+  var legendLinks = document.querySelectorAll('.site-bar-nav a[data-page-jump]');
   legendLinks.forEach(function(a){
     a.addEventListener('click', function(e){
       e.preventDefault();
