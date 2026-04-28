@@ -128,24 +128,58 @@ body {
   color: var(--accent, #C44860);
   white-space: nowrap;
 }
-/* Universal fade-and-lift on enter ────────────────────────────────────────
-   JS adds [data-reveal] to a curated set of editorial elements
-   (quote slots, awards rows, recital movements, etc.) and toggles .is-in
-   when each crosses the viewport. */
-[data-reveal] {
+/* Universal reveal-on-enter ────────────────────────────────────────────────
+   JS tags curated elements with [data-reveal="<variant>"] and toggles
+   .is-in once they cross the viewport. Three variants:
+     ""        — fade + 14px lift (the default editorial entrance)
+     "title"   — scale 0.94 → 1 + fade (big section titles)
+     "divider" — page-boundary lines draw outward from the label, label
+                 then fades in with a small scale-up */
+[data-reveal=""] {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 900ms cubic-bezier(.22,.7,.2,1), transform 900ms cubic-bezier(.22,.7,.2,1);
   will-change: opacity, transform;
 }
-[data-reveal].is-in {
+[data-reveal=""].is-in {
   opacity: 1;
   transform: translateY(0);
 }
 
+[data-reveal="title"] {
+  opacity: 0;
+  transform: scale(0.94);
+  transform-origin: left center;
+  transition: opacity 1100ms cubic-bezier(.22,.7,.2,1), transform 1100ms cubic-bezier(.22,.7,.2,1);
+  will-change: opacity, transform;
+}
+[data-reveal="title"].is-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+[data-reveal="divider"] .line {
+  transform: scaleX(0);
+  transition: transform 1100ms cubic-bezier(.22,.7,.2,1);
+  will-change: transform;
+}
+[data-reveal="divider"] .line:first-child { transform-origin: right center; }
+[data-reveal="divider"] .line:last-child  { transform-origin: left center; }
+[data-reveal="divider"] .label {
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 800ms ease 350ms, transform 800ms cubic-bezier(.22,.7,.2,1) 350ms;
+  display: inline-block;        /* allow scale to animate on inline element */
+  will-change: opacity, transform;
+}
+[data-reveal="divider"].is-in .line { transform: scaleX(1); }
+[data-reveal="divider"].is-in .label { opacity: 1; transform: scale(1); }
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
+  [data-reveal="divider"] .line,
+  [data-reveal="divider"] .label { opacity: 1; transform: none; transition: none; }
 }
 
 </style>
@@ -7141,25 +7175,35 @@ margin-right: 8px;
   window.addEventListener('resize', syncSiteBarHeight);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncSiteBarHeight);
 
-  /* ── 4. Universal fade-and-lift on enter ────────────────────
-     Tags a curated list of editorial elements with [data-reveal]
-     and toggles .is-in once they cross the viewport threshold.
-     Honours prefers-reduced-motion (handled in CSS). */
-  var REVEAL_SELECTORS = [
-    '.page-00 .quote-slot',
-    '.page-00 .plaque',
-    '.page-00 .turn',
-    '.page-02 .cat-row',
-    '.page-02 .legend',
-    '.page-02 .band.center',
-    '.page-03 .act-divider',
-    '.page-03 .intermission',
-    '.page-03 .mvmt',
-    '.page-03 .footer-band',
-    '.page-04 .footer-band'
-  ].join(', ');
-  var revealEls = document.querySelectorAll(REVEAL_SELECTORS);
-  revealEls.forEach(function(el){ el.setAttribute('data-reveal', ''); });
+  /* ── 4. Reveal-on-enter ─────────────────────────────────────
+     Three variants tagged via [data-reveal="<value>"]:
+       ""        — fade + lift (small, editorial)
+       "title"   — scale + fade (big section titles)
+       "divider" — line-draw + label fade (between-page strips)
+     A single IntersectionObserver toggles .is-in for all of them;
+     the variant-specific CSS does the rest. Honours
+     prefers-reduced-motion (handled in CSS). */
+  var REVEAL_GROUPS = [
+    { value: '', selectors: [
+        '.page-00 .quote-slot', '.page-00 .plaque', '.page-00 .turn',
+        '.page-02 .cat-row', '.page-02 .legend', '.page-02 .band.center',
+        '.page-03 .act-divider', '.page-03 .intermission', '.page-03 .mvmt',
+        '.page-03 .footer-band', '.page-04 .footer-band'
+      ] },
+    { value: 'title', selectors: [
+        '.page-01 .cat-name', '.page-03 .cover-name', '.page-04 h1.h1'
+      ] },
+    { value: 'divider', selectors: [
+        '.page-boundary'
+      ] }
+  ];
+  var revealEls = [];
+  REVEAL_GROUPS.forEach(function(group){
+    document.querySelectorAll(group.selectors.join(', ')).forEach(function(el){
+      el.setAttribute('data-reveal', group.value);
+      revealEls.push(el);
+    });
+  });
   if ('IntersectionObserver' in window) {
     var revealIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
