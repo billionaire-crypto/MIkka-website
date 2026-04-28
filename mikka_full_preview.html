@@ -128,65 +128,6 @@ body {
   color: var(--accent, #C44860);
   white-space: nowrap;
 }
-/* Page-jump widget ──────────────────────────────────────────────────────── */
-.pagejump {
-  position: fixed;
-  bottom: 14px; right: 14px;       /* moved from top-right to bottom-right —
-                                       avoids occluding Hero's "00/04" label
-                                       and Awards/Teaching content edges */
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 8px;
-  background: rgba(42, 21, 40, 0.78);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-radius: 14px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.35);
-}
-.pagejump button {
-  position: relative;                       /* host the progress ring */
-  display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px;
-  padding: 0; margin: 0;
-  background: transparent;
-  border: 1px solid rgba(245, 228, 220, 0.35);
-  color: rgba(245, 228, 220, 0.7);
-  border-radius: 50%;
-  font: 500 9px/1 'IBM Plex Mono', monospace;
-  cursor: pointer;
-  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
-}
-/* Page progress ring: conic gradient fills the perimeter as the user
-   scrolls through that section. --progress is set per-button by JS. */
-.pagejump button::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  background: conic-gradient(from -90deg,
-    var(--accent-warm, #EE9078) calc(var(--progress, 0) * 360deg),
-    transparent 0);
-  -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
-          mask: radial-gradient(circle, transparent 60%, black 62%);
-  opacity: .85;
-  pointer-events: none;
-  transition: opacity 240ms ease;
-}
-.pagejump button[aria-current="true"]::before { opacity: 0; }   /* active dot is solid; no ring */
-.pagejump button:hover {
-  border-color: rgba(238, 144, 120, 0.9);
-  color: rgba(245, 228, 220, 1);
-}
-.pagejump button[aria-current="true"] {
-  background: var(--accent, #C44860);
-  border-color: var(--accent, #C44860);
-  color: #fff;
-  transform: scale(1.06);
-}
-.pagejump .num { font-weight: 500; letter-spacing: .04em; }
-
 /* Universal fade-and-lift on enter ────────────────────────────────────────
    JS adds [data-reveal] to a curated set of editorial elements
    (quote slots, awards rows, recital movements, etc.) and toggles .is-in
@@ -204,8 +145,6 @@ body {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .pagejump button { transition: none; }
-  .pagejump button::before { display: none; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
 
@@ -764,7 +703,7 @@ body {
   .site-bar-nav a { font-size: 8.5px; letter-spacing: 0.22em; padding: 18px 2px; }
   .site-bar-mark { padding: 18px 14px; }
   .site-bar-mark .mc { font-size: 19px; }
-  .page-03 .kb-strip { top: 48px; }   /* shorter site-bar on phones */
+  /* (.kb-strip top now reads var(--site-bar-h), set by JS, so no override needed) */
 }
 @media (prefers-reduced-motion: reduce) {
   .page-00, .page-00 .stage[data-bg="gradient"] { animation: none; }
@@ -2477,7 +2416,7 @@ During intermission: dims and says "INTERMISSION"
 ═══════════════════════════════════════════════════════ */
 .page-03 .kb-strip{
 position: sticky;
-top: 52px;            /* clear the global .site-bar so the keyboard sits below it */
+top: var(--site-bar-h, 62px);   /* pin flush under the sticky .site-bar */
 z-index: 50;
 background:
 linear-gradient(to bottom, rgba(245, 228, 220, 0.96), rgba(245, 228, 220, 0.88));
@@ -5519,15 +5458,6 @@ margin-right: 8px;
 </head>
 <body>
 
-<nav class="pagejump" aria-label="Page navigation">
-  <button data-target="page-00" aria-current="true" title="Hero"><span class="num">00</span></button>
-  <button data-target="page-01" title="About"><span class="num">01</span></button>
-  <button data-target="page-02" title="Awards"><span class="num">02</span></button>
-  <button data-target="page-03" title="Work"><span class="num">03</span></button>
-  <button data-target="page-04" title="Teaching"><span class="num">04</span></button>
-</nav>
-
-
 <!-- ───── STICKY SITE BAR (sits above all pages) ───── -->
 <header class="site-bar">
   <a class="site-bar-mark" href="#" aria-label="Mikka Chinbaatar — home">
@@ -7177,46 +7107,39 @@ margin-right: 8px;
     document.documentElement.style.scrollBehavior = 'auto';
   }
 
-  /* ── 2. Site-bar nav (top sticky bar) ── */
+  /* ── 2. Site-bar nav (top sticky bar) ──
+     Scrolls to the matching .page-XX section, offset upward by the
+     site-bar's height so the section header isn't tucked behind it. */
+  function siteBarOffset(){
+    var bar = document.querySelector('.site-bar');
+    return bar ? -bar.offsetHeight : 0;
+  }
   document.querySelectorAll('.site-bar-nav a[data-page-jump]').forEach(function(a){
     a.addEventListener('click', function(e){
       e.preventDefault();
       var target = a.getAttribute('data-page-jump');
       var el = document.querySelector('.' + target);
       if (!el) return;
-      if (window.__lenis) window.__lenis.scrollTo(el, { offset: 0, duration: 1.4 });
-      else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var off = siteBarOffset();
+      if (window.__lenis) window.__lenis.scrollTo(el, { offset: off, duration: 1.4 });
+      else {
+        var y = el.getBoundingClientRect().top + window.scrollY + off;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
     });
   });
 
-  /* ── 3. Page-jump progress fill ────────────────────────────
-     Each .pagejump button gets a --progress (0..1) custom property
-     that maps to scroll progress through its corresponding .page-XX
-     section, drawn as a conic-gradient ring around the dot. */
-  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
-  var pjButtons = Array.prototype.slice.call(document.querySelectorAll('.pagejump button[data-target]'));
-  function btnFor(page){
-    var cls = Array.prototype.slice.call(page.classList).find(function(c){ return /^page-\d{2}$/.test(c); });
-    return pjButtons.find(function(b){ return b.getAttribute('data-target') === cls; });
+  /* ── 3. Site-bar height as a CSS variable ──────────────────
+     Used by the smooth-scroll offset below and by the Work page's
+     sticky keyboard so it pins flush under the sticky site bar.
+     Re-measured on resize so phone vs desktop both work. */
+  function syncSiteBarHeight(){
+    var bar = document.querySelector('.site-bar');
+    if (bar) document.documentElement.style.setProperty('--site-bar-h', bar.offsetHeight + 'px');
   }
-  function updateProgress(){
-    var vh = window.innerHeight;
-    pages.forEach(function(page){
-      var rect = page.getBoundingClientRect();
-      var h = page.offsetHeight;
-      var span = Math.max(1, h - vh);
-      var p;
-      if (rect.bottom < 0) p = 1;
-      else if (rect.top > 0) p = 0;
-      else p = Math.max(0, Math.min(1, -rect.top / span));
-      var btn = btnFor(page);
-      if (btn) btn.style.setProperty('--progress', p.toFixed(3));
-    });
-  }
-  updateProgress();
-  window.addEventListener('scroll', updateProgress, { passive: true });
-  window.addEventListener('resize', updateProgress);
-  if (window.__lenis) window.__lenis.on('scroll', updateProgress);
+  syncSiteBarHeight();
+  window.addEventListener('resize', syncSiteBarHeight);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncSiteBarHeight);
 
   /* ── 4. Universal fade-and-lift on enter ────────────────────
      Tags a curated list of editorial elements with [data-reveal]
