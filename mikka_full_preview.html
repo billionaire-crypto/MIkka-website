@@ -84,6 +84,11 @@ body {
   background: var(--bg, #F5E4DC);
   isolation: isolate;              /* new stacking context per page (z-index isolation) */
   overflow: visible;               /* allow page content to flow naturally   */
+  /* 3D depth context: child reveals can use rotateX/translateZ and the
+     browser renders them with perspective foreshortening — elements
+     tilted-back-and-down rotate forward toward the viewer as they enter. */
+  perspective: 1400px;
+  perspective-origin: 50% 35%;
   /* NOTE: no `contain: paint` here — that would create a containing block
      for position:sticky descendants, breaking the Work page's pinned
      scroll-driven keyboard. Sticky elements need to anchor to the viewport. */
@@ -149,17 +154,39 @@ body {
   transform: translateY(0);
 }
 
+/* Title and depth variants both use a per-element perspective() so
+   they read as 3D regardless of any non-preserve-3d ancestors. They
+   start tilted-and-pushed-back, rotate forward to flat at the viewer. */
 [data-reveal="title"] {
   opacity: 0;
-  transform: translateX(-60px) scale(0.82);
-  transform-origin: left center;
+  transform: perspective(1400px) translate3d(-30px, 20px, -180px)
+             rotateX(28deg) scale(0.88);
+  transform-origin: left bottom;
   transition: opacity 1400ms cubic-bezier(.22,.7,.2,1),
               transform 1400ms cubic-bezier(.22,.7,.2,1);
   will-change: opacity, transform;
 }
 [data-reveal="title"].is-in {
   opacity: 1;
-  transform: translateX(0) scale(1);
+  transform: perspective(1400px) translate3d(0, 0, 0)
+             rotateX(0) scale(1);
+}
+
+/* Depth variant — for big content cards (award rows, recital movements,
+   museum plaques). Card starts tilted back ~22deg + pushed -130px
+   toward vanishing point, rotates forward and scales to 1 at viewer. */
+[data-reveal="depth"] {
+  opacity: 0;
+  transform: perspective(1400px) translate3d(0, 30px, -130px)
+             rotateX(22deg);
+  transform-origin: center bottom;
+  transition: opacity 1300ms cubic-bezier(.22,.7,.2,1),
+              transform 1300ms cubic-bezier(.22,.7,.2,1);
+  will-change: opacity, transform;
+}
+[data-reveal="depth"].is-in {
+  opacity: 1;
+  transform: perspective(1400px) translate3d(0, 0, 0) rotateX(0);
 }
 
 [data-reveal="divider"] .line {
@@ -219,6 +246,8 @@ body {
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
+  [data-reveal="title"],
+  [data-reveal="depth"] { opacity: 1; transform: none; transition: none; }
   [data-reveal="divider"] .line,
   [data-reveal="divider"] .label,
   [data-reveal="words"] .rw { opacity: 1; transform: none; transition: none; }
@@ -7301,9 +7330,9 @@ margin-right: 8px;
 
   var REVEAL_GROUPS = [
     { value: '', selectors: [
-        '.page-00 .quote-slot', '.page-00 .plaque', '.page-00 .turn',
-        '.page-02 .cat-row', '.page-02 .legend', '.page-02 .band.center',
-        '.page-03 .act-divider', '.page-03 .intermission', '.page-03 .mvmt',
+        '.page-00 .quote-slot', '.page-00 .turn',
+        '.page-02 .legend', '.page-02 .band.center',
+        '.page-03 .act-divider', '.page-03 .intermission',
         '.page-03 .footer-band', '.page-04 .footer-band'
       ] },
     { value: 'title', selectors: [
@@ -7314,6 +7343,12 @@ margin-right: 8px;
       ] },
     { value: 'words', selectors: [
         '.page-00 .qs-text', '.page-00 .colophon .quote'
+      ] },
+    /* 3D entrance — content cards rotate forward toward the viewer */
+    { value: 'depth', selectors: [
+        '.page-00 .plaque',
+        '.page-02 .cat-row',
+        '.page-03 .mvmt'
       ] }
   ];
   var revealEls = [];
