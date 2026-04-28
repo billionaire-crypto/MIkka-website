@@ -175,11 +175,48 @@ body {
 [data-reveal="divider"].is-in .line { transform: scaleX(1); }
 [data-reveal="divider"].is-in .label { opacity: 1; transform: scale(1); }
 
+/* Word-by-word reveal: each word inside a [data-reveal="words"] block
+   gets wrapped in <span class="rw"> with a per-word --i index, and its
+   transition-delay scales off that index for a left-to-right cascade. */
+[data-reveal="words"] .rw {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 580ms ease, transform 580ms cubic-bezier(.22,.7,.2,1);
+  transition-delay: calc(var(--i, 0) * 55ms);
+  will-change: opacity, transform;
+}
+[data-reveal="words"].is-in .rw {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reading-progress strip drawn at the bottom edge of the sticky site-bar.
+   --scroll-pct is set on documentElement by JS (0..100). Gradient runs
+   peach -> wine -> plum across the booklet, so the colour you see in the
+   strip telegraphs roughly which section you're in. */
+.site-bar::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 2px;
+  width: calc(var(--scroll-pct, 0) * 1%);
+  background: linear-gradient(90deg,
+    var(--accent-warm, #EE9078) 0%,
+    var(--accent, #C44860) 55%,
+    var(--plum, #8A4A95) 100%);
+  background-size: 480px 100%;          /* hold gradient length steady regardless of fill width */
+  background-attachment: local;
+  transition: width 80ms linear;
+  pointer-events: none;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   [data-reveal="divider"] .line,
-  [data-reveal="divider"] .label { opacity: 1; transform: none; transition: none; }
+  [data-reveal="divider"] .label,
+  [data-reveal="words"] .rw { opacity: 1; transform: none; transition: none; }
 }
 
 </style>
@@ -7176,13 +7213,48 @@ margin-right: 8px;
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncSiteBarHeight);
 
   /* ── 4. Reveal-on-enter ─────────────────────────────────────
-     Three variants tagged via [data-reveal="<value>"]:
+     Four variants tagged via [data-reveal="<value>"]:
        ""        — fade + lift (small, editorial)
        "title"   — scale + fade (big section titles)
        "divider" — line-draw + label fade (between-page strips)
+       "words"   — left-to-right word cascade for pull quotes
      A single IntersectionObserver toggles .is-in for all of them;
      the variant-specific CSS does the rest. Honours
      prefers-reduced-motion (handled in CSS). */
+
+  /* Walks an element's DOM, replacing each text node's words with
+     <span class="rw" style="--i:N">word</span> while leaving inline
+     elements (<em>, <span class="openq">, etc.) intact. Returns the
+     number of words wrapped (used to continue the index across
+     siblings if needed). */
+  function splitTextWords(node, startIndex){
+    var i = startIndex || 0;
+    var children = Array.prototype.slice.call(node.childNodes);
+    children.forEach(function(child){
+      if (child.nodeType === 3) {                    /* TEXT_NODE */
+        var parts = child.textContent.split(/(\s+)/);
+        var frag = document.createDocumentFragment();
+        parts.forEach(function(p){
+          if (p.length === 0) return;
+          if (/^\s+$/.test(p)) {
+            frag.appendChild(document.createTextNode(p));
+          } else {
+            var span = document.createElement('span');
+            span.className = 'rw';
+            span.style.setProperty('--i', i);
+            span.textContent = p;
+            frag.appendChild(span);
+            i++;
+          }
+        });
+        child.parentNode.replaceChild(frag, child);
+      } else if (child.nodeType === 1) {             /* ELEMENT_NODE */
+        i = splitTextWords(child, i);
+      }
+    });
+    return i;
+  }
+
   var REVEAL_GROUPS = [
     { value: '', selectors: [
         '.page-00 .quote-slot', '.page-00 .plaque', '.page-00 .turn',
@@ -7195,12 +7267,16 @@ margin-right: 8px;
       ] },
     { value: 'divider', selectors: [
         '.page-boundary'
+      ] },
+    { value: 'words', selectors: [
+        '.page-00 .qs-text', '.page-00 .colophon .quote'
       ] }
   ];
   var revealEls = [];
   REVEAL_GROUPS.forEach(function(group){
     document.querySelectorAll(group.selectors.join(', ')).forEach(function(el){
       el.setAttribute('data-reveal', group.value);
+      if (group.value === 'words') splitTextWords(el);
       revealEls.push(el);
     });
   });
@@ -7217,6 +7293,46 @@ margin-right: 8px;
   } else {
     revealEls.forEach(function(el){ el.classList.add('is-in'); });
   }
+
+  /* ── 5. Hero portrait parallax ──────────────────────────────
+     Translates the .portrait figure ~8% slower than the page scroll,
+     centred around the moment its mid-line crosses the viewport
+     centre, so the photo lags subtly as you scroll past the hero. */
+  if (!prefersReduced) {
+    var portrait = document.querySelector('.page-00 .portrait');
+    if (portrait) {
+      var parallaxRaf = 0;
+      var parallax = function(){
+        parallaxRaf = 0;
+        var rect = portrait.getBoundingClientRect();
+        var vh = window.innerHeight;
+        if (rect.bottom < -200 || rect.top > vh + 200) return;   /* off-screen, skip */
+        var center = rect.top + rect.height / 2;
+        var delta  = vh / 2 - center;
+        var offset = delta * 0.08;
+        portrait.style.transform = 'translate3d(0, ' + offset.toFixed(1) + 'px, 0)';
+      };
+      var schedule = function(){
+        if (!parallaxRaf) parallaxRaf = requestAnimationFrame(parallax);
+      };
+      parallax();
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule);
+      if (window.__lenis) window.__lenis.on('scroll', schedule);
+    }
+  }
+
+  /* ── 6. Reading-progress percentage ─────────────────────────
+     Drives the gradient strip drawn under the site-bar. */
+  function updateScrollPct(){
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    document.documentElement.style.setProperty('--scroll-pct', pct.toFixed(2));
+  }
+  updateScrollPct();
+  window.addEventListener('scroll', updateScrollPct, { passive: true });
+  window.addEventListener('resize', updateScrollPct);
+  if (window.__lenis) window.__lenis.on('scroll', updateScrollPct);
 })();
 </script>
 <script>
