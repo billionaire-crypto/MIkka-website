@@ -130,15 +130,18 @@ body {
 }
 /* Universal reveal-on-enter ────────────────────────────────────────────────
    JS tags curated elements with [data-reveal="<variant>"] and toggles
-   .is-in once they cross the viewport. Three variants:
-     ""        — fade + 14px lift (the default editorial entrance)
-     "title"   — scale 0.94 → 1 + fade (big section titles)
+   .is-in once they cross the viewport. Variants:
+     ""        — fade + 28px lift (the default editorial entrance)
+     "title"   — scale 0.82 → 1 + 60px slide-in from left + fade
+                 (big section titles arrive cinematically)
      "divider" — page-boundary lines draw outward from the label, label
-                 then fades in with a small scale-up */
+                 then fades in with a small scale-up
+     "words"   — left-to-right word cascade for pull quotes */
 [data-reveal=""] {
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 900ms cubic-bezier(.22,.7,.2,1), transform 900ms cubic-bezier(.22,.7,.2,1);
+  transform: translateY(28px);
+  transition: opacity 1100ms cubic-bezier(.22,.7,.2,1),
+              transform 1100ms cubic-bezier(.22,.7,.2,1);
   will-change: opacity, transform;
 }
 [data-reveal=""].is-in {
@@ -148,28 +151,30 @@ body {
 
 [data-reveal="title"] {
   opacity: 0;
-  transform: scale(0.94);
+  transform: translateX(-60px) scale(0.82);
   transform-origin: left center;
-  transition: opacity 1100ms cubic-bezier(.22,.7,.2,1), transform 1100ms cubic-bezier(.22,.7,.2,1);
+  transition: opacity 1400ms cubic-bezier(.22,.7,.2,1),
+              transform 1400ms cubic-bezier(.22,.7,.2,1);
   will-change: opacity, transform;
 }
 [data-reveal="title"].is-in {
   opacity: 1;
-  transform: scale(1);
+  transform: translateX(0) scale(1);
 }
 
 [data-reveal="divider"] .line {
   transform: scaleX(0);
-  transition: transform 1100ms cubic-bezier(.22,.7,.2,1);
+  transition: transform 1500ms cubic-bezier(.22,.7,.2,1);
   will-change: transform;
 }
 [data-reveal="divider"] .line:first-child { transform-origin: right center; }
 [data-reveal="divider"] .line:last-child  { transform-origin: left center; }
 [data-reveal="divider"] .label {
   opacity: 0;
-  transform: scale(0.86);
-  transition: opacity 800ms ease 350ms, transform 800ms cubic-bezier(.22,.7,.2,1) 350ms;
-  display: inline-block;        /* allow scale to animate on inline element */
+  transform: scale(0.7);
+  transition: opacity 900ms ease 500ms,
+              transform 900ms cubic-bezier(.22,.7,.2,1) 500ms;
+  display: inline-block;
   will-change: opacity, transform;
 }
 [data-reveal="divider"].is-in .line { transform: scaleX(1); }
@@ -181,9 +186,9 @@ body {
 [data-reveal="words"] .rw {
   display: inline-block;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 580ms ease, transform 580ms cubic-bezier(.22,.7,.2,1);
-  transition-delay: calc(var(--i, 0) * 55ms);
+  transform: translateY(16px);
+  transition: opacity 720ms ease, transform 720ms cubic-bezier(.22,.7,.2,1);
+  transition-delay: calc(var(--i, 0) * 70ms);
   will-change: opacity, transform;
 }
 [data-reveal="words"].is-in .rw {
@@ -7281,6 +7286,9 @@ margin-right: 8px;
     });
   });
   if ('IntersectionObserver' in window) {
+    /* Trigger reveals well after the element has entered, not on first
+       sliver of contact — feels more deliberate and animations actually
+       finish in front of the user instead of behind their scroll. */
     var revealIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
         if (e.isIntersecting) {
@@ -7288,7 +7296,7 @@ margin-right: 8px;
           revealIO.unobserve(e.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    }, { threshold: 0.35, rootMargin: '0px 0px -18% 0px' });
     revealEls.forEach(function(el){ revealIO.observe(el); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('is-in'); });
