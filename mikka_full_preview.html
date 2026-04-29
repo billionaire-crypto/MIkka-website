@@ -2046,7 +2046,9 @@ body.idle .turn .lbl {
     rotateX(calc(var(--dir-y) * 16deg * (1 - var(--p))))
     scale(calc(1 + 0.32 * (1 - var(--p))));
 
-  filter: blur(calc(10px * (1 - var(--p))));
+  /* Disabled — per-card blur on every scroll frame is GPU-expensive
+     and noticeably laggy. Translate/scale alone reads as plenty of depth. */
+  /* filter: blur(calc(10px * (1 - var(--p)))); */
   transform-origin: 50% 50%;
   /* Short transitions on top of the JS-driven --p var. They smooth over
      any dropped frames or tiny jitter — when the JS updates --p between
@@ -2854,6 +2856,11 @@ document.documentElement.style.setProperty(
    target every frame. Mobile keeps native behavior (touch scrolling
    is already inertial; intercepting it kills momentum). */
 (function(){
+  /* Disabled — native scroll on modern browsers is already smooth and
+     this Lenis-style override fought the browser, intercepted wheel
+     events, and could trap the user mid-page when maxScroll() lagged
+     behind layout. Re-enable only if a real measurable need appears. */
+  return;
   if (!window.matchMedia) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   /* Skip on touch devices — native momentum is already smooth there
