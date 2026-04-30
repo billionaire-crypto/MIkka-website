@@ -6170,21 +6170,12 @@ section.page.page-04 {
 }
 
 /* ═══════════════════════════════════════════════════════
-   DESKTOP SCALE-UP — at 1200px+ viewports the whole booklet
-   scales 1.4× via the zoom property. zoom is a uniform scale
-   (text, layout boxes, hit areas all scale together) so no
-   stretching, no reflow — just bigger. Mobile is untouched.
+   DESKTOP — keep the booklet at the same 480px column size
+   as mobile. Earlier we tried scaling up to 1.2x (576px),
+   1.25x (600px), and 1.4x (672px) but the design reads
+   cleanest at the original phone-first 480px width. The
+   side panels stay filled with the music-note rain.
    ═══════════════════════════════════════════════════════ */
-@media (min-width: 1200px) {
-  .booklet,
-  .about-page,
-  section.page.page-02,
-  section.page.page-03,
-  section.page.page-04,
-  .page-boundary {
-    zoom: 1.2;
-  }
-}
 
 /* Side-panel music note rain canvas — sits behind everything,
    only visible where the booklet doesn't cover it. */
@@ -10009,7 +10000,7 @@ window.__mikkaLazyInit("page-04", function(){
   var COLUMN_WIDTH = 32;
   var streams = [];
 
-  function bookletWidth() { return window.innerWidth >= 1200 ? Math.round(480 * 1.2) : 480; }
+  function bookletWidth() { return 480; }
 
   function makeStream(x) {
     return {
