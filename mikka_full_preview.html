@@ -2397,7 +2397,6 @@ body.idle .turn .lbl {
   [data-reveal="words"] .rw { opacity: 1; transform: none; transition: none; }
 }
 
-</style>
 
 /* ─── page-02 · Awards ─────────────────────────── */
 
@@ -6088,7 +6087,6 @@ margin-right: 8px;
 }
 
 </style>
-</style>
 </head>
 <body>
 
@@ -6544,8 +6542,7 @@ margin-right: 8px;
 
 <!-- ═══════════════════════════════════════════════════════
      APPENDED — Awards / Work / Teaching pages from the
-     existing 5-page booklet. Each is namespaced .page-XX so
-     CSS/JS won't bleed into the hero/about sections above.
+     existing 5-page booklet.
      ═══════════════════════════════════════════════════════ -->
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 02 / 04 —</span><span class="line"></span></div>
 <section class="page page-02" data-page="02" data-name="Awards">
@@ -8839,10 +8836,6 @@ requestAnimationFrame(frame);
 
 
 <script>
-/* ───── infrastructure for awards/work/teaching pages ─────
-   Lazy init wrapper so each page-XX script runs once its
-   section enters the viewport. Plus a tiny IntersectionObserver
-   that toggles .is-in on every [data-reveal] element. */
 (function(){
   'use strict';
   window.__mikkaLazyInit = function(pageClass, fn) {
@@ -8865,7 +8858,6 @@ requestAnimationFrame(frame);
     io.observe(el);
   };
 
-  /* Reveal-on-enter for [data-reveal] elements */
   if ('IntersectionObserver' in window) {
     var revealIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
@@ -8874,7 +8866,6 @@ requestAnimationFrame(frame);
       });
     }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
     document.querySelectorAll('[data-reveal]').forEach(function(el){
-      /* Wrap words for the "words" variant */
       if (el.getAttribute('data-reveal') === 'words' && !el.querySelector('.rw')) {
         var text = el.textContent;
         el.textContent = '';
@@ -9890,7 +9881,6 @@ window.__mikkaLazyInit("page-04", function(){
 
 });
 
-</script>
 </script>
 </body>
 </html>
