@@ -10079,8 +10079,8 @@ window.__mikkaLazyInit("page-04", function(){
      lift this so each wisp clears quickly instead of pooling. */
   config.DENSITY_DISSIPATION = 1.5;
   config.VELOCITY_DISSIPATION = 0.6;
-  /* Smaller splats — Pavel's default is 0.25, we go a touch smaller. */
-  config.SPLAT_RADIUS = 0.18;
+  /* Even smaller splats so cursor leaves wisps, not clouds. */
+  config.SPLAT_RADIUS = 0.12;
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
   if (typeof splatStack !== 'undefined') splatStack.push(8);
@@ -10093,17 +10093,17 @@ window.__mikkaLazyInit("page-04", function(){
     window.drawCheckerboard = function() { /* no-op */ };
   }
 
-  /* Override generateColor so hover splats are visible AND in palette.
-     Pavel's default generates random HSV then multiplies r/g/b by 0.15
-     for muted shades — too dim to read on the dark cradle and the
-     wrong color range for our booklet (peach / plum / wine). Replace
-     with a hue restricted to ~320° → 30° (pink → peach) at high
-     saturation, brightness 1.5 so the dye reads cleanly without
-     mouse-down. updateColors() refreshes pointer colors every ~100ms
-     using this function, so the change kicks in within one frame. */
+  /* Override generateColor to produce VERY subtle dye that reads as
+     water currents rather than smoke. Reference site (stationabt.com)
+     uses dye that's almost the same color as the background — you
+     see the *shape* of the velocity field, not the color of the dye.
+     - Hue narrowed to 320° → 20° (pink → peach), tight range
+     - Saturation 0.45 (low — colors don't pop)
+     - Value 1.0 then multiplier 0.06 so per-channel max ≈ 0.06,
+       just barely lighter than the dark plum body bg #14080F. */
   window.generateColor = function() {
-    var hueDeg = (320 + Math.random() * 70) % 360;
-    var h = hueDeg / 360, s = 0.85, v = 1.0;
+    var hueDeg = (320 + Math.random() * 60) % 360;
+    var h = hueDeg / 360, s = 0.45, v = 1.0;
     var i = Math.floor(h * 6), f = h * 6 - i;
     var p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
     var r, g, b;
@@ -10115,11 +10115,11 @@ window.__mikkaLazyInit("page-04", function(){
       case 4: r = t; g = p; b = v; break;
       case 5: r = v; g = p; b = q; break;
     }
-    /* 0.3 keeps splats visible against the dark cradle but well
-       below 1.0 so they don't saturate to white when multiple splats
-       overlap (Pavel's render path is HDR — accumulated values >1
-       clamp to white). */
-    return { r: r * 0.3, g: g * 0.3, b: b * 0.3 };
+    /* Body bg is rgb(20,8,15) ≈ (0.078, 0.031, 0.059). Multiplier 0.18
+       makes the dye max channel ~0.18 — just enough above body bg to
+       register as a current/swirl, but not bright enough to read as
+       opaque smoke. */
+    return { r: r * 0.18, g: g * 0.18, b: b * 0.18 };
   };
 })();
 </script>
