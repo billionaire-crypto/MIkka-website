@@ -10071,26 +10071,6 @@ window.__mikkaLazyInit("page-04", function(){
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
   if (typeof splatStack !== 'undefined') splatStack.push(20);
-
-  /* Click-only interaction. Pavel's default also reacts to plain
-     hover, which the user doesn't want — only click + drag should
-     paint. Strategy: swallow 'mousemove' events in capture phase
-     unless the primary button is currently held, so Pavel's bubble-
-     phase listener never sees the move and pointer.moved stays false.
-     mousedown / mouseup pass through normally. */
-  var canvas = document.querySelector('canvas.fluid-canvas');
-  if (!canvas) return;
-  /* Expose state on window for live inspection / debugging. */
-  window.__fluidMouseDown = false;
-  window.addEventListener('mousedown', function(e){
-    if (e.button === 0) window.__fluidMouseDown = true;
-  }, true);
-  window.addEventListener('mouseup', function(e){
-    if (e.button === 0) window.__fluidMouseDown = false;
-  }, true);
-  canvas.addEventListener('mousemove', function(e){
-    if (!window.__fluidMouseDown) e.stopImmediatePropagation();
-  }, true);
 })();
 </script>
 
