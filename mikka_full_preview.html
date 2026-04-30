@@ -6115,8 +6115,11 @@ section.page.page-02 .cat-sidebar {
   border-bottom: 1.5px solid #2a1528;
   min-height: 0;
 }
-/* Awards: collapse every split variant to a single column */
-section.page.page-02 .cat-content.split-1,
+/* Awards: collapse multi-column splits to a 2-column grid that fits
+   the 480px booklet column. Single-card variant stays full-width. */
+section.page.page-02 .cat-content.split-1 {
+  grid-template-columns: 1fr;
+}
 section.page.page-02 .cat-content.split-2,
 section.page.page-02 .cat-content.split-3,
 section.page.page-02 .cat-content.split-4,
@@ -6125,7 +6128,7 @@ section.page.page-02 .cat-content.split-hero-1,
 section.page.page-02 .cat-content.split-2-hatch,
 section.page.page-02 .cat-content.split-hero-1-hatch,
 section.page.page-02 .cat-content.split-4-3d {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 /* Inner wrap can use the full 480px width now */
 section.page.page-02 .wrap {
@@ -6133,13 +6136,15 @@ section.page.page-02 .wrap {
   padding: 24px 0;
 }
 /* Awards: the academic-row "flow-track" is a horizontal animated ticker
-   designed for wide displays. At 480px we stop the animation and stack
-   cards vertically so they fit the booklet column. */
+   designed for wide displays. At 480px we disable the animation and lay
+   cards out in a 2-column grid. The track has duplicate cards for the
+   seamless ticker loop — hide the second half so we don't show twins. */
 section.page.page-02 .cat-content.flow-container {
   overflow: visible;
 }
 section.page.page-02 .flow-track {
-  display: block;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   width: 100%;
   animation: none;
   transform: none;
@@ -6148,22 +6153,31 @@ section.page.page-02 .flow-track .award-cell,
 section.page.page-02 .flow-track .award-cell.sz-hero,
 section.page.page-02 .flow-track .award-cell.sz-mid,
 section.page.page-02 .flow-track .award-cell.sz-small {
-  width: 100%;
-  border-right: none;
+  width: auto;
+}
+/* Hide the duplicated trailing set of cards — only the first 3 are
+   meaningful; cards 4-6 exist only to make the horizontal ticker loop. */
+section.page.page-02 .flow-track > :nth-child(n+4) {
+  display: none;
+}
+/* Refit the borders for grid layout: remove right borders on rightmost
+   column items, drop bottom border on the last row. */
+section.page.page-02 .flow-track .award-cell {
+  border-right: 1.5px solid #2a1528;
   border-bottom: 1.5px solid #2a1528;
 }
-section.page.page-02 .flow-track .award-cell:last-child {
-  border-bottom: none;
+section.page.page-02 .flow-track > :nth-child(2n) {
+  border-right: none;
 }
-/* Awards: 4-card flip puzzle (.split-4-3d) collapses to a single column */
-section.page.page-02 .cat-content.split-4-3d {
-  grid-template-columns: 1fr;
-}
+/* Same border refit for the 2x2 flip puzzle */
 section.page.page-02 .cat-content.split-4-3d .flip-scene {
-  border-right: none;
+  border-right: 1.5px solid #2a1528;
   border-bottom: 1.5px solid #2a1528;
 }
-section.page.page-02 .cat-content.split-4-3d .flip-scene:last-child {
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(2n) {
+  border-right: none;
+}
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-last-child(-n+2) {
   border-bottom: none;
 }
 section.page.page-03,
