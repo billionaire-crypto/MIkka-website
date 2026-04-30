@@ -6104,7 +6104,9 @@ section.page.page-02 {
   margin-left: auto;
   margin-right: auto;
 }
-/* Awards: stack the sidebar above content instead of side-by-side */
+/* Awards: stack the sidebar above content instead of side-by-side.
+   Keeps the original column flex (label / title / sub-label stacked)
+   and just swaps the right border for a bottom one. */
 section.page.page-02 .cat-row {
   grid-template-columns: 1fr;
 }
@@ -6112,10 +6114,6 @@ section.page.page-02 .cat-sidebar {
   border-right: none;
   border-bottom: 1.5px solid #2a1528;
   min-height: 0;
-  padding: 18px 22px;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: baseline;
 }
 /* Awards: collapse every split variant to a single column */
 section.page.page-02 .cat-content.split-1,
