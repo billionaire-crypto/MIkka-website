@@ -10065,12 +10065,15 @@ window.__mikkaLazyInit("page-04", function(){
 (function(){
   if (typeof config === 'undefined') return;          /* fluid sim not active */
   config.TRANSPARENT = true;
-  config.DENSITY_DISSIPATION = 0.4;
-  config.VELOCITY_DISSIPATION = 0.25;
-  config.SPLAT_RADIUS = 0.3;
+  /* Higher dissipation values = dye fades faster. Default is 1.0; we
+     lift this so each wisp clears quickly instead of pooling. */
+  config.DENSITY_DISSIPATION = 1.5;
+  config.VELOCITY_DISSIPATION = 0.6;
+  /* Smaller splats — Pavel's default is 0.25, we go a touch smaller. */
+  config.SPLAT_RADIUS = 0.18;
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
-  if (typeof splatStack !== 'undefined') splatStack.push(20);
+  if (typeof splatStack !== 'undefined') splatStack.push(8);
 
   /* Pavel's render() calls drawCheckerboard(target) when TRANSPARENT is
      true — meant to indicate transparency on his demo page. We want the
@@ -10102,7 +10105,9 @@ window.__mikkaLazyInit("page-04", function(){
       case 4: r = t; g = p; b = v; break;
       case 5: r = v; g = p; b = q; break;
     }
-    return { r: r * 1.5, g: g * 1.5, b: b * 1.5 };
+    /* 0.5 keeps splats clearly visible without saturating to white
+       when multiple splats overlap. */
+    return { r: r * 0.5, g: g * 0.5, b: b * 0.5 };
   };
 })();
 </script>
