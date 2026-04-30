@@ -6096,11 +6096,77 @@ margin-right: 8px;
    editorial grid that overflows when squeezed into 480px.
    ═══════════════════════════════════════════════════════ */
 section.page.page-02 {
-  /* Wider than the 480px booklet (its grid needs the room) but capped
-     so the peach background doesn't bleed edge-to-edge on wide displays. */
-  max-width: 1100px;
+  /* Match the 480px booklet column the rest of the site uses. The
+     awards page was originally designed for a wide 1300px editorial
+     spread, so the overrides below force its grids to stack into a
+     single column at this width. */
+  max-width: 480px;
   margin-left: auto;
   margin-right: auto;
+}
+/* Awards: stack the sidebar above content instead of side-by-side */
+section.page.page-02 .cat-row {
+  grid-template-columns: 1fr;
+}
+section.page.page-02 .cat-sidebar {
+  border-right: none;
+  border-bottom: 1.5px solid #2a1528;
+  min-height: 0;
+  padding: 18px 22px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+}
+/* Awards: collapse every split variant to a single column */
+section.page.page-02 .cat-content.split-1,
+section.page.page-02 .cat-content.split-2,
+section.page.page-02 .cat-content.split-3,
+section.page.page-02 .cat-content.split-4,
+section.page.page-02 .cat-content.split-3-hatch,
+section.page.page-02 .cat-content.split-hero-1,
+section.page.page-02 .cat-content.split-2-hatch,
+section.page.page-02 .cat-content.split-hero-1-hatch,
+section.page.page-02 .cat-content.split-4-3d {
+  grid-template-columns: 1fr;
+}
+/* Inner wrap can use the full 480px width now */
+section.page.page-02 .wrap {
+  max-width: 100%;
+  padding: 24px 0;
+}
+/* Awards: the academic-row "flow-track" is a horizontal animated ticker
+   designed for wide displays. At 480px we stop the animation and stack
+   cards vertically so they fit the booklet column. */
+section.page.page-02 .cat-content.flow-container {
+  overflow: visible;
+}
+section.page.page-02 .flow-track {
+  display: block;
+  width: 100%;
+  animation: none;
+  transform: none;
+}
+section.page.page-02 .flow-track .award-cell,
+section.page.page-02 .flow-track .award-cell.sz-hero,
+section.page.page-02 .flow-track .award-cell.sz-mid,
+section.page.page-02 .flow-track .award-cell.sz-small {
+  width: 100%;
+  border-right: none;
+  border-bottom: 1.5px solid #2a1528;
+}
+section.page.page-02 .flow-track .award-cell:last-child {
+  border-bottom: none;
+}
+/* Awards: 4-card flip puzzle (.split-4-3d) collapses to a single column */
+section.page.page-02 .cat-content.split-4-3d {
+  grid-template-columns: 1fr;
+}
+section.page.page-02 .cat-content.split-4-3d .flip-scene {
+  border-right: none;
+  border-bottom: 1.5px solid #2a1528;
+}
+section.page.page-02 .cat-content.split-4-3d .flip-scene:last-child {
+  border-bottom: none;
 }
 section.page.page-03,
 section.page.page-04 {
