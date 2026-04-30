@@ -6197,15 +6197,25 @@ body > .booklet { margin-top: 60px; }
    so the section header doesn't sit under the fixed legend. */
 #about, #awards, #work, #teaching { scroll-margin-top: 60px; }
 
-/* Side-panel music note rain canvas — sits behind everything,
-   only visible where the booklet doesn't cover it. */
-canvas#noteRain {
+/* WebGL fluid simulation canvas — interactive smoke that follows
+   the cursor on the dark side panels. Pavel Dobryakov's library.
+   Hidden on touch / narrow viewports — too heavy for phones. */
+canvas.fluid-canvas {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
-  pointer-events: none;
-  display: none;
+  /* pointer-events stays default so cursor moves on the canvas
+     spawn dye splats — booklet sits above with z-index:2 so the
+     booklet content still receives clicks/taps normally. */
 }
+@media (max-width: 1199px), (pointer: coarse) {
+  canvas.fluid-canvas { display: none; }
+}
+/* Pavel's script unconditionally calls dat.GUI() to render a config
+   panel for his demo — we don't want that panel visible. */
+.dg.ac, .dg.main { display: none !important; }
 .booklet, .about-page, section.page,
 .header-stack, .page-boundary,
 .legend, .runner, .footer-band, .site-cursor {
@@ -10002,99 +10012,65 @@ window.__mikkaLazyInit("page-04", function(){
 
 </script>
 
+<!-- ─── WebGL fluid simulation ─── desktop only.
+     Pavel Dobryakov's WebGL-Fluid-Simulation (MIT). His script was
+     written for his demo page and references DOM elements specific
+     to that page (.promo / .promo-close / #apple_link / #google_link)
+     plus calls getElementsByTagName('canvas')[0] synchronously. To
+     bootstrap it on our page we (1) insert the canvas as body's
+     first-child so the canvas selector hits ours, and (2) inject the
+     dummy promo/store-link elements (hidden) so his addEventListener
+     calls don't throw on undefined refs. -->
 <script>
-/* ─── Side-panel music note rain ─── desktop only.
-   Vertical streams of music notes drift downward in the dark
-   side panels behind the booklet, matrix-style, in the page's
-   peach / plum / wine palette. Hidden below 1200px viewport,
-   skipped entirely on prefers-reduced-motion. */
 (function(){
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+  if (window.innerWidth < 1200) return;
 
-  var canvas = document.createElement('canvas');
-  canvas.id = 'noteRain';
-  canvas.setAttribute('aria-hidden', 'true');
-  document.body.insertBefore(canvas, document.body.firstChild);
-  var ctx = canvas.getContext('2d');
+  /* Canvas as body's first-child so the script's
+     getElementsByTagName('canvas')[0] returns it. */
+  var c = document.createElement('canvas');
+  c.className = 'fluid-canvas';
+  c.setAttribute('aria-hidden', 'true');
+  document.body.insertBefore(c, document.body.firstChild);
 
-  var NOTES = ['♪','♫','♬','♩','♭','♯','♮'];
-  /* RGB palette pulled from the booklet design tokens:
-     peach (--accent-warm), plum (--plum), wine (--accent), pink (--muted) */
-  var COLORS = ['238, 144, 120', '138, 74, 149', '196, 72, 96', '176, 112, 144'];
-  var COLUMN_WIDTH = 32;
-  var streams = [];
+  /* Stub the demo-page elements Pavel's script expects to find. */
+  var stubHTML = ''
+    + '<div class="promo" style="display:none">'
+    +   '<div class="promo-close"></div>'
+    +   '<a id="apple_link" href="#"></a>'
+    +   '<a id="google_link" href="#"></a>'
+    + '</div>';
+  var wrap = document.createElement('div');
+  wrap.style.display = 'none';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML = stubHTML;
+  document.body.appendChild(wrap);
 
-  function bookletWidth() { return 480; }
-
-  function makeStream(x) {
-    return {
-      x: x,
-      y: -Math.random() * window.innerHeight,
-      speed: 0.4 + Math.random() * 1.0,
-      char: NOTES[(Math.random() * NOTES.length) | 0],
-      color: COLORS[(Math.random() * COLORS.length) | 0],
-      opacity: 0.25 + Math.random() * 0.35,
-      size: 14 + Math.random() * 8,
-      respawnDelay: 0,
-    };
-  }
-
-  function setup() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var bw = bookletWidth();
-    /* Add the booklet's box-shadow spread (~80px outward) so notes don't
-       overlap the visual edge of the booklet card. */
-    var safeMargin = 80;
-    var bookletL = (window.innerWidth - bw) / 2 - safeMargin;
-    var bookletR = (window.innerWidth + bw) / 2 + safeMargin;
-    streams = [];
-    for (var x = COLUMN_WIDTH/2; x < bookletL; x += COLUMN_WIDTH) streams.push(makeStream(x));
-    for (var x2 = bookletR; x2 < window.innerWidth; x2 += COLUMN_WIDTH) streams.push(makeStream(x2));
-  }
-
-  function shouldRun() {
-    return window.innerWidth >= 1200 && document.visibilityState !== 'hidden' && streams.length > 0;
-  }
-
-  function tick() {
-    if (!shouldRun()) {
-      canvas.style.display = 'none';
-      requestAnimationFrame(tick);
-      return;
-    }
-    canvas.style.display = 'block';
-
-    /* Trail fade — partial clear keeps a hint of the previous note,
-       creating the matrix-rain falling-character trail effect. */
-    ctx.fillStyle = 'rgba(20, 8, 15, 0.10)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    for (var i = 0; i < streams.length; i++) {
-      var s = streams[i];
-      ctx.font = s.size + "px 'Fraunces', serif";
-      ctx.fillStyle = 'rgba(' + s.color + ', ' + s.opacity + ')';
-      ctx.fillText(s.char, s.x, s.y);
-      s.y += s.speed;
-      if (s.y > canvas.height + 30) {
-        s.y = -20 - Math.random() * 200;
-        s.char = NOTES[(Math.random() * NOTES.length) | 0];
-        s.color = COLORS[(Math.random() * COLORS.length) | 0];
-        s.opacity = 0.25 + Math.random() * 0.35;
-        s.size = 14 + Math.random() * 8;
-        s.speed = 0.4 + Math.random() * 1.0;
-      }
-    }
-
-    requestAnimationFrame(tick);
-  }
-
-  setup();
-  window.addEventListener('resize', setup);
-  requestAnimationFrame(tick);
+  /* The script also calls a global `ga()` (Google Analytics) on link
+     clicks. Stub it so click handlers don't throw if anyone clicks. */
+  if (typeof window.ga !== 'function') window.ga = function(){};
+})();
+</script>
+<!-- dat.GUI loaded as a hard dependency of Pavel's script (he calls
+     new dat.GUI() unconditionally). The panel UI is hidden via CSS. -->
+<script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/PavelDoGreat/WebGL-Fluid-Simulation@master/script.js"></script>
+<script>
+/* Tweak Pavel's config after his script runs. Pavel exposes `config`
+   at top-level scope which becomes a global. Setting TRANSPARENT lets
+   the body's dark cradle show through. Lowering DENSITY_DISSIPATION
+   makes dye linger longer so it's visible without continuous mouse
+   activity. Kickoff splats give the page some life on load. */
+(function(){
+  if (typeof config === 'undefined') return;          /* fluid sim not active */
+  config.TRANSPARENT = true;
+  config.DENSITY_DISSIPATION = 0.4;
+  config.VELOCITY_DISSIPATION = 0.25;
+  config.SPLAT_RADIUS = 0.3;
+  config.BLOOM = false;                                /* keep effect subtle */
+  config.SUNRAYS = false;
+  if (typeof splatStack !== 'undefined') splatStack.push(20);
 })();
 </script>
 
