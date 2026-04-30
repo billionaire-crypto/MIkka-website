@@ -8999,12 +8999,9 @@ window.__mikkaLazyInit("page-02", function(){
     if (!candidates.length) return;
     var pick = candidates[Math.floor(Math.random() * candidates.length)];
     pick.classList.add('flipped', 'auto-flipped');
-    setTimeout(function(){
-      if (userInteracted) return;
-      if (pick.classList.contains('auto-flipped')) {
-        pick.classList.remove('flipped', 'auto-flipped');
-      }
-    }, 1500);
+    /* No auto-revert. Auto-flipped cards stay flipped until the user
+       clicks them. As soon as the user interacts, stopAutoFlip() halts
+       the interval; remaining cards stay in whatever state they're in. */
   }
 
   scenes.forEach(function(scene){
@@ -9030,18 +9027,9 @@ window.__mikkaLazyInit("page-02", function(){
       }
     });
 
-    if (hasFinePointer) {
-      scene.addEventListener('mouseenter', function(){
-        stopAutoFlip();
-        scene.classList.remove('auto-flipped');
-        scene.classList.add('flipped');
-        scene.setAttribute('aria-pressed', 'true');
-      });
-      scene.addEventListener('mouseleave', function(){
-        scene.classList.remove('flipped');
-        scene.setAttribute('aria-pressed', 'false');
-      });
-    }
+    /* No hover-flip. Cards only flip on click/tap or keyboard activate
+       (above) so the user is in full control of which card is showing
+       which face. */
   });
 
   /* Kick off the random auto-flip hint after the page settles. Stops the
