@@ -10072,6 +10072,14 @@ window.__mikkaLazyInit("page-04", function(){
   config.SUNRAYS = false;
   if (typeof splatStack !== 'undefined') splatStack.push(20);
 
+  /* Pavel's render() calls drawCheckerboard(target) when TRANSPARENT is
+     true — meant to indicate transparency on his demo page. We want the
+     body bg (dark plum) to show through transparent canvas pixels
+     instead, so override drawCheckerboard to a no-op. */
+  if (typeof window.drawCheckerboard === 'function') {
+    window.drawCheckerboard = function() { /* no-op */ };
+  }
+
   /* Override generateColor so hover splats are visible AND in palette.
      Pavel's default generates random HSV then multiplies r/g/b by 0.15
      for muted shades — too dim to read on the dark cradle and the
