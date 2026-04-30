@@ -6087,99 +6087,76 @@ margin-right: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════
-   FIX — center and size the appended pages correctly.
+   FIX — center the appended pages correctly.
    The original `.page-02/03/04 { margin: 0 }` overrides the
    `.page { margin: 0 auto }` global (equal specificity, later
    wins). Restore auto-centering with higher-specificity
-   selectors. Awards (page-02) also needs the 480px booklet
-   constraint dropped — its internal .wrap is a 1300px
-   editorial grid that overflows when squeezed into 480px.
+   selectors. Page-02 (Awards) also needs to apply its mobile
+   responsive layout unconditionally — its `@media (max-width:
+   880px)` rules are checked against the viewport, but our
+   booklet column is 480px regardless of viewport, so we
+   re-declare those same rules without the @media wrapper.
    ═══════════════════════════════════════════════════════ */
-section.page.page-02 {
-  /* Match the 480px booklet column the rest of the site uses. The
-     awards page was originally designed for a wide 1300px editorial
-     spread, so the overrides below force its grids to stack into a
-     single column at this width. */
-  max-width: 480px;
+section.page.page-02,
+section.page.page-03,
+section.page.page-04 {
   margin-left: auto;
   margin-right: auto;
 }
-/* Awards: stack the sidebar above content instead of side-by-side.
-   Keeps the original column flex (label / title / sub-label stacked)
-   and just swaps the right border for a bottom one. */
-section.page.page-02 .cat-row {
-  grid-template-columns: 1fr;
-}
+/* ── Awards: apply the original `@media (max-width: 880px)`
+      rules unconditionally so the booklet column always
+      uses the responsive 2-column layout, animations, flip
+      orientations, and font sizes the original design ships. */
+section.page.page-02 .cat-row { grid-template-columns: 1fr; }
 section.page.page-02 .cat-sidebar {
   border-right: none;
   border-bottom: 1.5px solid #2a1528;
-  min-height: 0;
+  min-height: auto;
+  padding: 20px 18px;
 }
-/* Awards: collapse multi-column splits to a 2-column grid that fits
-   the 480px booklet column. Single-card variant stays full-width. */
-section.page.page-02 .cat-content.split-1 {
-  grid-template-columns: 1fr;
-}
-section.page.page-02 .cat-content.split-2,
 section.page.page-02 .cat-content.split-3,
 section.page.page-02 .cat-content.split-4,
-section.page.page-02 .cat-content.split-3-hatch,
+section.page.page-02 .cat-content.split-3-hatch {
+  grid-template-columns: 1fr 1fr;
+}
 section.page.page-02 .cat-content.split-hero-1,
-section.page.page-02 .cat-content.split-2-hatch,
-section.page.page-02 .cat-content.split-hero-1-hatch,
-section.page.page-02 .cat-content.split-4-3d {
-  grid-template-columns: 1fr 1fr;
+section.page.page-02 .cat-content.split-2-hatch {
+  grid-template-columns: 1fr;
 }
-/* Inner wrap can use the full 480px width now */
-section.page.page-02 .wrap {
-  max-width: 100%;
-  padding: 24px 0;
+section.page.page-02 .award-cell {
+  border-bottom: 1.5px solid #2a1528;
+  min-height: 140px;
+  padding: 18px 16px;
 }
-/* Awards: the academic-row "flow-track" is a horizontal animated ticker
-   designed for wide displays. At 480px we disable the animation and lay
-   cards out in a 2-column grid. The track has duplicate cards for the
-   seamless ticker loop — hide the second half so we don't show twins. */
-section.page.page-02 .cat-content.flow-container {
-  overflow: visible;
-}
-section.page.page-02 .flow-track {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
-  animation: none;
-  transform: none;
-}
-section.page.page-02 .flow-track .award-cell,
-section.page.page-02 .flow-track .award-cell.sz-hero,
-section.page.page-02 .flow-track .award-cell.sz-mid,
-section.page.page-02 .flow-track .award-cell.sz-small {
-  width: auto;
-}
-/* Hide the duplicated trailing set of cards — only the first 3 are
-   meaningful; cards 4-6 exist only to make the horizontal ticker loop. */
-section.page.page-02 .flow-track > :nth-child(n+4) {
-  display: none;
-}
-/* Refit the borders for grid layout: remove right borders on rightmost
-   column items, drop bottom border on the last row. */
-section.page.page-02 .flow-track .award-cell {
+section.page.page-02 .award-cell:last-child { border-bottom: none; }
+section.page.page-02 .grid-host { margin: 0 16px; }
+section.page.page-02 .edge-marks { width: 14px; padding: 40px 0; }
+section.page.page-02 .award-cell.hero .a-name { font-size: 19px; }
+section.page.page-02 .a-name { font-size: 16px; }
+section.page.page-02 .legend { padding: 10px 20px; font-size: 9px; }
+section.page.page-02 .legend span:nth-child(1) { flex: 0 0 120px; }
+/* ── Competition flip-card puzzle responsive layout */
+section.page.page-02 .cat-content.split-4-3d { grid-template-columns: 1fr 1fr; }
+section.page.page-02 .flip-scene {
+  height: 220px;
+  min-height: 220px;
   border-right: 1.5px solid #2a1528;
   border-bottom: 1.5px solid #2a1528;
 }
-section.page.page-02 .flow-track > :nth-child(2n) {
-  border-right: none;
-}
-/* Same border refit for the 2x2 flip puzzle */
-section.page.page-02 .cat-content.split-4-3d .flip-scene {
-  border-right: 1.5px solid #2a1528;
-  border-bottom: 1.5px solid #2a1528;
-}
-section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(2n) {
-  border-right: none;
-}
-section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-last-child(-n+2) {
-  border-bottom: none;
-}
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(2n) { border-right: none; }
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(3),
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(4) { border-bottom: none; }
+section.page.page-02 .flip-card-3d { height: 220px; min-height: 220px; }
+section.page.page-02 .flip-face { height: 220px; min-height: 220px; }
+section.page.page-02 .flip-face.front { padding: 18px 16px; }
+section.page.page-02 .flip-face.front .a-name { font-size: 16px; }
+section.page.page-02 .flip-face.front.hero .a-name { font-size: 18px; }
+section.page.page-02 .flip-face.front.hero .a-badge { font-size: 8px; }
+section.page.page-02 .flip-face.back { background-size: 200% 200%; }
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(1) .flip-face.back { background-position:   0%   0%; }
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(2) .flip-face.back { background-position: 100%   0%; }
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(3) .flip-face.back { background-position:   0% 100%; }
+section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(4) .flip-face.back { background-position: 100% 100%; }
 section.page.page-03,
 section.page.page-04 {
   margin-left: auto;
