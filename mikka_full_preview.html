@@ -6169,6 +6169,39 @@ section.page.page-04 {
   margin-right: auto;
 }
 
+/* ═══════════════════════════════════════════════════════
+   DESKTOP SCALE-UP — at 1200px+ viewports the whole booklet
+   scales 1.4× via the zoom property. zoom is a uniform scale
+   (text, layout boxes, hit areas all scale together) so no
+   stretching, no reflow — just bigger. Mobile is untouched.
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 1200px) {
+  .booklet,
+  .about-page,
+  section.page.page-02,
+  section.page.page-03,
+  section.page.page-04,
+  .page-boundary {
+    zoom: 1.4;
+  }
+}
+
+/* Side-panel music note rain canvas — sits behind everything,
+   only visible where the booklet doesn't cover it. */
+canvas#noteRain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+.booklet, .about-page, section.page,
+.header-stack, .page-boundary,
+.legend, .runner, .footer-band, .site-cursor {
+  position: relative;
+  z-index: 2;
+}
+
 </style>
 </head>
 <body>
@@ -9953,5 +9986,102 @@ window.__mikkaLazyInit("page-04", function(){
 });
 
 </script>
+
+<script>
+/* ─── Side-panel music note rain ─── desktop only.
+   Vertical streams of music notes drift downward in the dark
+   side panels behind the booklet, matrix-style, in the page's
+   peach / plum / wine palette. Hidden below 1200px viewport,
+   skipped entirely on prefers-reduced-motion. */
+(function(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var canvas = document.createElement('canvas');
+  canvas.id = 'noteRain';
+  canvas.setAttribute('aria-hidden', 'true');
+  document.body.insertBefore(canvas, document.body.firstChild);
+  var ctx = canvas.getContext('2d');
+
+  var NOTES = ['♪','♫','♬','♩','♭','♯','♮'];
+  /* RGB palette pulled from the booklet design tokens:
+     peach (--accent-warm), plum (--plum), wine (--accent), pink (--muted) */
+  var COLORS = ['238, 144, 120', '138, 74, 149', '196, 72, 96', '176, 112, 144'];
+  var COLUMN_WIDTH = 32;
+  var streams = [];
+
+  function bookletWidth() { return window.innerWidth >= 1200 ? Math.round(480 * 1.4) : 480; }
+
+  function makeStream(x) {
+    return {
+      x: x,
+      y: -Math.random() * window.innerHeight,
+      speed: 0.4 + Math.random() * 1.0,
+      char: NOTES[(Math.random() * NOTES.length) | 0],
+      color: COLORS[(Math.random() * COLORS.length) | 0],
+      opacity: 0.25 + Math.random() * 0.35,
+      size: 14 + Math.random() * 8,
+      respawnDelay: 0,
+    };
+  }
+
+  function setup() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var bw = bookletWidth();
+    /* Add the booklet's box-shadow spread (~80px outward) so notes don't
+       overlap the visual edge of the booklet card. */
+    var safeMargin = 80;
+    var bookletL = (window.innerWidth - bw) / 2 - safeMargin;
+    var bookletR = (window.innerWidth + bw) / 2 + safeMargin;
+    streams = [];
+    for (var x = COLUMN_WIDTH/2; x < bookletL; x += COLUMN_WIDTH) streams.push(makeStream(x));
+    for (var x2 = bookletR; x2 < window.innerWidth; x2 += COLUMN_WIDTH) streams.push(makeStream(x2));
+  }
+
+  function shouldRun() {
+    return window.innerWidth >= 1200 && document.visibilityState !== 'hidden' && streams.length > 0;
+  }
+
+  function tick() {
+    if (!shouldRun()) {
+      canvas.style.display = 'none';
+      requestAnimationFrame(tick);
+      return;
+    }
+    canvas.style.display = 'block';
+
+    /* Trail fade — partial clear keeps a hint of the previous note,
+       creating the matrix-rain falling-character trail effect. */
+    ctx.fillStyle = 'rgba(20, 8, 15, 0.10)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (var i = 0; i < streams.length; i++) {
+      var s = streams[i];
+      ctx.font = s.size + "px 'Fraunces', serif";
+      ctx.fillStyle = 'rgba(' + s.color + ', ' + s.opacity + ')';
+      ctx.fillText(s.char, s.x, s.y);
+      s.y += s.speed;
+      if (s.y > canvas.height + 30) {
+        s.y = -20 - Math.random() * 200;
+        s.char = NOTES[(Math.random() * NOTES.length) | 0];
+        s.color = COLORS[(Math.random() * COLORS.length) | 0];
+        s.opacity = 0.25 + Math.random() * 0.35;
+        s.size = 14 + Math.random() * 8;
+        s.speed = 0.4 + Math.random() * 1.0;
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  setup();
+  window.addEventListener('resize', setup);
+  requestAnimationFrame(tick);
+})();
+</script>
+
 </body>
 </html>
