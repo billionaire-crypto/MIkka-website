@@ -6177,6 +6177,19 @@ section.page.page-04 {
    side panels stay filled with the music-note rain.
    ═══════════════════════════════════════════════════════ */
 
+/* ── Sticky legend bar pinned to the top of the viewport ── */
+.legend.legend-fixed {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+}
+/* Push the booklet down so its content isn't tucked behind the
+   fixed legend on initial load. */
+body > .booklet { margin-top: 60px; }
+/* Anchor links: when navigating to a section, leave room at the top
+   so the section header doesn't sit under the fixed legend. */
+#about, #awards, #work, #teaching { scroll-margin-top: 60px; }
+
 /* Side-panel music note rain canvas — sits behind everything,
    only visible where the booklet doesn't cover it. */
 canvas#noteRain {
@@ -6200,23 +6213,27 @@ canvas#noteRain {
 <!-- Site-wide custom cursor (desktop only — hidden on touch via CSS) -->
 <div class="site-cursor" id="siteCursor" aria-hidden="true"></div>
 
+<!-- ───── STICKY LEGEND BAR (lives outside the booklet so it stays
+       fixed across the whole page scroll). Runner row is still inside
+       the booklet header-stack so only the top bar is sticky. ───── -->
+<header class="legend legend-fixed">
+  <a class="legend-mark" href="./" aria-label="Mikka Chinbaatar — home">
+    <span class="mc">MC</span>
+    <span class="yr">2026</span>
+  </a>
+  <nav class="legend-nav" aria-label="Site navigation">
+    <a href="#about"><span class="lnk-inner">About</span></a>
+    <a href="#awards"><span class="lnk-inner">Awards</span></a>
+    <a href="#work"><span class="lnk-inner">Work</span></a>
+    <a href="#teaching"><span class="lnk-inner">Teaching</span></a>
+  </nav>
+</header>
+
 <main class="booklet" id="booklet">
 
-  <!-- ───── HEADER STACK (legend + runner — animate as one piece) ───── -->
+  <!-- ───── HEADER STACK — runner only now; legend was lifted out
+       above to be sticky across the whole page. ───── -->
   <div class="header-stack">
-    <header class="legend">
-      <a class="legend-mark" href="./" aria-label="Mikka Chinbaatar — home">
-        <span class="mc">MC</span>
-        <span class="yr">2026</span>
-      </a>
-      <nav class="legend-nav" aria-label="Site navigation">
-        <a href="#about"><span class="lnk-inner">About</span></a>
-        <a href="#awards"><span class="lnk-inner">Awards</span></a>
-        <a href="#work"><span class="lnk-inner">Work</span></a>
-        <a href="#teaching"><span class="lnk-inner">Teaching</span></a>
-      </nav>
-    </header>
-
     <div class="runner">
       <div class="runner-l">Mikka / 2026</div>
       <div class="runner-c">
