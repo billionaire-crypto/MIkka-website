@@ -6157,6 +6157,12 @@ section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(1) .flip-face
 section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(2) .flip-face.back { background-position: 100%   0%; }
 section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(3) .flip-face.back { background-position:   0% 100%; }
 section.page.page-02 .cat-content.split-4-3d .flip-scene:nth-child(4) .flip-face.back { background-position: 100% 100%; }
+/* Slow the flip rotation — original 0.8s felt too quick, the back face
+   barely registered before users were already tapping back. 1.6s gives
+   the motion a more deliberate read in both directions. */
+section.page.page-02 .flip-card-3d {
+  transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
 section.page.page-03,
 section.page.page-04 {
   margin-left: auto;
