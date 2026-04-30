@@ -6087,14 +6087,19 @@ margin-right: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════
-   FIX — re-center awards/work/teaching pages.
-   The original file's `.page-02 { margin: 0 }` (and same for
-   page-03/04) overrides `.page { margin: 0 auto }` since
-   class specificity is equal and the page-XX rule comes
-   later in the cascade. Higher-specificity selectors here
-   win and restore auto-centering on wide viewports.
+   FIX — center and size the appended pages correctly.
+   The original `.page-02/03/04 { margin: 0 }` overrides the
+   `.page { margin: 0 auto }` global (equal specificity, later
+   wins). Restore auto-centering with higher-specificity
+   selectors. Awards (page-02) also needs the 480px booklet
+   constraint dropped — its internal .wrap is a 1300px
+   editorial grid that overflows when squeezed into 480px.
    ═══════════════════════════════════════════════════════ */
-section.page.page-02,
+section.page.page-02 {
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+}
 section.page.page-03,
 section.page.page-04 {
   margin-left: auto;
