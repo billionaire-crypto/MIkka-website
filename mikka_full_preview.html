@@ -6216,6 +6216,16 @@ canvas.fluid-canvas {
 /* Pavel's script unconditionally calls dat.GUI() to render a config
    panel for his demo — we don't want that panel visible. */
 .dg.ac, .dg.main { display: none !important; }
+
+/* Restore the OS mouse pointer. The new hero+about file ships a
+   custom peach dot cursor and hides the system pointer site-wide;
+   that hides it from the fluid sim's side panels too. Override the
+   cursor: none rules and hide the custom cursor element. */
+@media (pointer: fine) {
+  body { cursor: auto !important; }
+  a, button, [role="button"], input, textarea, select, .acc-head { cursor: pointer !important; }
+}
+.site-cursor { display: none !important; }
 .booklet, .about-page, section.page,
 .header-stack, .page-boundary,
 .legend, .runner, .footer-band, .site-cursor {
@@ -10105,9 +10115,11 @@ window.__mikkaLazyInit("page-04", function(){
       case 4: r = t; g = p; b = v; break;
       case 5: r = v; g = p; b = q; break;
     }
-    /* 0.5 keeps splats clearly visible without saturating to white
-       when multiple splats overlap. */
-    return { r: r * 0.5, g: g * 0.5, b: b * 0.5 };
+    /* 0.3 keeps splats visible against the dark cradle but well
+       below 1.0 so they don't saturate to white when multiple splats
+       overlap (Pavel's render path is HDR — accumulated values >1
+       clamp to white). */
+    return { r: r * 0.3, g: g * 0.3, b: b * 0.3 };
   };
 })();
 </script>
