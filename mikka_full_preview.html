@@ -6086,6 +6086,21 @@ display: inline-block;
 margin-right: 8px;
 }
 
+/* ═══════════════════════════════════════════════════════
+   FIX — re-center awards/work/teaching pages.
+   The original file's `.page-02 { margin: 0 }` (and same for
+   page-03/04) overrides `.page { margin: 0 auto }` since
+   class specificity is equal and the page-XX rule comes
+   later in the cascade. Higher-specificity selectors here
+   win and restore auto-centering on wide viewports.
+   ═══════════════════════════════════════════════════════ */
+section.page.page-02,
+section.page.page-03,
+section.page.page-04 {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 </style>
 </head>
 <body>
