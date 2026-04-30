@@ -10071,6 +10071,31 @@ window.__mikkaLazyInit("page-04", function(){
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
   if (typeof splatStack !== 'undefined') splatStack.push(20);
+
+  /* Override generateColor so hover splats are visible AND in palette.
+     Pavel's default generates random HSV then multiplies r/g/b by 0.15
+     for muted shades — too dim to read on the dark cradle and the
+     wrong color range for our booklet (peach / plum / wine). Replace
+     with a hue restricted to ~320° → 30° (pink → peach) at high
+     saturation, brightness 1.5 so the dye reads cleanly without
+     mouse-down. updateColors() refreshes pointer colors every ~100ms
+     using this function, so the change kicks in within one frame. */
+  window.generateColor = function() {
+    var hueDeg = (320 + Math.random() * 70) % 360;
+    var h = hueDeg / 360, s = 0.85, v = 1.0;
+    var i = Math.floor(h * 6), f = h * 6 - i;
+    var p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+    var r, g, b;
+    switch (i % 6) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    return { r: r * 1.5, g: g * 1.5, b: b * 1.5 };
+  };
 })();
 </script>
 
