@@ -6234,79 +6234,65 @@ canvas.fluid-canvas {
 }
 
 /* ═══════════════════════════════════════════════════════
-   GUTTER FRAME — desktop decoration
-   The 480px booklet column leaves wide dark gutters on
-   desktop. Instead of resizing the column, fill the gutters
-   with brand-coherent decoration: big peach parenthesis
-   brackets flanking the booklet, sidebar rails with section
-   contents + studio location, and corner marks. Hidden under
-   1024px since narrower viewports don't have gutters to fill.
+   GUTTER FRAME — chunky brackets that flank the booklet
+   on desktop and animate inward on load so the booklet
+   reads as if it's settling between them. Hidden under
+   1024px since narrower viewports have no gutter to fill.
    ═══════════════════════════════════════════════════════ */
-.gutter-decor {
+.frame-bracket {
   display: none;
   position: fixed;
-  z-index: 3;
-  pointer-events: none;
-  font-family: var(--mono);
-  color: var(--accent-warm);
-  text-transform: uppercase;
-}
-.gutter-decor.bracket {
   top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--cond);
-  font-size: clamp(220px, 30vw, 420px);
-  line-height: 0.78;
-  color: rgba(238, 144, 120, 0.32);
-  font-weight: 400;
-  text-shadow: 0 0 40px rgba(238, 144, 120, 0.15);
-  letter-spacing: -0.04em;
+  z-index: 3;
+  height: 78vh;
+  width: auto;
+  color: var(--accent-warm);
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 28px rgba(238, 144, 120, 0.18));
+  will-change: transform, opacity;
 }
-.gutter-decor.bracket.l { left: calc(50% - 240px - 110px); }
-.gutter-decor.bracket.r { right: calc(50% - 240px - 110px); }
-
-.gutter-decor.rail {
-  top: 96px;
-  font-size: 10.5px;
-  letter-spacing: 0.22em;
-  line-height: 1.9;
-  max-width: 220px;
-  opacity: 0.78;
+.frame-bracket.l {
+  left: calc(50% - 240px - 96px);
+  /* Start tucked far behind the booklet edge, then slide outward */
+  transform: translate(40vw, -50%) scale(.85);
 }
-.gutter-decor.rail.l { left: 36px; }
-.gutter-decor.rail.r { right: 36px; text-align: right; }
-.gutter-decor.rail .rail-block { margin-bottom: 32px; }
-.gutter-decor.rail .rail-label {
-  display: block;
-  font-size: 8.5px;
-  letter-spacing: 0.36em;
-  opacity: 0.55;
-  margin-bottom: 12px;
+.frame-bracket.r {
+  right: calc(50% - 240px - 96px);
+  transform: translate(-40vw, -50%) scale(.85);
 }
-.gutter-decor.rail .rail-line {
-  display: block;
-  font-size: 10.5px;
-  letter-spacing: 0.22em;
-  opacity: 0.82;
-}
-.gutter-decor.rail .rail-line.dim { opacity: 0.55; }
-
-.gutter-decor.corner {
-  font-size: 9.5px;
-  letter-spacing: 0.32em;
-  opacity: 0.72;
-}
-.gutter-decor.corner.bl { bottom: 26px; left: 36px; }
-.gutter-decor.corner.br { bottom: 26px; right: 36px; }
-
 @media (min-width: 1024px) {
-  .gutter-decor { display: block; }
+  .frame-bracket { display: block; }
 }
-@media (max-width: 1199px) {
-  /* Tuck the brackets in closer when the gutter is tighter */
-  .gutter-decor.bracket { font-size: clamp(180px, 22vw, 260px); }
-  .gutter-decor.bracket.l { left: calc(50% - 240px - 70px); }
-  .gutter-decor.bracket.r { right: calc(50% - 240px - 70px); }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frame-bracket { height: 64vh; }
+  .frame-bracket.l { left: calc(50% - 240px - 60px); }
+  .frame-bracket.r { right: calc(50% - 240px - 60px); }
+}
+@keyframes frame-bracket-in-l {
+  to { opacity: .92; transform: translate(0, -50%) scale(1); }
+}
+@keyframes frame-bracket-in-r {
+  to { opacity: .92; transform: translate(0, -50%) scale(1); }
+}
+.is-loaded .frame-bracket.l {
+  animation: frame-bracket-in-l 1.6s cubic-bezier(.2,.7,.2,1) .9s forwards;
+}
+.is-loaded .frame-bracket.r {
+  animation: frame-bracket-in-r 1.6s cubic-bezier(.2,.7,.2,1) .9s forwards;
+}
+
+/* Booklet itself: small entrance — fade up + scale in slightly,
+   so it visibly drops into the bracket frame. */
+.booklet {
+  opacity: 0;
+  transform: translateY(28px) scale(.985);
+  transition: opacity 1.2s cubic-bezier(.2,.7,.2,1),
+              transform 1.2s cubic-bezier(.2,.7,.2,1);
+}
+.is-loaded .booklet {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 </style>
@@ -6328,47 +6314,16 @@ canvas.fluid-canvas {
 <!-- Site-wide custom cursor (desktop only — hidden on touch via CSS) -->
 <div class="site-cursor" id="siteCursor" aria-hidden="true"></div>
 
-<!-- ───── GUTTER DECORATION (desktop only)
-       Big peach parenthesis brackets flanking the centered booklet
-       plus side-rail labels and corner marks that fill the wide
-       dark gutters on desktop without resizing the booklet. ───── -->
-<div class="gutter-decor bracket l" aria-hidden="true">(</div>
-<div class="gutter-decor bracket r" aria-hidden="true">)</div>
-
-<aside class="gutter-decor rail l" aria-hidden="true">
-  <div class="rail-block">
-    <span class="rail-label">— Contents —</span>
-    <span class="rail-line">00 · Frontispiece</span>
-    <span class="rail-line">01 · About</span>
-    <span class="rail-line">02 · Awards</span>
-    <span class="rail-line">03 · Work</span>
-    <span class="rail-line">04 · Teaching</span>
-  </div>
-  <div class="rail-block">
-    <span class="rail-label">— Practice —</span>
-    <span class="rail-line">Piano</span>
-    <span class="rail-line">Yatga</span>
-    <span class="rail-line dim">Collaboration</span>
-  </div>
-</aside>
-
-<aside class="gutter-decor rail r" aria-hidden="true">
-  <div class="rail-block">
-    <span class="rail-label">— On File —</span>
-    <span class="rail-line">A portfolio</span>
-    <span class="rail-line">in four parts —</span>
-    <span class="rail-line">pressed, plucked,</span>
-    <span class="rail-line dim">and quietly kept.</span>
-  </div>
-  <div class="rail-block">
-    <span class="rail-label">— Studio —</span>
-    <span class="rail-line">San Francisco</span>
-    <span class="rail-line dim">Ulaanbaatar</span>
-  </div>
-</aside>
-
-<div class="gutter-decor corner bl" aria-hidden="true">Press · Pluck · Practice</div>
-<div class="gutter-decor corner br" aria-hidden="true">© 2026 Mikka Chinbaatar</div>
+<!-- ───── GUTTER FRAME (desktop only)
+       Two chunky SVG brackets flank the booklet. They start
+       tucked behind it and animate outward when .is-loaded
+       fires, so the booklet visibly settles into the frame. ───── -->
+<svg class="frame-bracket l" viewBox="0 0 80 320" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <path fill="currentColor" d="M 80 0 L 30 0 L 30 32 C 0 92, 0 228, 30 288 L 30 320 L 80 320 Z"/>
+</svg>
+<svg class="frame-bracket r" viewBox="0 0 80 320" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <path fill="currentColor" d="M 0 0 L 50 0 L 50 32 C 80 92, 80 228, 50 288 L 50 320 L 0 320 Z"/>
+</svg>
 
 <!-- ───── STICKY LEGEND BAR (lives outside the booklet so it stays
        fixed across the whole page scroll). Runner row is still inside
