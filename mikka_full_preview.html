@@ -10124,5 +10124,393 @@ window.__mikkaLazyInit("page-04", function(){
 })();
 </script>
 
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCROLL TRANSITIONS — fixed overlay layer, z-index 350
+     Four transitions across four section boundaries:
+       Hero → About    : Content Storm (elements arrive from all edges)
+       About → Awards  : Oblique Slash (diagonal panel sweeps across)
+       Awards → Work   : Blur Drift   (frosted panel arrives, sharpens)
+       Work → Teaching : Stagger Assemble (words rise with elastic snap)
+     Powered by GSAP ScrollTrigger, scrub-driven.
+     The overlay never blocks scroll (pointer-events: none throughout).
+═══════════════════════════════════════════════════════════════ -->
+<style>
+#tx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  pointer-events: none;
+  overflow: hidden;
+}
+.tx-panel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.tx-bg {
+  position: absolute;
+  inset: 0;
+}
+.tx-copy {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem;
+}
+.tx-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-bottom: 1.4rem;
+  display: block;
+}
+.tx-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(3rem, 9vw, 7.5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  margin-bottom: 1.2rem;
+  display: block;
+}
+.tx-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  display: block;
+}
+/* Dark panels */
+.tx-dark .tx-num  { color: var(--accent, #C44860); }
+.tx-dark .tx-title { color: var(--bg, #F5E4DC); }
+.tx-dark .tx-sub  { color: rgba(245,228,220,0.45); }
+/* Light panels */
+.tx-light .tx-num  { color: var(--accent, #C44860); }
+.tx-light .tx-title { color: var(--ink, #2A1528); }
+.tx-light .tx-sub  { color: rgba(42,21,40,0.45); }
+/* Plum panels */
+.tx-plum .tx-num  { color: rgba(245,228,220,0.6); }
+.tx-plum .tx-title { color: #fff; }
+.tx-plum .tx-sub  { color: rgba(255,255,255,0.45); }
+</style>
+
+<div id="tx-overlay" aria-hidden="true">
+
+  <!-- T1: Hero → About — Content Storm (elements from all edges) -->
+  <div class="tx-panel tx-dark" id="tx1">
+    <div class="tx-bg" style="background:var(--ink,#2A1528)"></div>
+    <div class="tx-copy">
+      <span class="tx-num"   id="tx1-num"   style="will-change:transform,opacity">N° 01 / 04</span>
+      <span class="tx-title" id="tx1-title" style="will-change:transform,opacity">About &amp;<br/><em style="font-style:italic;color:var(--warm,#EE9078)">Conversation</em></span>
+      <span class="tx-sub"   id="tx1-sub"   style="will-change:transform,opacity">— a portrait in words</span>
+    </div>
+  </div>
+
+  <!-- T2: About → Awards — Oblique Slash (diagonal panel sweeps) -->
+  <div class="tx-panel tx-plum" id="tx2">
+    <div class="tx-bg" style="background:var(--plum,#8A4A95);transform-origin:left;transform:skewX(-10deg) translateX(-110%);" id="tx2-bg"></div>
+    <div class="tx-copy" id="tx2-copy">
+      <span class="tx-num"   id="tx2-num"   style="will-change:transform,opacity">N° 02 / 04</span>
+      <span class="tx-title" id="tx2-title" style="will-change:transform,opacity">Awards &amp;<br/>Distinctions</span>
+      <span class="tx-sub"   id="tx2-sub"   style="will-change:transform,opacity">— seven distinctions</span>
+    </div>
+  </div>
+
+  <!-- T3: Awards → Work — Blur Drift (frosted panel from right) -->
+  <div class="tx-panel tx-light" id="tx3">
+    <div class="tx-bg" style="background:var(--bg,#F5E4DC);transform:translateX(100%);will-change:transform,filter;" id="tx3-bg"></div>
+    <div class="tx-copy" id="tx3-copy">
+      <span class="tx-num"   id="tx3-num"   style="will-change:transform,opacity">N° 03 / 04</span>
+      <span class="tx-title" id="tx3-title" style="will-change:transform,opacity">Recital &amp;<br/><em style="font-style:italic;color:var(--accent,#C44860)">Work</em></span>
+      <span class="tx-sub"   id="tx3-sub"   style="will-change:transform,opacity">— six pieces</span>
+    </div>
+  </div>
+
+  <!-- T4: Work → Teaching — Stagger Assemble (words rise with elastic) -->
+  <div class="tx-panel tx-dark" id="tx4">
+    <div class="tx-bg" style="background:var(--ink,#2A1528)"></div>
+    <div class="tx-copy">
+      <span class="tx-num"   id="tx4-num"   style="will-change:transform,opacity">N° 04 / 04</span>
+      <span class="tx-title" id="tx4-title" style="will-change:transform,opacity">Private<br/><em style="font-style:italic;color:var(--warm,#EE9078)">Lessons</em></span>
+      <span class="tx-sub"   id="tx4-sub"   style="will-change:transform,opacity">— with Mikka</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ── utils ── */
+  function eio(t) { return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+  function eel(t) {
+    var c4 = (2 * Math.PI) / 4.5;
+    return t === 0 ? 0 : t === 1 ? 1 :
+      Math.pow(2, -10*t) * Math.sin((t*10 - 0.75) * c4) + 1;
+  }
+  function clamp(v) { return Math.min(1, Math.max(0, v)); }
+  function remap(p, a, b) { return clamp((p - a) / (b - a)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  var SCRUB = 1.8;
+
+  /* ══════════════════════════════════════════
+     T1 · Hero → About · CONTENT STORM
+     Elements arrive from three different edges.
+  ══════════════════════════════════════════ */
+  (function () {
+    var panel  = document.getElementById('tx1');
+    var num    = document.getElementById('tx1-num');
+    var title  = document.getElementById('tx1-title');
+    var sub    = document.getElementById('tx1-sub');
+    var about  = document.getElementById('about');
+    if (!panel || !about) return;
+
+    /* initial positions */
+    num.style.cssText   += ';transform:translateX(-80px);opacity:0';
+    title.style.cssText += ';transform:translateX(80px);opacity:0';
+    sub.style.cssText   += ';transform:translateY(50px);opacity:0';
+
+    ScrollTrigger.create({
+      trigger: about,
+      start: 'top 100%',
+      end:   'top 0%',
+      scrub: SCRUB,
+      onUpdate: function (self) {
+        var p = self.progress;
+
+        /* Panel fades in 0→0.12, out 0.82→1 */
+        panel.style.opacity = String(
+          p < 0.12 ? eio(remap(p, 0, 0.12)) :
+          p > 0.82 ? 1 - eio(remap(p, 0.82, 1)) : 1
+        );
+
+        /* Num: arrives from left */
+        var tn = eio(remap(p, 0.02, 0.42));
+        num.style.opacity   = String(tn);
+        num.style.transform = 'translateX(' + lerp(-80, 0, tn) + 'px)';
+
+        /* Title: arrives from right */
+        var tt = eio(remap(p, 0.06, 0.50));
+        title.style.opacity   = String(tt);
+        title.style.transform = 'translateX(' + lerp(80, 0, tt) + 'px)';
+
+        /* Sub: rises from below with elastic snap */
+        var ts = eel(remap(p, 0.13, 0.58));
+        sub.style.opacity   = String(clamp(remap(p, 0.13, 0.26)));
+        sub.style.transform = 'translateY(' + lerp(50, 0, ts) + 'px)';
+
+        /* Exit: everything drifts upward and fades */
+        if (p > 0.70) {
+          var ex = eio(remap(p, 0.70, 0.88));
+          num.style.opacity   = String(Math.max(0, parseFloat(num.style.opacity)   - ex));
+          title.style.opacity = String(Math.max(0, parseFloat(title.style.opacity) - ex));
+          sub.style.opacity   = String(Math.max(0, parseFloat(sub.style.opacity)   - ex));
+          var dy = ex * -40;
+          num.style.transform   = 'translateY(' + dy + 'px)';
+          title.style.transform = 'translateY(' + dy + 'px)';
+          sub.style.transform   = 'translateY(' + dy + 'px)';
+        }
+      }
+    });
+  }());
+
+  /* ══════════════════════════════════════════
+     T2 · About → Awards · OBLIQUE SLASH
+     A skewed plum panel sweeps left→right
+     across the screen, content peaks at midpoint.
+  ══════════════════════════════════════════ */
+  (function () {
+    var panel  = document.getElementById('tx2');
+    var bg     = document.getElementById('tx2-bg');
+    var copy   = document.getElementById('tx2-copy');
+    var num    = document.getElementById('tx2-num');
+    var title  = document.getElementById('tx2-title');
+    var sub    = document.getElementById('tx2-sub');
+    var awards = document.getElementById('awards');
+    if (!panel || !awards) return;
+
+    /* initial content positions */
+    num.style.cssText   += ';opacity:0';
+    title.style.cssText += ';opacity:0';
+    sub.style.cssText   += ';opacity:0';
+
+    ScrollTrigger.create({
+      trigger: awards,
+      start: 'top 100%',
+      end:   'top 0%',
+      scrub: SCRUB,
+      onUpdate: function (self) {
+        var p = self.progress;
+
+        /* Panel visible while slash is crossing */
+        panel.style.opacity = '1';
+
+        /* Slash sweeps: bg starts at -110% (left), moves to +110% (right)
+           using translateX on the skewed div.
+           At p=0: translateX(-110%) → off left
+           At p=0.5: translateX(0%) → centre (full cover)
+           At p=1: translateX(110%) → off right */
+        var tx = lerp(-110, 110, eio(p));
+        bg.style.transform = 'skewX(-10deg) translateX(' + tx + '%)';
+
+        /* Content visible only while slash covers screen (p 0.3→0.7) */
+        var cover = p > 0.28 && p < 0.72;
+        var cf = cover
+          ? (p < 0.5 ? eio(remap(p, 0.28, 0.44)) : 1 - eio(remap(p, 0.56, 0.72)))
+          : 0;
+        num.style.opacity   = String(cf);
+        title.style.opacity = String(cf);
+        sub.style.opacity   = String(cf);
+
+        /* Outer panel hides once slash has fully left */
+        if (p > 0.97) panel.style.opacity = String(1 - eio(remap(p, 0.97, 1)));
+        if (p < 0.03) panel.style.opacity = String(eio(remap(p, 0, 0.03)));
+      }
+    });
+  }());
+
+  /* ══════════════════════════════════════════
+     T3 · Awards → Work · BLUR DRIFT
+     A warm cream panel arrives from the right,
+     starting blurry, sharpening to crisp,
+     then exits left blurring again.
+  ══════════════════════════════════════════ */
+  (function () {
+    var panel  = document.getElementById('tx3');
+    var bg     = document.getElementById('tx3-bg');
+    var copy   = document.getElementById('tx3-copy');
+    var num    = document.getElementById('tx3-num');
+    var title  = document.getElementById('tx3-title');
+    var sub    = document.getElementById('tx3-sub');
+    var work   = document.getElementById('work');
+    if (!panel || !work) return;
+
+    var BLUR = 20;
+    num.style.cssText   += ';opacity:0;transform:translateX(40px)';
+    title.style.cssText += ';opacity:0;transform:translateX(60px)';
+    sub.style.cssText   += ';opacity:0;transform:translateX(30px)';
+
+    ScrollTrigger.create({
+      trigger: work,
+      start: 'top 100%',
+      end:   'top 0%',
+      scrub: SCRUB,
+      onUpdate: function (self) {
+        var p = self.progress;
+
+        panel.style.opacity = '1';
+
+        if (p <= 0.5) {
+          /* Arrival: slides in from right, blur clears */
+          var t = eio(remap(p, 0, 0.5));
+          bg.style.transform = 'translateX(' + lerp(100, 0, t) + '%)';
+          bg.style.filter    = 'blur(' + lerp(BLUR, 0, t) + 'px)';
+
+          /* Content fades in + arrives from right */
+          var cf = eio(remap(p, 0.28, 0.5));
+          num.style.opacity   = String(cf);
+          num.style.transform = 'translateX(' + lerp(40, 0, cf) + 'px)';
+          title.style.opacity   = String(eio(remap(p, 0.30, 0.5)));
+          title.style.transform = 'translateX(' + lerp(60, 0, eio(remap(p, 0.30, 0.5))) + 'px)';
+          sub.style.opacity   = String(eio(remap(p, 0.34, 0.5)));
+          sub.style.transform = 'translateX(' + lerp(30, 0, eio(remap(p, 0.34, 0.5))) + 'px)';
+        } else {
+          /* Exit: drifts left, blur returns */
+          var t2 = eio(remap(p, 0.5, 1));
+          bg.style.transform = 'translateX(' + lerp(0, -100, t2) + '%)';
+          bg.style.filter    = 'blur(' + lerp(0, BLUR, t2) + 'px)';
+
+          /* Content fades out leftward */
+          var cf2 = 1 - eio(remap(p, 0.6, 0.82));
+          num.style.opacity   = String(cf2);
+          num.style.transform = 'translateX(' + lerp(0, -40, 1-cf2) + 'px)';
+          title.style.opacity   = String(1 - eio(remap(p, 0.58, 0.80)));
+          title.style.transform = 'translateX(' + lerp(0, -60, eio(remap(p, 0.58, 0.80))) + 'px)';
+          sub.style.opacity   = String(1 - eio(remap(p, 0.56, 0.78)));
+          sub.style.transform = 'translateX(' + lerp(0, -30, eio(remap(p, 0.56, 0.78))) + 'px)';
+        }
+
+        if (p > 0.98) panel.style.opacity = String(1 - eio(remap(p, 0.98, 1)));
+        if (p < 0.02) panel.style.opacity = String(eio(remap(p, 0, 0.02)));
+      }
+    });
+  }());
+
+  /* ══════════════════════════════════════════
+     T4 · Work → Teaching · STAGGER ASSEMBLE
+     Section label, title, and sub rise from below
+     with elastic overshoot, staggered.
+     Exit: each drifts upward and fades.
+  ══════════════════════════════════════════ */
+  (function () {
+    var panel    = document.getElementById('tx4');
+    var num      = document.getElementById('tx4-num');
+    var title    = document.getElementById('tx4-title');
+    var sub      = document.getElementById('tx4-sub');
+    var teaching = document.getElementById('teaching');
+    if (!panel || !teaching) return;
+
+    num.style.cssText   += ';opacity:0;transform:translateY(60px)';
+    title.style.cssText += ';opacity:0;transform:translateY(90px)';
+    sub.style.cssText   += ';opacity:0;transform:translateY(60px)';
+
+    ScrollTrigger.create({
+      trigger: teaching,
+      start: 'top 100%',
+      end:   'top 0%',
+      scrub: SCRUB,
+      onUpdate: function (self) {
+        var p = self.progress;
+
+        /* Panel in/out */
+        panel.style.opacity = String(
+          p < 0.08 ? eio(remap(p, 0, 0.08)) :
+          p > 0.88 ? 1 - eio(remap(p, 0.88, 1)) : 1
+        );
+
+        /* Num assembles first */
+        var tn = eel(remap(p, 0.06, 0.46));
+        num.style.opacity   = String(clamp(remap(p, 0.06, 0.18)));
+        num.style.transform = 'translateY(' + lerp(60, 0, tn) + 'px)';
+
+        /* Title assembles second */
+        var tt = eel(remap(p, 0.13, 0.55));
+        title.style.opacity   = String(clamp(remap(p, 0.13, 0.27)));
+        title.style.transform = 'translateY(' + lerp(90, 0, tt) + 'px)';
+
+        /* Sub assembles third */
+        var ts = eel(remap(p, 0.22, 0.62));
+        sub.style.opacity   = String(clamp(remap(p, 0.22, 0.36)));
+        sub.style.transform = 'translateY(' + lerp(60, 0, ts) + 'px)';
+
+        /* Exit: all drift upward */
+        if (p > 0.68) {
+          var ex = eio(remap(p, 0.68, 0.9));
+          var dy = lerp(0, -50, ex);
+          num.style.opacity   = String(Math.max(0, parseFloat(num.style.opacity)   * (1-ex)));
+          title.style.opacity = String(Math.max(0, parseFloat(title.style.opacity) * (1-ex)));
+          sub.style.opacity   = String(Math.max(0, parseFloat(sub.style.opacity)   * (1-ex)));
+          num.style.transform   = 'translateY(' + dy + 'px)';
+          title.style.transform = 'translateY(' + dy + 'px)';
+          sub.style.transform   = 'translateY(' + dy + 'px)';
+        }
+      }
+    });
+  }());
+
+}());
+</script>
+
 </body>
 </html>
