@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Awards Animation Ideas</title>
+<title>Awards — Animation Picker</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -11,155 +11,211 @@
   --bg:#F5E4DC;--ink:#2A1528;--acc:#C44860;--plum:#8A4A95;--warm:#EE9078;
   --mono:'IBM Plex Mono',monospace;--cond:'Bebas Neue',sans-serif;
 }
-html{scroll-behavior:smooth}
 body{background:#14080F;font-family:var(--mono);overflow-x:hidden}
 
-/* ── shared nav badge ── */
-.badge{
-  position:sticky;top:0;z-index:100;
-  background:rgba(20,8,15,.92);backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(255,255,255,.07);
-  padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;
-  font-size:.48rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(245,228,220,.5);
+/* ── sticky picker ── */
+.picker{
+  position:sticky;top:0;z-index:200;
+  background:rgba(20,8,15,.97);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:.55rem .8rem;
+  display:flex;align-items:center;gap:.5rem;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
-.badge strong{color:var(--acc);font-size:.9rem;letter-spacing:.06em;font-family:var(--cond)}
+.picker::-webkit-scrollbar{display:none}
+.picker-label{
+  font-size:.42rem;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(245,228,220,.35);white-space:nowrap;margin-right:.3rem;flex-shrink:0;
+}
+.p-btn{
+  flex-shrink:0;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:rgba(245,228,220,.55);border-radius:3px;
+  font-family:var(--mono);font-size:.42rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:.38rem .75rem;cursor:pointer;white-space:nowrap;
+  transition:background .2s,color .2s,border-color .2s;
+}
+.p-btn:active{transform:scale(.97)}
+.p-btn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.replay-btn{
+  flex-shrink:0;margin-left:.3rem;
+  background:none;border:1px solid rgba(255,255,255,.15);
+  color:rgba(245,228,220,.4);border-radius:3px;
+  font-family:var(--mono);font-size:.42rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:.38rem .7rem;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.replay-btn:active{color:rgba(245,228,220,.8);border-color:rgba(255,255,255,.3)}
 
-/* ── section wrapper ── */
+/* ── demo shell ── */
 .demo{
   background:var(--bg);color:var(--ink);
-  max-width:480px;margin:0 auto 6rem;
+  max-width:480px;margin:2rem auto 4rem;
   box-shadow:0 0 0 1px rgba(42,21,40,.4),0 40px 100px -20px rgba(0,0,0,.6);
 }
-.demo-label{
-  background:var(--ink);color:var(--bg);
-  font-size:.48rem;letter-spacing:.28em;text-transform:uppercase;
-  padding:.8rem 1.2rem;display:flex;align-items:center;gap:.8rem;
-}
-.demo-label em{color:var(--acc);font-style:normal}
-
-/* ── band (top header) ── */
 .band{
   background:var(--ink);color:var(--bg);
-  font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;
-  padding:.9rem 1.2rem;display:flex;align-items:center;justify-content:center;gap:1rem;
-  border-bottom:1px solid rgba(245,228,220,.1);
+  font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;
+  padding:.85rem 1.2rem;display:flex;align-items:center;justify-content:center;gap:1rem;
 }
-.band span{color:var(--acc);font-size:.55rem}
+.band span{color:var(--acc);font-size:.5rem}
 
 /* ── category row ── */
-.cat-row{border-bottom:1px solid rgba(42,21,40,.15);padding:1.2rem 1rem}
-.cat-num{font-size:.42rem;letter-spacing:.24em;color:var(--acc);margin-bottom:.3rem}
-.cat-name{font-family:var(--cond);font-size:2.1rem;letter-spacing:.04em;margin-bottom:.2rem}
-.cat-count{font-size:.4rem;letter-spacing:.22em;opacity:.45;text-transform:uppercase}
+.cat-row{border-bottom:1px solid rgba(42,21,40,.12);padding:1.2rem 1rem 1.4rem}
+.cat-num{font-size:.4rem;letter-spacing:.24em;color:var(--acc);margin-bottom:.25rem;text-transform:uppercase}
+.cat-name{font-family:var(--cond);font-size:2.2rem;letter-spacing:.04em;margin-bottom:.15rem;line-height:1}
+.cat-count{font-size:.38rem;letter-spacing:.22em;opacity:.4;text-transform:uppercase;margin-bottom:.9rem}
 
-/* ── award cell ── */
+/* ── award cells ── */
 .award-cell{
-  border:1px solid rgba(42,21,40,.18);border-radius:2px;
-  padding:.8rem .9rem;margin:.6rem 0;
-  background:rgba(255,255,255,.35);
+  border:1px solid rgba(42,21,40,.15);border-radius:2px;
+  padding:.75rem .85rem;margin:.5rem 0;
+  background:rgba(255,255,255,.3);
 }
-.award-cell.hero{background:linear-gradient(135deg,rgba(196,72,96,.08),rgba(238,144,120,.12))}
+.award-cell.hero{background:linear-gradient(135deg,rgba(196,72,96,.07),rgba(238,144,120,.1))}
 .award-badge{
-  font-size:.38rem;letter-spacing:.22em;text-transform:uppercase;
+  font-size:.36rem;letter-spacing:.2em;text-transform:uppercase;
   color:var(--acc);border:1px solid currentColor;display:inline-block;
-  padding:.15rem .45rem;margin-bottom:.5rem;
+  padding:.12rem .4rem;margin-bottom:.45rem;
 }
-.award-year{font-size:.42rem;letter-spacing:.18em;opacity:.5;margin-bottom:.3rem}
-.award-title{font-size:.85rem;font-weight:400;margin-bottom:.25rem;line-height:1.25}
-.award-meta{font-size:.38rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+.award-year{font-size:.4rem;letter-spacing:.16em;opacity:.45;margin-bottom:.25rem;text-transform:uppercase}
+.award-title{font-size:.82rem;font-weight:400;margin-bottom:.2rem;line-height:1.3}
+.award-meta{font-size:.36rem;letter-spacing:.16em;text-transform:uppercase;opacity:.45}
 
-/* ── spacer between demos ── */
-.gap{height:4rem}
+/* ══════════════════════════════════════════════════════
+   ANIMATION STYLES
+   ══════════════════════════════════════════════════════ */
+.cat-row .award-cell,
+.cat-row .cat-num,
+.cat-row .cat-name,
+.cat-row .cat-count{will-change:transform,opacity}
 
-/* ══════════════════════════════════════════════
-   A — EDITORIAL SLOT-IN
-   odd blocks ← from left, even → from right
-   ══════════════════════════════════════════════ */
-.slot .award-cell{
+/* 1 · SLOT — odd ← left, even → right */
+.style-slot .award-cell{
   opacity:0;
-  transition:transform .65s cubic-bezier(.22,1,.36,1),opacity .5s ease;
+  transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .85s ease;
 }
-.slot .award-cell:nth-child(odd) { transform:translateX(-90px) }
-.slot .award-cell:nth-child(even){ transform:translateX( 90px) }
-.slot .award-cell:nth-child(2){transition-delay:.08s}
-.slot .award-cell:nth-child(3){transition-delay:.16s}
-.slot .award-cell:nth-child(4){transition-delay:.24s}
-.slot .award-cell:nth-child(5){transition-delay:.32s}
-.slot.go .award-cell{opacity:1;transform:translateX(0)}
+.style-slot .award-cell:nth-child(odd) {transform:translateX(-110px)}
+.style-slot .award-cell:nth-child(even){transform:translateX( 110px)}
+.style-slot .award-cell:nth-child(2){transition-delay:.1s}
+.style-slot .award-cell:nth-child(3){transition-delay:.2s}
+.style-slot .award-cell:nth-child(4){transition-delay:.3s}
+.style-slot .award-cell:nth-child(5){transition-delay:.4s}
+.style-slot.go .award-cell{opacity:1;transform:translateX(0)}
 
-/* ══════════════════════════════════════════════
-   B — PRINT REGISTRATION SNAP
-   start misregistered (offset + slightly big)
-   snap to exact position
-   ══════════════════════════════════════════════ */
-.reg .award-cell{
-  opacity:.15;
-  transition:transform .45s cubic-bezier(.34,1.4,.64,1),opacity .3s ease;
+/* 2 · REGISTER — misaligned → snaps */
+.style-reg .award-cell{
+  opacity:.1;
+  transition:transform .75s cubic-bezier(.34,1.4,.64,1),opacity .55s ease;
 }
-.reg .award-cell:nth-child(odd) { transform:translateX(-18px) scale(1.04)}
-.reg .award-cell:nth-child(even){ transform:translateX( 18px) scale(1.04)}
-.reg .award-cell:nth-child(2){transition-delay:.06s}
-.reg .award-cell:nth-child(3){transition-delay:.12s}
-.reg .award-cell:nth-child(4){transition-delay:.18s}
-.reg .award-cell:nth-child(5){transition-delay:.24s}
-.reg.go .award-cell{opacity:1;transform:translateX(0) scale(1)}
+.style-reg .award-cell:nth-child(odd) {transform:translateX(-24px) scale(1.05)}
+.style-reg .award-cell:nth-child(even){transform:translateX( 24px) scale(1.05)}
+.style-reg .award-cell:nth-child(2){transition-delay:.08s}
+.style-reg .award-cell:nth-child(3){transition-delay:.16s}
+.style-reg .award-cell:nth-child(4){transition-delay:.24s}
+.style-reg .award-cell:nth-child(5){transition-delay:.32s}
+.style-reg.go .award-cell{opacity:1;transform:translateX(0) scale(1)}
 
-/* ══════════════════════════════════════════════
-   C — GRAVITY LANES
-   left col rises from below, right col falls from above
-   (simulate two-col with nth-child odd/even)
-   ══════════════════════════════════════════════ */
-.grav .award-cell{
+/* 3 · GRAVITY — odd rises ↑, even falls ↓ */
+.style-grav .award-cell{
   opacity:0;
-  transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .55s ease;
+  transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .8s ease;
 }
-.grav .award-cell:nth-child(odd) { transform:translateY( 60px)}
-.grav .award-cell:nth-child(even){ transform:translateY(-60px)}
-.grav .award-cell:nth-child(2){transition-delay:.05s}
-.grav .award-cell:nth-child(3){transition-delay:.1s}
-.grav .award-cell:nth-child(4){transition-delay:.15s}
-.grav .award-cell:nth-child(5){transition-delay:.2s}
-.grav.go .award-cell{opacity:1;transform:translateY(0)}
+.style-grav .award-cell:nth-child(odd) {transform:translateY( 80px)}
+.style-grav .award-cell:nth-child(even){transform:translateY(-80px)}
+.style-grav .award-cell:nth-child(2){transition-delay:.1s}
+.style-grav .award-cell:nth-child(3){transition-delay:.2s}
+.style-grav .award-cell:nth-child(4){transition-delay:.3s}
+.style-grav .award-cell:nth-child(5){transition-delay:.4s}
+.style-grav.go .award-cell{opacity:1;transform:translateY(0)}
 
-/* ══════════════════════════════════════════════
-   D — CATEGORY CASCADE
-   heading wipes from left first,
-   then cells fall in top-to-bottom
-   ══════════════════════════════════════════════ */
-.casc .cat-name,.casc .cat-num,.casc .cat-count{
-  opacity:0;transform:translateX(-60px);
-  transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .45s ease;
+/* 4 · CASCADE — heading wipes left, cards drop */
+.style-casc .cat-num,.style-casc .cat-name,.style-casc .cat-count{
+  opacity:0;transform:translateX(-70px);
+  transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .7s ease;
 }
-.casc .cat-num{transition-delay:0s}
-.casc .cat-name{transition-delay:.07s}
-.casc .cat-count{transition-delay:.14s}
-.casc .award-cell{
-  opacity:0;transform:translateY(-36px);
-  transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .45s ease;
+.style-casc .cat-num  {transition-delay:0s}
+.style-casc .cat-name {transition-delay:.09s}
+.style-casc .cat-count{transition-delay:.18s}
+.style-casc .award-cell{
+  opacity:0;transform:translateY(-50px);
+  transition:transform 1.05s cubic-bezier(.22,1,.36,1),opacity .75s ease;
 }
-.casc .award-cell:nth-child(1){transition-delay:.22s}
-.casc .award-cell:nth-child(2){transition-delay:.32s}
-.casc .award-cell:nth-child(3){transition-delay:.42s}
-.casc .award-cell:nth-child(4){transition-delay:.52s}
-.casc .award-cell:nth-child(5){transition-delay:.62s}
-.casc.go .cat-name,.casc.go .cat-num,.casc.go .cat-count{opacity:1;transform:translateX(0)}
-.casc.go .award-cell{opacity:1;transform:translateY(0)}
+.style-casc .award-cell:nth-child(1){transition-delay:.3s}
+.style-casc .award-cell:nth-child(2){transition-delay:.44s}
+.style-casc .award-cell:nth-child(3){transition-delay:.58s}
+.style-casc .award-cell:nth-child(4){transition-delay:.72s}
+.style-casc .award-cell:nth-child(5){transition-delay:.86s}
+.style-casc.go .cat-num,.style-casc.go .cat-name,.style-casc.go .cat-count{opacity:1;transform:translateX(0)}
+.style-casc.go .award-cell{opacity:1;transform:translateY(0)}
+
+/* 5 · CURTAIN — clip reveal top → bottom */
+.style-curtain .award-cell{
+  clip-path:inset(0 0 100% 0);
+  transition:clip-path 1.05s cubic-bezier(.22,1,.36,1);
+}
+.style-curtain .award-cell:nth-child(2){transition-delay:.14s}
+.style-curtain .award-cell:nth-child(3){transition-delay:.28s}
+.style-curtain .award-cell:nth-child(4){transition-delay:.42s}
+.style-curtain .award-cell:nth-child(5){transition-delay:.56s}
+.style-curtain.go .award-cell{clip-path:inset(0 0 0% 0)}
+
+/* 6 · CONVERGE — diagonal: odd top-left, even bottom-right */
+.style-conv .award-cell{
+  opacity:0;
+  transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .85s ease;
+}
+.style-conv .award-cell:nth-child(odd) {transform:translate(-75px, 55px)}
+.style-conv .award-cell:nth-child(even){transform:translate( 75px,-55px)}
+.style-conv .award-cell:nth-child(2){transition-delay:.12s}
+.style-conv .award-cell:nth-child(3){transition-delay:.24s}
+.style-conv .award-cell:nth-child(4){transition-delay:.36s}
+.style-conv .award-cell:nth-child(5){transition-delay:.48s}
+.style-conv.go .award-cell{opacity:1;transform:translate(0,0)}
+
+/* 7 · BREATHE — scale from center */
+.style-breathe .award-cell{
+  opacity:0;transform:scale(.84);
+  transition:transform 1.05s cubic-bezier(.22,1,.36,1),opacity .8s ease;
+}
+.style-breathe .award-cell:nth-child(2){transition-delay:.13s}
+.style-breathe .award-cell:nth-child(3){transition-delay:.26s}
+.style-breathe .award-cell:nth-child(4){transition-delay:.39s}
+.style-breathe .award-cell:nth-child(5){transition-delay:.52s}
+.style-breathe.go .award-cell{opacity:1;transform:scale(1)}
+
+/* 8 · RISE — all from below, heavy stagger */
+.style-rise .award-cell{
+  opacity:0;transform:translateY(70px);
+  transition:transform 1.2s cubic-bezier(.16,1,.3,1),opacity .9s ease;
+}
+.style-rise .award-cell:nth-child(2){transition-delay:.16s}
+.style-rise .award-cell:nth-child(3){transition-delay:.32s}
+.style-rise .award-cell:nth-child(4){transition-delay:.48s}
+.style-rise .award-cell:nth-child(5){transition-delay:.64s}
+.style-rise.go .award-cell{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
 
-<div class="badge">
-  <strong>MC</strong>
-  Awards Animation Ideas — scroll each section
+<div class="picker">
+  <span class="picker-label">Style →</span>
+  <button class="p-btn active" data-style="slot">1 · Slot</button>
+  <button class="p-btn" data-style="reg">2 · Register</button>
+  <button class="p-btn" data-style="grav">3 · Gravity</button>
+  <button class="p-btn" data-style="casc">4 · Cascade</button>
+  <button class="p-btn" data-style="curtain">5 · Curtain</button>
+  <button class="p-btn" data-style="conv">6 · Converge</button>
+  <button class="p-btn" data-style="breathe">7 · Breathe</button>
+  <button class="p-btn" data-style="rise">8 · Rise</button>
+  <button class="replay-btn" id="replayBtn">↺</button>
 </div>
 
-<div class="gap"></div>
-
-<!-- ═══ A: EDITORIAL SLOT-IN ═══ -->
 <div class="demo">
-  <div class="demo-label"><em>A</em> — Editorial Slot-In &nbsp;·&nbsp; odd ← left · even → right</div>
   <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
-  <div class="cat-row slot" data-obs>
+
+  <div class="cat-row style-slot" id="row1">
     <div class="cat-num">N° 01 / 03</div>
     <div class="cat-name">ACADEMIC</div>
     <div class="cat-count">02 distinctions</div>
@@ -175,7 +231,8 @@ body{background:#14080F;font-family:var(--mono);overflow-x:hidden}
       <div class="award-meta">Faculty recognition · Spring</div>
     </div>
   </div>
-  <div class="cat-row slot" data-obs>
+
+  <div class="cat-row style-slot" id="row2">
     <div class="cat-num">N° 02 / 03</div>
     <div class="cat-name">COMPETITION</div>
     <div class="cat-count">04 placements</div>
@@ -193,157 +250,61 @@ body{background:#14080F;font-family:var(--mono);overflow-x:hidden}
     <div class="award-cell">
       <div class="award-year">2020</div>
       <div class="award-title">Collaborative Excellence</div>
-      <div class="award-meta">State Conservatory · Jury Award</div>
+      <div class="award-meta">State Conservatory · Jury</div>
+    </div>
+  </div>
+
+  <div class="cat-row style-slot" id="row3">
+    <div class="cat-num">N° 03 / 03</div>
+    <div class="cat-name">PROFESSIONAL</div>
+    <div class="cat-count">02 recognitions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">COMMERCIAL RECORDING</div>
+      <div class="award-year">2023</div>
+      <div class="award-title">Daughters of Heaven — featured performer</div>
+      <div class="award-meta">12-Track Album · Mongolia &amp; China</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2026</div>
+      <div class="award-title">Registered Performer — DIA</div>
+      <div class="award-meta">Detroit Institute of Arts · Film Theatre</div>
     </div>
   </div>
 </div>
-
-<div class="gap"></div>
-
-<!-- ═══ B: PRINT REGISTRATION SNAP ═══ -->
-<div class="demo">
-  <div class="demo-label"><em>B</em> — Print Registration Snap &nbsp;·&nbsp; misaligned → locks in</div>
-  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
-  <div class="cat-row reg" data-obs>
-    <div class="cat-num">N° 01 / 03</div>
-    <div class="cat-name">ACADEMIC</div>
-    <div class="cat-count">02 distinctions</div>
-    <div class="award-cell hero">
-      <div class="award-badge">HIGHEST HONOR</div>
-      <div class="award-year">2019 — 2023</div>
-      <div class="award-title">Bachelor of Music</div>
-      <div class="award-meta">MSUAC · Traditional Music</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2018</div>
-      <div class="award-title">Academic Distinction Award</div>
-      <div class="award-meta">Faculty recognition · Spring</div>
-    </div>
-  </div>
-  <div class="cat-row reg" data-obs>
-    <div class="cat-num">N° 02 / 03</div>
-    <div class="cat-name">COMPETITION</div>
-    <div class="cat-count">04 placements</div>
-    <div class="award-cell hero">
-      <div class="award-badge">1ST PLACE</div>
-      <div class="award-year">2022</div>
-      <div class="award-title">National Piano Championship</div>
-      <div class="award-meta">Ulaanbaatar · Open Division</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2021</div>
-      <div class="award-title">Young Performer Prize</div>
-      <div class="award-meta">Mongolia Arts Council</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2020</div>
-      <div class="award-title">Collaborative Excellence</div>
-      <div class="award-meta">State Conservatory · Jury Award</div>
-    </div>
-  </div>
-</div>
-
-<div class="gap"></div>
-
-<!-- ═══ C: GRAVITY LANES ═══ -->
-<div class="demo">
-  <div class="demo-label"><em>C</em> — Gravity Lanes &nbsp;·&nbsp; odd rises ↑ · even falls ↓</div>
-  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
-  <div class="cat-row grav" data-obs>
-    <div class="cat-num">N° 01 / 03</div>
-    <div class="cat-name">ACADEMIC</div>
-    <div class="cat-count">02 distinctions</div>
-    <div class="award-cell hero">
-      <div class="award-badge">HIGHEST HONOR</div>
-      <div class="award-year">2019 — 2023</div>
-      <div class="award-title">Bachelor of Music</div>
-      <div class="award-meta">MSUAC · Traditional Music</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2018</div>
-      <div class="award-title">Academic Distinction Award</div>
-      <div class="award-meta">Faculty recognition · Spring</div>
-    </div>
-  </div>
-  <div class="cat-row grav" data-obs>
-    <div class="cat-num">N° 02 / 03</div>
-    <div class="cat-name">COMPETITION</div>
-    <div class="cat-count">04 placements</div>
-    <div class="award-cell hero">
-      <div class="award-badge">1ST PLACE</div>
-      <div class="award-year">2022</div>
-      <div class="award-title">National Piano Championship</div>
-      <div class="award-meta">Ulaanbaatar · Open Division</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2021</div>
-      <div class="award-title">Young Performer Prize</div>
-      <div class="award-meta">Mongolia Arts Council</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2020</div>
-      <div class="award-title">Collaborative Excellence</div>
-      <div class="award-meta">State Conservatory · Jury Award</div>
-    </div>
-  </div>
-</div>
-
-<div class="gap"></div>
-
-<!-- ═══ D: CATEGORY CASCADE ═══ -->
-<div class="demo">
-  <div class="demo-label"><em>D</em> — Category Cascade &nbsp;·&nbsp; heading wipes left → cards fall in</div>
-  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
-  <div class="cat-row casc" data-obs>
-    <div class="cat-num">N° 01 / 03</div>
-    <div class="cat-name">ACADEMIC</div>
-    <div class="cat-count">02 distinctions</div>
-    <div class="award-cell hero">
-      <div class="award-badge">HIGHEST HONOR</div>
-      <div class="award-year">2019 — 2023</div>
-      <div class="award-title">Bachelor of Music</div>
-      <div class="award-meta">MSUAC · Traditional Music</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2018</div>
-      <div class="award-title">Academic Distinction Award</div>
-      <div class="award-meta">Faculty recognition · Spring</div>
-    </div>
-  </div>
-  <div class="cat-row casc" data-obs>
-    <div class="cat-num">N° 02 / 03</div>
-    <div class="cat-name">COMPETITION</div>
-    <div class="cat-count">04 placements</div>
-    <div class="award-cell hero">
-      <div class="award-badge">1ST PLACE</div>
-      <div class="award-year">2022</div>
-      <div class="award-title">National Piano Championship</div>
-      <div class="award-meta">Ulaanbaatar · Open Division</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2021</div>
-      <div class="award-title">Young Performer Prize</div>
-      <div class="award-meta">Mongolia Arts Council</div>
-    </div>
-    <div class="award-cell">
-      <div class="award-year">2020</div>
-      <div class="award-title">Collaborative Excellence</div>
-      <div class="award-meta">State Conservatory · Jury Award</div>
-    </div>
-  </div>
-</div>
-
-<div class="gap"></div>
 
 <script>
 (function(){
-  if(!window.IntersectionObserver) return;
-  var obs = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){ e.target.classList.add('go'); obs.unobserve(e.target); }
+  var rows = document.querySelectorAll('.cat-row');
+  var btns = document.querySelectorAll('.p-btn');
+  var current = 'slot';
+
+  function setStyle(s){
+    rows.forEach(function(r){
+      r.classList.remove('style-'+current,'go');
+      r.classList.add('style-'+s);
     });
-  },{rootMargin:'0px 0px -8% 0px',threshold:0.12});
-  document.querySelectorAll('[data-obs]').forEach(function(el){ obs.observe(el); });
+    current = s;
+  }
+
+  function play(){
+    rows.forEach(function(r){ r.classList.remove('go'); void r.offsetHeight; });
+    rows.forEach(function(r,i){
+      setTimeout(function(){ r.classList.add('go'); }, i * 90);
+    });
+  }
+
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      setStyle(btn.dataset.style);
+      setTimeout(play, 40);
+    });
+  });
+
+  document.getElementById('replayBtn').addEventListener('click', play);
+
+  setTimeout(play, 400);
 })();
 </script>
 </body>
