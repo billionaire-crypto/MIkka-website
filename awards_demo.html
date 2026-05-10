@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Awards Animation Ideas</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5E4DC;--ink:#2A1528;--acc:#C44860;--plum:#8A4A95;--warm:#EE9078;
+  --mono:'IBM Plex Mono',monospace;--cond:'Bebas Neue',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:#14080F;font-family:var(--mono);overflow-x:hidden}
+
+/* ── shared nav badge ── */
+.badge{
+  position:sticky;top:0;z-index:100;
+  background:rgba(20,8,15,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;
+  font-size:.48rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(245,228,220,.5);
+}
+.badge strong{color:var(--acc);font-size:.9rem;letter-spacing:.06em;font-family:var(--cond)}
+
+/* ── section wrapper ── */
+.demo{
+  background:var(--bg);color:var(--ink);
+  max-width:480px;margin:0 auto 6rem;
+  box-shadow:0 0 0 1px rgba(42,21,40,.4),0 40px 100px -20px rgba(0,0,0,.6);
+}
+.demo-label{
+  background:var(--ink);color:var(--bg);
+  font-size:.48rem;letter-spacing:.28em;text-transform:uppercase;
+  padding:.8rem 1.2rem;display:flex;align-items:center;gap:.8rem;
+}
+.demo-label em{color:var(--acc);font-style:normal}
+
+/* ── band (top header) ── */
+.band{
+  background:var(--ink);color:var(--bg);
+  font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;
+  padding:.9rem 1.2rem;display:flex;align-items:center;justify-content:center;gap:1rem;
+  border-bottom:1px solid rgba(245,228,220,.1);
+}
+.band span{color:var(--acc);font-size:.55rem}
+
+/* ── category row ── */
+.cat-row{border-bottom:1px solid rgba(42,21,40,.15);padding:1.2rem 1rem}
+.cat-num{font-size:.42rem;letter-spacing:.24em;color:var(--acc);margin-bottom:.3rem}
+.cat-name{font-family:var(--cond);font-size:2.1rem;letter-spacing:.04em;margin-bottom:.2rem}
+.cat-count{font-size:.4rem;letter-spacing:.22em;opacity:.45;text-transform:uppercase}
+
+/* ── award cell ── */
+.award-cell{
+  border:1px solid rgba(42,21,40,.18);border-radius:2px;
+  padding:.8rem .9rem;margin:.6rem 0;
+  background:rgba(255,255,255,.35);
+}
+.award-cell.hero{background:linear-gradient(135deg,rgba(196,72,96,.08),rgba(238,144,120,.12))}
+.award-badge{
+  font-size:.38rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--acc);border:1px solid currentColor;display:inline-block;
+  padding:.15rem .45rem;margin-bottom:.5rem;
+}
+.award-year{font-size:.42rem;letter-spacing:.18em;opacity:.5;margin-bottom:.3rem}
+.award-title{font-size:.85rem;font-weight:400;margin-bottom:.25rem;line-height:1.25}
+.award-meta{font-size:.38rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+/* ── spacer between demos ── */
+.gap{height:4rem}
+
+/* ══════════════════════════════════════════════
+   A — EDITORIAL SLOT-IN
+   odd blocks ← from left, even → from right
+   ══════════════════════════════════════════════ */
+.slot .award-cell{
+  opacity:0;
+  transition:transform .65s cubic-bezier(.22,1,.36,1),opacity .5s ease;
+}
+.slot .award-cell:nth-child(odd) { transform:translateX(-90px) }
+.slot .award-cell:nth-child(even){ transform:translateX( 90px) }
+.slot .award-cell:nth-child(2){transition-delay:.08s}
+.slot .award-cell:nth-child(3){transition-delay:.16s}
+.slot .award-cell:nth-child(4){transition-delay:.24s}
+.slot .award-cell:nth-child(5){transition-delay:.32s}
+.slot.go .award-cell{opacity:1;transform:translateX(0)}
+
+/* ══════════════════════════════════════════════
+   B — PRINT REGISTRATION SNAP
+   start misregistered (offset + slightly big)
+   snap to exact position
+   ══════════════════════════════════════════════ */
+.reg .award-cell{
+  opacity:.15;
+  transition:transform .45s cubic-bezier(.34,1.4,.64,1),opacity .3s ease;
+}
+.reg .award-cell:nth-child(odd) { transform:translateX(-18px) scale(1.04)}
+.reg .award-cell:nth-child(even){ transform:translateX( 18px) scale(1.04)}
+.reg .award-cell:nth-child(2){transition-delay:.06s}
+.reg .award-cell:nth-child(3){transition-delay:.12s}
+.reg .award-cell:nth-child(4){transition-delay:.18s}
+.reg .award-cell:nth-child(5){transition-delay:.24s}
+.reg.go .award-cell{opacity:1;transform:translateX(0) scale(1)}
+
+/* ══════════════════════════════════════════════
+   C — GRAVITY LANES
+   left col rises from below, right col falls from above
+   (simulate two-col with nth-child odd/even)
+   ══════════════════════════════════════════════ */
+.grav .award-cell{
+  opacity:0;
+  transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .55s ease;
+}
+.grav .award-cell:nth-child(odd) { transform:translateY( 60px)}
+.grav .award-cell:nth-child(even){ transform:translateY(-60px)}
+.grav .award-cell:nth-child(2){transition-delay:.05s}
+.grav .award-cell:nth-child(3){transition-delay:.1s}
+.grav .award-cell:nth-child(4){transition-delay:.15s}
+.grav .award-cell:nth-child(5){transition-delay:.2s}
+.grav.go .award-cell{opacity:1;transform:translateY(0)}
+
+/* ══════════════════════════════════════════════
+   D — CATEGORY CASCADE
+   heading wipes from left first,
+   then cells fall in top-to-bottom
+   ══════════════════════════════════════════════ */
+.casc .cat-name,.casc .cat-num,.casc .cat-count{
+  opacity:0;transform:translateX(-60px);
+  transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .45s ease;
+}
+.casc .cat-num{transition-delay:0s}
+.casc .cat-name{transition-delay:.07s}
+.casc .cat-count{transition-delay:.14s}
+.casc .award-cell{
+  opacity:0;transform:translateY(-36px);
+  transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .45s ease;
+}
+.casc .award-cell:nth-child(1){transition-delay:.22s}
+.casc .award-cell:nth-child(2){transition-delay:.32s}
+.casc .award-cell:nth-child(3){transition-delay:.42s}
+.casc .award-cell:nth-child(4){transition-delay:.52s}
+.casc .award-cell:nth-child(5){transition-delay:.62s}
+.casc.go .cat-name,.casc.go .cat-num,.casc.go .cat-count{opacity:1;transform:translateX(0)}
+.casc.go .award-cell{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="badge">
+  <strong>MC</strong>
+  Awards Animation Ideas — scroll each section
+</div>
+
+<div class="gap"></div>
+
+<!-- ═══ A: EDITORIAL SLOT-IN ═══ -->
+<div class="demo">
+  <div class="demo-label"><em>A</em> — Editorial Slot-In &nbsp;·&nbsp; odd ← left · even → right</div>
+  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
+  <div class="cat-row slot" data-obs>
+    <div class="cat-num">N° 01 / 03</div>
+    <div class="cat-name">ACADEMIC</div>
+    <div class="cat-count">02 distinctions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">HIGHEST HONOR</div>
+      <div class="award-year">2019 — 2023</div>
+      <div class="award-title">Bachelor of Music</div>
+      <div class="award-meta">MSUAC · Traditional Music</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2018</div>
+      <div class="award-title">Academic Distinction Award</div>
+      <div class="award-meta">Faculty recognition · Spring</div>
+    </div>
+  </div>
+  <div class="cat-row slot" data-obs>
+    <div class="cat-num">N° 02 / 03</div>
+    <div class="cat-name">COMPETITION</div>
+    <div class="cat-count">04 placements</div>
+    <div class="award-cell hero">
+      <div class="award-badge">1ST PLACE</div>
+      <div class="award-year">2022</div>
+      <div class="award-title">National Piano Championship</div>
+      <div class="award-meta">Ulaanbaatar · Open Division</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2021</div>
+      <div class="award-title">Young Performer Prize</div>
+      <div class="award-meta">Mongolia Arts Council</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2020</div>
+      <div class="award-title">Collaborative Excellence</div>
+      <div class="award-meta">State Conservatory · Jury Award</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ═══ B: PRINT REGISTRATION SNAP ═══ -->
+<div class="demo">
+  <div class="demo-label"><em>B</em> — Print Registration Snap &nbsp;·&nbsp; misaligned → locks in</div>
+  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
+  <div class="cat-row reg" data-obs>
+    <div class="cat-num">N° 01 / 03</div>
+    <div class="cat-name">ACADEMIC</div>
+    <div class="cat-count">02 distinctions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">HIGHEST HONOR</div>
+      <div class="award-year">2019 — 2023</div>
+      <div class="award-title">Bachelor of Music</div>
+      <div class="award-meta">MSUAC · Traditional Music</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2018</div>
+      <div class="award-title">Academic Distinction Award</div>
+      <div class="award-meta">Faculty recognition · Spring</div>
+    </div>
+  </div>
+  <div class="cat-row reg" data-obs>
+    <div class="cat-num">N° 02 / 03</div>
+    <div class="cat-name">COMPETITION</div>
+    <div class="cat-count">04 placements</div>
+    <div class="award-cell hero">
+      <div class="award-badge">1ST PLACE</div>
+      <div class="award-year">2022</div>
+      <div class="award-title">National Piano Championship</div>
+      <div class="award-meta">Ulaanbaatar · Open Division</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2021</div>
+      <div class="award-title">Young Performer Prize</div>
+      <div class="award-meta">Mongolia Arts Council</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2020</div>
+      <div class="award-title">Collaborative Excellence</div>
+      <div class="award-meta">State Conservatory · Jury Award</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ═══ C: GRAVITY LANES ═══ -->
+<div class="demo">
+  <div class="demo-label"><em>C</em> — Gravity Lanes &nbsp;·&nbsp; odd rises ↑ · even falls ↓</div>
+  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
+  <div class="cat-row grav" data-obs>
+    <div class="cat-num">N° 01 / 03</div>
+    <div class="cat-name">ACADEMIC</div>
+    <div class="cat-count">02 distinctions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">HIGHEST HONOR</div>
+      <div class="award-year">2019 — 2023</div>
+      <div class="award-title">Bachelor of Music</div>
+      <div class="award-meta">MSUAC · Traditional Music</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2018</div>
+      <div class="award-title">Academic Distinction Award</div>
+      <div class="award-meta">Faculty recognition · Spring</div>
+    </div>
+  </div>
+  <div class="cat-row grav" data-obs>
+    <div class="cat-num">N° 02 / 03</div>
+    <div class="cat-name">COMPETITION</div>
+    <div class="cat-count">04 placements</div>
+    <div class="award-cell hero">
+      <div class="award-badge">1ST PLACE</div>
+      <div class="award-year">2022</div>
+      <div class="award-title">National Piano Championship</div>
+      <div class="award-meta">Ulaanbaatar · Open Division</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2021</div>
+      <div class="award-title">Young Performer Prize</div>
+      <div class="award-meta">Mongolia Arts Council</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2020</div>
+      <div class="award-title">Collaborative Excellence</div>
+      <div class="award-meta">State Conservatory · Jury Award</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ═══ D: CATEGORY CASCADE ═══ -->
+<div class="demo">
+  <div class="demo-label"><em>D</em> — Category Cascade &nbsp;·&nbsp; heading wipes left → cards fall in</div>
+  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
+  <div class="cat-row casc" data-obs>
+    <div class="cat-num">N° 01 / 03</div>
+    <div class="cat-name">ACADEMIC</div>
+    <div class="cat-count">02 distinctions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">HIGHEST HONOR</div>
+      <div class="award-year">2019 — 2023</div>
+      <div class="award-title">Bachelor of Music</div>
+      <div class="award-meta">MSUAC · Traditional Music</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2018</div>
+      <div class="award-title">Academic Distinction Award</div>
+      <div class="award-meta">Faculty recognition · Spring</div>
+    </div>
+  </div>
+  <div class="cat-row casc" data-obs>
+    <div class="cat-num">N° 02 / 03</div>
+    <div class="cat-name">COMPETITION</div>
+    <div class="cat-count">04 placements</div>
+    <div class="award-cell hero">
+      <div class="award-badge">1ST PLACE</div>
+      <div class="award-year">2022</div>
+      <div class="award-title">National Piano Championship</div>
+      <div class="award-meta">Ulaanbaatar · Open Division</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2021</div>
+      <div class="award-title">Young Performer Prize</div>
+      <div class="award-meta">Mongolia Arts Council</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2020</div>
+      <div class="award-title">Collaborative Excellence</div>
+      <div class="award-meta">State Conservatory · Jury Award</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<script>
+(function(){
+  if(!window.IntersectionObserver) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('go'); obs.unobserve(e.target); }
+    });
+  },{rootMargin:'0px 0px -8% 0px',threshold:0.12});
+  document.querySelectorAll('[data-obs]').forEach(function(el){ obs.observe(el); });
+})();
+</script>
+</body>
+</html>
