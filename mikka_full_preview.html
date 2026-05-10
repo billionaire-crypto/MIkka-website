@@ -10089,14 +10089,14 @@ window.__mikkaLazyInit("page-04", function(){
   config.TRANSPARENT = true;
   /* Lower dissipation = dye lingers, so the smoke stays visible
      between ambient splats without the user having to move the mouse. */
-  config.DENSITY_DISSIPATION = 0.55;
-  config.VELOCITY_DISSIPATION = 0.35;
-  config.SPLAT_RADIUS = 0.18;
-  config.SPLAT_FORCE = 4200;
-  config.CURL = 24;
+  config.DENSITY_DISSIPATION = 0.35;
+  config.VELOCITY_DISSIPATION = 0.18;
+  config.SPLAT_RADIUS = 0.22;
+  config.SPLAT_FORCE = 4800;
+  config.CURL = 26;
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
-  if (typeof splatStack !== 'undefined') splatStack.push(10);
+  if (typeof splatStack !== 'undefined') splatStack.push(14);
 
   /* Pavel's render() calls drawCheckerboard(target) when TRANSPARENT is
      true — meant to indicate transparency on his demo page. We want the
@@ -10132,7 +10132,7 @@ window.__mikkaLazyInit("page-04", function(){
        makes the dye max channel ~0.18 — just enough above body bg to
        register as a current/swirl, but not bright enough to read as
        opaque smoke. */
-    return { r: r * 0.18, g: g * 0.18, b: b * 0.18 };
+    return { r: r * 0.32, g: g * 0.32, b: b * 0.32 };
   };
 })();
 
@@ -10148,8 +10148,8 @@ window.__mikkaLazyInit("page-04", function(){
 
   var BOOKLET_HALF = 240;            /* booklet is 480px wide, centered */
   var SIDE_PADDING = 36;             /* keep splats off the very edge   */
-  var INTERVAL_MS  = 700;            /* one ambient splat per side ~     */
-  var FORCE        = 320;            /* gentle velocity (px/sec-ish)     */
+  var INTERVAL_MS  = 480;            /* ambient splat cadence            */
+  var FORCE        = 460;            /* gentle velocity (px/sec-ish)     */
 
   function ambientSplat(){
     if (typeof splat !== 'function' || typeof generateColor !== 'function') return;
@@ -10183,8 +10183,10 @@ window.__mikkaLazyInit("page-04", function(){
   var waitId = setInterval(function(){
     if (typeof splat === 'function' && typeof generateColor === 'function') {
       clearInterval(waitId);
-      /* Initial breath — a few gentle splats so the panels aren't blank. */
-      for (var i = 0; i < 6; i++) ambientSplat();
+      /* Initial breath — fill both panels with drifting wisps so the
+         page never reads as flat-dark, even before the first ambient
+         tick. Twelve splats, half on each side. */
+      for (var i = 0; i < 12; i++) ambientSplat();
       setInterval(ambientSplat, INTERVAL_MS);
     }
   }, 200);
