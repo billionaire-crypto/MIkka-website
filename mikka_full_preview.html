@@ -10126,57 +10126,51 @@ window.__mikkaLazyInit("page-04", function(){
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCROLL TRANSITIONS — content-driven, no overlay
-     The actual section elements animate as they scroll into view.
-     No blank panels. Real content is always visible.
-     Powered by GSAP ScrollTrigger, scrub-driven.
+     SCROLL TRANSITIONS — content-driven, IntersectionObserver
+     Real section elements animate as they enter the viewport.
+     No overlay, no blank panels — always real content.
 ═══════════════════════════════════════════════════════════════ -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+.tx-hidden {
+  opacity: 0 !important;
+  transform: translateY(var(--tx-dy, 55px)) !important;
+}
+.tx-revealed {
+  transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1),
+              transform 0.95s cubic-bezier(0.16,1,0.3,1) !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+</style>
 <script>
 (function () {
   'use strict';
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-  gsap.registerPlugin(ScrollTrigger);
+  if (!window.IntersectionObserver) return;
 
-  var S = 0.9; /* scrub seconds — responsive but smooth */
+  var targets = [
+    { sel: '#about .section-divider',  dy: '44px' },
+    { sel: '#awards .band.center',     dy: '65px' },
+    { sel: '#awards .legend',          dy: '45px' },
+    { sel: '#work #kbStrip',           dy: '55px' },
+    { sel: '#teaching .topmeta',       dy: '30px' },
+    { sel: '#teaching .title-block',   dy: '65px' }
+  ];
 
-  /* Skip if element is already in view on page load (avoids flash) */
-  function belowFold(el) {
-    return el && el.getBoundingClientRect().top > window.innerHeight * 0.95;
-  }
+  targets.forEach(function (t) {
+    var el = document.querySelector(t.sel);
+    if (!el) return;
+    /* Leave alone if already on screen when page loads */
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) return;
+    el.style.setProperty('--tx-dy', t.dy);
+    el.classList.add('tx-hidden');
 
-  function reveal(el, fromY, triggerEl, startPct, endPct) {
-    if (!el || !belowFold(el)) return;
-    gsap.fromTo(el,
-      { y: fromY, opacity: 0, willChange: 'transform, opacity' },
-      { y: 0,     opacity: 1,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: triggerEl || el,
-          start:   'top ' + (startPct || '95%'),
-          end:     'top ' + (endPct   || '20%'),
-          scrub:   S
-        }
-      }
-    );
-  }
-
-  /* Hero → About: section-divider bar rises in */
-  reveal(document.querySelector('#about .section-divider'), 40, '#about', '95%', '20%');
-
-  /* About → Awards: heading band + legend */
-  reveal(document.querySelector('#awards .band.center'), 65, '#awards', '95%', '15%');
-  reveal(document.querySelector('#awards .legend'),      45, '#awards', '85%', '10%');
-
-  /* Awards → Work: keyboard strip */
-  reveal(document.getElementById('kbStrip'), 55, '#work', '95%', '20%');
-
-  /* Work → Teaching: topmeta + title block staggered */
-  reveal(document.querySelector('#teaching .topmeta'),     30, '#teaching', '95%', '25%');
-  reveal(document.querySelector('#teaching .title-block'), 65, '#teaching', '80%', '10%');
-
+    new IntersectionObserver(function (entries, obs) {
+      if (!entries[0].isIntersecting) return;
+      el.classList.remove('tx-hidden');
+      el.classList.add('tx-revealed');
+      obs.disconnect();
+    }, { rootMargin: '0px 0px -5% 0px', threshold: 0.05 }).observe(el);
+  });
 }());
 </script>
 
