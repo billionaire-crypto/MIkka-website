@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mikka — Transition Demo V · Site-Matched</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:   #F5E4DC;
+      --ink:  #2A1528;
+      --acc:  #C44860;
+      --plum: #8A4A95;
+      --warm: #EE9078;
+    }
+    html { scroll-behavior: auto; }
+    body { overflow-x: hidden; background: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ── floating badge ── */
+    #badge {
+      position: fixed; bottom: 1.75rem; left: 50%;
+      transform: translateX(-50%); z-index: 9999;
+      padding: .55rem 1.5rem;
+      background: rgba(19,10,24,.85); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.1);
+      font-size: .55rem; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(245,228,220,.8); pointer-events: none;
+      opacity: 0; transition: opacity .3s; white-space: nowrap;
+    }
+
+    /* ── stages ── */
+    .stage   { position: relative; }
+    .sticky  { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+    .panel   { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+    /* ── mock page content (mimics real site aesthetic) ── */
+    .mock {
+      text-align: center;
+      padding: 2rem;
+    }
+    .mock-runner {
+      font-size: .5rem; letter-spacing: .3em; text-transform: uppercase;
+      margin-bottom: 2rem; opacity: .5;
+    }
+    .mock-num {
+      font-size: .55rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--acc); margin-bottom: 1.4rem;
+    }
+    .mock-h {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      font-weight: 300; line-height: 1.0; margin-bottom: 1.5rem;
+    }
+    .mock-rule {
+      width: 60px; height: 1px; margin: 0 auto 1.5rem;
+    }
+    .mock-meta {
+      font-size: .5rem; letter-spacing: .22em; text-transform: uppercase;
+      opacity: .45;
+    }
+
+    .dark .mock-runner, .dark .mock-meta { color: rgba(245,228,220,.45); }
+    .dark .mock-h   { color: var(--bg); }
+    .dark .mock-rule { background: rgba(245,228,220,.2); }
+
+    .light .mock-runner, .light .mock-meta { color: rgba(42,21,40,.4); }
+    .light .mock-h  { color: var(--ink); }
+    .light .mock-rule { background: rgba(42,21,40,.2); }
+
+    /* page-boundary mockup */
+    .mock-boundary {
+      display: flex; align-items: center; gap: 12px;
+      font-size: .5rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--acc); margin-top: 1.8rem;
+    }
+    .mock-boundary .ln { flex: 1; height: 1px; background: var(--acc); opacity: .4; }
+
+    .bg-ink  { background: var(--ink); }
+    .bg-bg   { background: var(--bg); }
+    .bg-plum { background: var(--plum); }
+    .bg-acc  { background: var(--acc); }
+
+    .gap { height: 3px; background: rgba(255,255,255,.03); }
+
+    /* intro */
+    #intro {
+      height: 100vh; background: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .intro-copy { text-align: center; }
+    .intro-copy .mock-num { color: var(--warm); }
+    .intro-copy .mock-h   { color: var(--bg); font-size: clamp(2.5rem,6vw,5rem); }
+    .intro-copy .mock-meta { color: rgba(245,228,220,.35); }
+    .arr { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+    .arr span { font-size: .52rem; letter-spacing: .22em; text-transform: uppercase; color: rgba(245,228,220,.3); }
+    .arr-ln { width: 1px; height: 44px; background: linear-gradient(to bottom, rgba(245,228,220,.35), transparent); animation: drip 1.5s ease-in-out infinite; }
+    @keyframes drip { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 50.01%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+    /* stage heights */
+    #t1,#t2,#t3,#t4,#t5 { height: 420vh; }
+
+    /* ═══════════════════════════════════
+       T1 · PRESS BAR
+       A typographic band — like a printing
+       press bar — sweeps top to bottom.
+       Section data is on the bar itself.
+    ═══════════════════════════════════ */
+    #t1-bar {
+      position: absolute;
+      left: 0; right: 0;
+      height: 88px;
+      top: -90px;
+      background: var(--plum);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6vw;
+      will-change: transform;
+    }
+    #t1-bar .bar-l { font-size: .5rem; letter-spacing: .28em; text-transform: uppercase; color: rgba(245,228,220,.55); }
+    #t1-bar .bar-c {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300; font-style: italic;
+      color: rgba(245,228,220,.9); letter-spacing: .04em;
+    }
+    #t1-bar .bar-r { font-size: .5rem; letter-spacing: .28em; text-transform: uppercase; color: rgba(245,228,220,.55); }
+    /* shadow on bar */
+    #t1-bar::before, #t1-bar::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 3px;
+    }
+    #t1-bar::before { top: 0; background: rgba(255,255,255,.12); }
+    #t1-bar::after  { bottom: 0; background: rgba(0,0,0,.25); }
+
+    /* ═══════════════════════════════════
+       T2 · BOUNDARY EXPAND
+       The site's own page-boundary divider
+       expands to fill the full screen,
+       then contracts to reveal the next section.
+    ═══════════════════════════════════ */
+    #t2-boundary {
+      position: absolute; left: 0; right: 0;
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 6vw;
+      background: var(--bg);
+      overflow: hidden;
+      will-change: height, top;
+      z-index: 10;
+      /* starts as the thin bar (same as real site) */
+      top: 50%; height: 44px;
+      transform: translateY(-50%);
+    }
+    #t2-boundary .b-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--acc) 20%, var(--acc) 80%, transparent);
+      opacity: .55; will-change: opacity;
+    }
+    #t2-boundary .b-label {
+      font-size: .5rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--acc); white-space: nowrap; will-change: opacity, transform;
+    }
+    #t2-center-text {
+      position: absolute; z-index: 11;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; pointer-events: none;
+      opacity: 0; will-change: opacity, transform;
+    }
+    #t2-center-text .ct-num {
+      font-size: .55rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--acc); margin-bottom: 1.2rem;
+    }
+    #t2-center-text .ct-ttl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 300; color: var(--ink); line-height: 1.0;
+    }
+
+    /* ═══════════════════════════════════
+       T3 · NUMBER BLOOM
+       The section number in large
+       Cormorant Garamond blooms from small
+       to dominate the screen, then dissolves.
+    ═══════════════════════════════════ */
+    #t3-bloom {
+      position: absolute; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    #t3-bloom .bloom-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 300; font-style: italic;
+      color: var(--bg); letter-spacing: .02em;
+      will-change: transform, opacity; transform-origin: center;
+      line-height: 1;
+    }
+    #t3-bloom .bloom-label {
+      font-size: .5rem; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(245,228,220,.5); margin-top: 1.5rem;
+      will-change: opacity; opacity: 0;
+    }
+
+    /* ═══════════════════════════════════
+       T4 · INK TIDE
+       The ink color rises from the bottom,
+       flooding the screen. No text — just color.
+       At peak: section name appears briefly.
+       Then recedes from the top.
+    ═══════════════════════════════════ */
+    #t4-tide {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 0; /* grows to 100% */
+      background: var(--ink);
+      z-index: 10;
+      will-change: height;
+    }
+    #t4-tide-label {
+      position: absolute; z-index: 11;
+      bottom: 0; left: 0; right: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end;
+      padding-bottom: 3rem;
+      pointer-events: none;
+    }
+    #t4-tide-text {
+      text-align: center; opacity: 0; will-change: opacity, transform;
+    }
+    #t4-tide-text .tt-num {
+      font-size: .5rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--warm); margin-bottom: 1.2rem;
+    }
+    #t4-tide-text .tt-ttl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 300; color: var(--bg); line-height: 1.0;
+    }
+
+    /* ═══════════════════════════════════
+       T5 · COLUMN PRINT
+       Three vertical columns stamp down
+       from the top with stagger, like a
+       letterpress printing the next section.
+    ═══════════════════════════════════ */
+    #t5-cols {
+      position: absolute; inset: 0; z-index: 10;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+    }
+    .t5-col {
+      transform-origin: top center;
+      transform: scaleY(0);
+      will-change: transform;
+    }
+    .t5-col-1 { background: var(--ink); }
+    .t5-col-2 { background: #1e0b1c; } /* slightly different shade */
+    .t5-col-3 { background: var(--ink); }
+    #t5-label {
+      position: absolute; z-index: 11;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; opacity: 0; will-change: opacity;
+    }
+    #t5-label .lab-num {
+      font-size: .5rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--warm); margin-bottom: 1.2rem;
+    }
+    #t5-label .lab-ttl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 300; color: var(--bg); line-height: 1.0;
+    }
+
+    /* end */
+    #end { height: 100vh; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<div id="badge"></div>
+
+<!-- ── INTRO ── -->
+<div id="intro">
+  <div class="intro-copy">
+    <p class="mock-num">Demo V · Site-Matched</p>
+    <h1 class="mock-h">Five More<br/><em style="font-style:italic;color:var(--warm)">Transitions</em></h1>
+    <p class="mock-meta">All designed to match the booklet / printed-program aesthetic of the real site.</p>
+    <div class="arr"><span>Scroll</span><div class="arr-ln"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     T1 · PRESS BAR
+     A typographic band sweeps top-to-bottom
+     like a printing press bar crossing the page.
+════════════════════════════════════════════ -->
+<div id="t1" class="stage">
+  <div class="sticky" id="t1s">
+    <div class="panel dark bg-ink" id="t1-a">
+      <div class="mock">
+        <p class="mock-runner" style="color:rgba(245,228,220,.3)">Mikka / 2026 · N° 01 / 04</p>
+        <p class="mock-num">About</p>
+        <h2 class="mock-h">Artist &amp;<br/><em style="font-style:italic;color:var(--warm)">Educator</em></h2>
+        <div class="mock-rule"></div>
+        <p class="mock-meta">Scroll to see the Press Bar →</p>
+        <div class="mock-boundary">
+          <span class="ln"></span>
+          <span>— 02 / 04 —</span>
+          <span class="ln"></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel light bg-bg" id="t1-b">
+      <div class="mock">
+        <p class="mock-num">① Press Bar</p>
+        <h2 class="mock-h">Awards &amp;<br/>Distinctions</h2>
+        <div class="mock-rule" style="background:rgba(42,21,40,.2)"></div>
+        <p class="mock-meta">A printing-press bar sweeps the screen. Section data is on the bar itself — pure editorial.</p>
+      </div>
+    </div>
+    <!-- the press bar -->
+    <div id="t1-bar">
+      <span class="bar-l">N° 02 / 04</span>
+      <span class="bar-c">Awards &amp; Distinctions</span>
+      <span class="bar-r">07 distinctions</span>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════════
+     T2 · BOUNDARY EXPAND
+     The site's own page-boundary bar expands
+     to fill the full screen, then collapses
+     to reveal the next section.
+════════════════════════════════════════════ -->
+<div id="t2" class="stage">
+  <div class="sticky" id="t2s">
+    <div class="panel dark bg-ink" id="t2-a">
+      <div class="mock">
+        <p class="mock-num">Awards</p>
+        <h2 class="mock-h">Awards &amp;<br/>Distinctions</h2>
+        <div class="mock-rule"></div>
+        <p class="mock-meta">Scroll to see the Boundary Expand →</p>
+        <div class="mock-boundary">
+          <span class="ln" style="background:var(--acc);opacity:.4"></span>
+          <span>— 03 / 04 —</span>
+          <span class="ln" style="background:var(--acc);opacity:.4"></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel light bg-bg" id="t2-b">
+      <div class="mock">
+        <p class="mock-num">② Boundary Expand</p>
+        <h2 class="mock-h">Recital &amp;<br/>Work</h2>
+        <div class="mock-rule" style="background:rgba(42,21,40,.2)"></div>
+        <p class="mock-meta">The site's own divider bar expands to fill the screen, then collapses. Self-referential — uses the site's own design language.</p>
+      </div>
+    </div>
+    <!-- the expanding boundary -->
+    <div id="t2-boundary">
+      <div class="b-line"></div>
+      <div class="b-label">— 03 / 04 —</div>
+      <div class="b-line"></div>
+    </div>
+    <!-- text that appears when boundary is fullscreen -->
+    <div id="t2-center-text">
+      <div class="ct-num">N° 03 / 04</div>
+      <div class="ct-ttl">Recital &amp;<br/>Work</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════════
+     T3 · NUMBER BLOOM
+     The section number in Cormorant Garamond
+     blooms from ~3rem to 35vw — like a
+     watermark emerging — then dissolves.
+════════════════════════════════════════════ -->
+<div id="t3" class="stage">
+  <div class="sticky" id="t3s">
+    <div class="panel light bg-bg" id="t3-a">
+      <div class="mock">
+        <p class="mock-num">Work</p>
+        <h2 class="mock-h" style="color:var(--ink)">Recital &amp;<br/>Work</h2>
+        <div class="mock-rule" style="background:rgba(42,21,40,.2)"></div>
+        <p class="mock-meta">Scroll to see the Number Bloom →</p>
+      </div>
+    </div>
+    <div class="panel dark bg-ink" id="t3-b">
+      <div class="mock">
+        <p class="mock-num">③ Number Bloom</p>
+        <h2 class="mock-h">Private<br/><em style="font-style:italic;color:var(--warm)">Lessons</em></h2>
+        <div class="mock-rule"></div>
+        <p class="mock-meta">The section number blooms from its natural size to dominate the screen — like a watermark materialising — then dissolves into the new section.</p>
+      </div>
+    </div>
+    <!-- the blooming number -->
+    <div id="t3-bloom">
+      <div class="bloom-num" id="t3-num">04</div>
+      <div class="bloom-label" id="t3-lbl">N° 04 / 04 · Teaching · Private Lessons</div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════════
+     T4 · INK TIDE
+     Pure ink rises from the bottom of the
+     screen, flooding everything — no overlay
+     text until full coverage. Then recedes
+     from the top, revealing the next section.
+════════════════════════════════════════════ -->
+<div id="t4" class="stage">
+  <div class="sticky" id="t4s">
+    <div class="panel dark bg-ink" id="t4-a">
+      <div class="mock">
+        <p class="mock-num">Teaching</p>
+        <h2 class="mock-h">Private<br/><em style="font-style:italic;color:var(--warm)">Lessons</em></h2>
+        <div class="mock-rule"></div>
+        <p class="mock-meta">Scroll to see the Ink Tide →</p>
+      </div>
+    </div>
+    <div class="panel light bg-bg" id="t4-b">
+      <div class="mock">
+        <p class="mock-num">④ Ink Tide</p>
+        <h2 class="mock-h" style="color:var(--ink)">Next<br/>Section</h2>
+        <div class="mock-rule" style="background:rgba(42,21,40,.2)"></div>
+        <p class="mock-meta">Pure ink rises from the bottom, flooding everything. No text — just color and gravity. Then the ink drains from the top, revealing what's beneath.</p>
+      </div>
+    </div>
+    <div id="t4-tide"></div>
+    <div id="t4-tide-label">
+      <div id="t4-tide-text">
+        <div class="tt-num">N° 05 / 04</div>
+        <div class="tt-ttl">Something<br/>New</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════════
+     T5 · COLUMN PRINT
+     Three vertical columns stamp down from
+     the top with stagger — like a letterpress
+     printing the next section onto the page.
+════════════════════════════════════════════ -->
+<div id="t5" class="stage">
+  <div class="sticky" id="t5s">
+    <div class="panel light bg-bg" id="t5-a">
+      <div class="mock">
+        <p class="mock-num" style="color:var(--acc)">Previous</p>
+        <h2 class="mock-h" style="color:var(--ink)">Any<br/>Section</h2>
+        <div class="mock-rule" style="background:rgba(42,21,40,.2)"></div>
+        <p class="mock-meta">Scroll to see the Column Print →</p>
+      </div>
+    </div>
+    <div class="panel dark bg-ink" id="t5-b">
+      <div class="mock">
+        <p class="mock-num">⑤ Column Print</p>
+        <h2 class="mock-h">Next<br/><em style="font-style:italic;color:var(--warm)">Section</em></h2>
+        <div class="mock-rule"></div>
+        <p class="mock-meta">Three columns stamp down from the top with stagger — like a letterpress or silkscreen. Precise, mechanical, editorial.</p>
+      </div>
+    </div>
+    <div id="t5-cols">
+      <div class="t5-col t5-col-1" id="t5-c1"></div>
+      <div class="t5-col t5-col-2" id="t5-c2"></div>
+      <div class="t5-col t5-col-3" id="t5-c3"></div>
+    </div>
+    <div id="t5-label">
+      <div class="lab-num">N° 02 / 04</div>
+      <div class="lab-ttl">Awards &amp;<br/>Distinctions</div>
+    </div>
+  </div>
+</div>
+
+<!-- end -->
+<div id="end">
+  <div class="mock" style="text-align:center">
+    <p class="mock-num" style="color:var(--warm)">Done</p>
+    <h2 class="mock-h" style="color:var(--bg);font-size:clamp(2.5rem,5vw,4.5rem)">Which one?</h2>
+    <p class="mock-meta" style="color:rgba(245,228,220,.35);margin-top:1rem">Pick from any demo — I'll apply it to the real site.</p>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+var SCRUB = 2;
+
+/* helpers */
+function eio(t){ return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; }
+function eout(t){ return 1-Math.pow(1-t,3); }
+function clamp(v){ return Math.min(1,Math.max(0,v)); }
+function remap(p,a,b){ return clamp((p-a)/(b-a)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+/* badge */
+var bdg = document.getElementById('badge');
+var bm = {t1:'① Press Bar',t2:'② Boundary Expand',t3:'③ Number Bloom',t4:'④ Ink Tide',t5:'⑤ Column Print'};
+Object.keys(bm).forEach(function(id){
+  ScrollTrigger.create({
+    trigger:'#'+id, start:'top 60%', end:'bottom 40%',
+    onEnter:    function(){ bdg.textContent=bm[id]; bdg.style.opacity='1'; },
+    onEnterBack:function(){ bdg.textContent=bm[id]; bdg.style.opacity='1'; },
+    onLeave:    function(){ bdg.style.opacity='0'; },
+    onLeaveBack:function(){ bdg.style.opacity='0'; },
+  });
+});
+
+
+/* ══════════════════════════════
+   T1 · PRESS BAR
+   Bar starts off screen top (-90px),
+   sweeps to off screen bottom (+100vh).
+   Page A: fades as bar passes midpoint.
+   Page B: reveals as bar passes midpoint.
+════════════════════════════════ */
+(function(){
+  var bar  = document.getElementById('t1-bar');
+  var pA   = document.getElementById('t1-a');
+  var pB   = document.getElementById('t1-b');
+
+  pB.style.opacity = '0';
+
+  ScrollTrigger.create({
+    trigger:'#t1', start:'top top', end:'bottom bottom', scrub:SCRUB,
+    onUpdate:function(self){
+      var p = self.progress;
+
+      /* Bar travels from -90px to 100vh+90px */
+      var travel = window.innerHeight + 180;
+      var y = -90 + p * travel;
+      bar.style.transform = 'translateY(' + y + 'px)';
+
+      /* Crossfade centred on bar midpoint (p=0.5) */
+      var crossed = remap(p, 0.42, 0.58);
+      pA.style.opacity = String(1 - eio(crossed));
+      pB.style.opacity = String(eio(crossed));
+    }
+  });
+})();
+
+
+/* ══════════════════════════════
+   T2 · BOUNDARY EXPAND
+   The thin boundary bar expands to fill
+   the full viewport, then collapses to
+   reveal the next section.
+════════════════════════════════ */
+(function(){
+  var bd     = document.getElementById('t2-boundary');
+  var bLines = bd.querySelectorAll('.b-line');
+  var bLabel = bd.querySelector('.b-label');
+  var ct     = document.getElementById('t2-center-text');
+  var pA     = document.getElementById('t2-a');
+  var pB     = document.getElementById('t2-b');
+
+  pB.style.opacity = '0';
+
+  ScrollTrigger.create({
+    trigger:'#t2', start:'top top', end:'bottom bottom', scrub:SCRUB,
+    onUpdate:function(self){
+      var p = self.progress;
+
+      /* Phase 1 (0→0.45): bar expands to full screen */
+      /* Phase 2 (0.55→1): bar collapses revealing page B */
+
+      var expand = eio(remap(p, 0, 0.45));
+      var collapse = eio(remap(p, 0.55, 1));
+
+      /* Height: 44px → 100vh → 0 */
+      var vh = window.innerHeight;
+      var h;
+      if (p < 0.5) {
+        h = lerp(44, vh, expand);
+        bd.style.top = '50%';
+        bd.style.height = h + 'px';
+        bd.style.transform = 'translateY(-50%)';
+      } else {
+        /* In collapse phase, bar shrinks from the top (transform-origin: top) */
+        h = lerp(vh, 0, collapse);
+        bd.style.top = '0';
+        bd.style.height = h + 'px';
+        bd.style.transform = 'none';
+      }
+
+      /* Hide the lines/label as it expands (replace with center text) */
+      var linesOpacity = 1 - eio(remap(p, 0.05, 0.25));
+      bLines.forEach(function(l){ l.style.opacity = String(linesOpacity * 0.55); });
+      bLabel.style.opacity = String(linesOpacity);
+
+      /* Center text fades in when fully expanded, fades out on collapse */
+      var ctShow = p < 0.5
+        ? eio(remap(p, 0.3, 0.45))
+        : 1 - eio(remap(p, 0.55, 0.72));
+      ct.style.opacity = String(ctShow);
+      ct.style.transform = 'translate(-50%, -50%) translateY(' + (p > 0.5 ? lerp(0,-20,collapse) : 0) + 'px)';
+
+      /* Crossfade pages */
+      pA.style.opacity = String(1 - eio(remap(p, 0.38, 0.6)));
+      pB.style.opacity = String(eio(remap(p, 0.65, 0.88)));
+    }
+  });
+})();
+
+
+/* ══════════════════════════════
+   T3 · NUMBER BLOOM
+   "04" blooms from 3rem to 35vw,
+   fading in then out.
+════════════════════════════════ */
+(function(){
+  var num  = document.getElementById('t3-num');
+  var lbl  = document.getElementById('t3-lbl');
+  var pA   = document.getElementById('t3-a');
+  var pB   = document.getElementById('t3-b');
+
+  pB.style.opacity = '0';
+
+  /* target font size: ~35vw */
+  var targetRem = window.innerWidth * 0.38 / 16;
+
+  ScrollTrigger.create({
+    trigger:'#t3', start:'top top', end:'bottom bottom', scrub:SCRUB,
+    onUpdate:function(self){
+      var p = self.progress;
+
+      /* Number grows 0→0.55, fades from 0.45→0.85 */
+      var growT = eio(remap(p, 0, 0.55));
+      var fontSize = lerp(3, targetRem, growT);
+      num.style.fontSize = fontSize + 'rem';
+
+      /* Opacity: in 0→0.25, hold, out 0.6→0.82 */
+      var numOp = p < 0.25
+        ? eio(remap(p, 0, 0.25))
+        : p > 0.6
+        ? 1 - eio(remap(p, 0.60, 0.82))
+        : 1;
+      num.style.opacity = String(numOp);
+
+      /* Label fades in slightly later */
+      lbl.style.opacity = String(
+        p < 0.3 ? eio(remap(p, 0.15, 0.3))
+        : p > 0.6 ? 1 - eio(remap(p, 0.60, 0.78))
+        : 1
+      );
+
+      /* Page crossfade */
+      pA.style.opacity = String(1 - eio(remap(p, 0.35, 0.62)));
+      pB.style.opacity = String(eio(remap(p, 0.65, 0.88)));
+    }
+  });
+})();
+
+
+/* ══════════════════════════════
+   T4 · INK TIDE
+   Tide rises from bottom 0→100vh,
+   then recedes from top.
+════════════════════════════════ */
+(function(){
+  var tide  = document.getElementById('t4-tide');
+  var ttext = document.getElementById('t4-tide-text');
+  var pA    = document.getElementById('t4-a');
+  var pB    = document.getElementById('t4-b');
+
+  pB.style.opacity = '0';
+  ttext.style.transform = 'translateY(20px)';
+
+  ScrollTrigger.create({
+    trigger:'#t4', start:'top top', end:'bottom bottom', scrub:SCRUB,
+    onUpdate:function(self){
+      var p = self.progress;
+      var vh = window.innerHeight;
+
+      if (p <= 0.5) {
+        /* Rise */
+        var t = eio(remap(p, 0, 0.5));
+        tide.style.height = (t * 100) + 'vh';
+        tide.style.top = 'auto';
+        tide.style.bottom = '0';
+
+        /* Text fades in near top of tide */
+        var textShow = eio(remap(p, 0.35, 0.5));
+        ttext.style.opacity = String(textShow);
+        ttext.style.transform = 'translateY(' + lerp(20, 0, textShow) + 'px)';
+
+        pA.style.opacity = String(1 - eio(remap(p, 0.2, 0.5)));
+
+      } else {
+        /* Recede from top */
+        var t2 = eio(remap(p, 0.5, 1));
+        /* Tide height stays 100vh but top clips it */
+        tide.style.height = '100vh';
+        tide.style.bottom = 'auto';
+        tide.style.top = (t2 * 100) + 'vh';
+
+        /* Text fades out */
+        ttext.style.opacity = String(1 - eio(remap(p, 0.5, 0.65)));
+
+        pB.style.opacity = String(eio(remap(p, 0.75, 0.95)));
+      }
+    }
+  });
+})();
+
+
+/* ══════════════════════════════
+   T5 · COLUMN PRINT
+   3 columns stamp down with stagger,
+   then lift back up with stagger.
+════════════════════════════════ */
+(function(){
+  var c1   = document.getElementById('t5-c1');
+  var c2   = document.getElementById('t5-c2');
+  var c3   = document.getElementById('t5-c3');
+  var lbl  = document.getElementById('t5-label');
+  var pA   = document.getElementById('t5-a');
+  var pB   = document.getElementById('t5-b');
+
+  pB.style.opacity = '0';
+
+  ScrollTrigger.create({
+    trigger:'#t5', start:'top top', end:'bottom bottom', scrub:SCRUB,
+    onUpdate:function(self){
+      var p = self.progress;
+
+      /* Stamp down: col 1 at 0, col 2 at 0.06, col 3 at 0.12
+         Each takes 0.38 of progress to fully stamp */
+      function colDown(start){
+        return eio(remap(p, start, start + 0.35));
+      }
+      /* Lift back: col 3 first, then 2, then 1 */
+      function colUp(start){
+        return 1 - eio(remap(p, start, start + 0.28));
+      }
+
+      if (p <= 0.52) {
+        c1.style.transform = 'scaleY(' + colDown(0.00) + ')';
+        c2.style.transform = 'scaleY(' + colDown(0.06) + ')';
+        c3.style.transform = 'scaleY(' + colDown(0.12) + ')';
+        /* Label fades in when columns fully down */
+        lbl.style.opacity = String(eio(remap(p, 0.38, 0.52)));
+        pA.style.opacity = String(1 - eio(remap(p, 0.18, 0.48)));
+      } else {
+        c3.style.transform = 'scaleY(' + colUp(0.55) + ')';
+        c2.style.transform = 'scaleY(' + colUp(0.61) + ')';
+        c1.style.transform = 'scaleY(' + colUp(0.67) + ')';
+        lbl.style.opacity = String(1 - eio(remap(p, 0.52, 0.66)));
+        pB.style.opacity = String(eio(remap(p, 0.72, 0.92)));
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
