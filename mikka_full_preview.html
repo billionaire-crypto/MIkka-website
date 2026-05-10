@@ -10126,78 +10126,11 @@ window.__mikkaLazyInit("page-04", function(){
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCROLL TRANSITIONS — fixed overlay layer, z-index 350
-     Pure graphic effects — no text, just reveals real content.
-       Hero → About    : Column Print  (ink columns stamp down, lift up)
-       About → Awards  : Boundary Expand (plum band blooms from center)
-       Awards → Work   : Column Print  (warm columns, reverse order)
-       Work → Teaching : Boundary Expand (ink band, collapses upward)
+     SCROLL TRANSITIONS — content-driven, no overlay
+     The actual section elements animate as they scroll into view.
+     No blank panels. Real content is always visible.
      Powered by GSAP ScrollTrigger, scrub-driven.
-     The overlay never blocks scroll (pointer-events: none throughout).
 ═══════════════════════════════════════════════════════════════ -->
-<style>
-#tx-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 350;
-  pointer-events: none;
-  overflow: hidden;
-}
-.tx-panel {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  overflow: hidden;
-}
-/* Column Print: three full-height strips */
-.tx-col {
-  position: absolute;
-  top: 0;
-  width: 33.34%;
-  height: 100%;
-  transform: translateY(-100%);
-  will-change: transform;
-}
-.tx-col:nth-child(1) { left: 0; }
-.tx-col:nth-child(2) { left: 33.33%; }
-.tx-col:nth-child(3) { left: 66.66%; }
-/* Boundary Expand: full-screen band that scales from center */
-.tx-band {
-  position: absolute;
-  inset: 0;
-  transform: scaleY(0);
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-</style>
-
-<div id="tx-overlay" aria-hidden="true">
-
-  <!-- T1: Hero → About — Column Print (ink) -->
-  <div class="tx-panel" id="tx1">
-    <div class="tx-col" style="background:#2A1528"       id="tx1-c1"></div>
-    <div class="tx-col" style="background:#3a1e38"       id="tx1-c2"></div>
-    <div class="tx-col" style="background:#2A1528"       id="tx1-c3"></div>
-  </div>
-
-  <!-- T2: About → Awards — Boundary Expand (plum) -->
-  <div class="tx-panel" id="tx2">
-    <div class="tx-band" style="background:#8A4A95" id="tx2-band"></div>
-  </div>
-
-  <!-- T3: Awards → Work — Column Print (warm/accent) -->
-  <div class="tx-panel" id="tx3">
-    <div class="tx-col" style="background:#C44860"       id="tx3-c1"></div>
-    <div class="tx-col" style="background:#b03858"       id="tx3-c2"></div>
-    <div class="tx-col" style="background:#C44860"       id="tx3-c3"></div>
-  </div>
-
-  <!-- T4: Work → Teaching — Boundary Expand (ink) -->
-  <div class="tx-panel" id="tx4">
-    <div class="tx-band" style="background:#2A1528" id="tx4-band"></div>
-  </div>
-
-</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -10207,160 +10140,109 @@ window.__mikkaLazyInit("page-04", function(){
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
   gsap.registerPlugin(ScrollTrigger);
 
-  /* ── utils ── */
   function eio(t) { return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
   function clamp(v) { return Math.min(1, Math.max(0, v)); }
   function remap(p, a, b) { return clamp((p - a) / (b - a)); }
   function lerp(a, b, t) { return a + (b - a) * t; }
+  var SCRUB = 1.5;
+  var VH = window.innerHeight;
 
-  var SCRUB = 1.8;
+  /* Only hide element if it starts below the viewport on page load */
+  function initHidden(el, dy) {
+    if (!el) return;
+    if (el.getBoundingClientRect().top > VH * 0.85) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(' + dy + 'px)';
+      el.style.willChange = 'transform, opacity';
+    }
+  }
 
-  /* ══════════════════════════════════════════
-     T1 · Hero → About · COLUMN PRINT
-     Three ink columns stamp down from top,
-     then lift back up in reverse order.
-  ══════════════════════════════════════════ */
+  void SCRUB_STUB;
+
+  /* ── Hero → About ──────────────────────────────────────────
+     About has CSS keyframe animations that fire on load, so we
+     only add a subtle parallax to the section-divider bar.     */
   (function () {
-    var panel = document.getElementById('tx1');
-    var c1    = document.getElementById('tx1-c1');
-    var c2    = document.getElementById('tx1-c2');
-    var c3    = document.getElementById('tx1-c3');
     var about = document.getElementById('about');
-    if (!panel || !about) return;
-
+    var div   = about && about.querySelector('.section-divider');
+    if (!about || !div) return;
+    initHidden(div, 44);
     ScrollTrigger.create({
-      trigger: about,
-      start: 'top 100%',
-      end:   'top 0%',
-      scrub: SCRUB,
-      onUpdate: function (self) {
-        var p = self.progress;
-        panel.style.opacity = '1';
-
-        /* Enter: columns stamp down with stagger */
-        var e1 = eio(remap(p, 0,    0.26));
-        var e2 = eio(remap(p, 0.06, 0.32));
-        var e3 = eio(remap(p, 0.12, 0.38));
-        /* Exit: reverse order — col3 lifts first */
-        var x3 = eio(remap(p, 0.58, 0.80));
-        var x2 = eio(remap(p, 0.64, 0.86));
-        var x1 = eio(remap(p, 0.70, 0.92));
-
-        c1.style.transform = p < 0.70 ? 'translateY(' + lerp(-100, 0, e1) + '%)' : 'translateY(' + lerp(0, 100, x1) + '%)';
-        c2.style.transform = p < 0.64 ? 'translateY(' + lerp(-100, 0, e2) + '%)' : 'translateY(' + lerp(0, 100, x2) + '%)';
-        c3.style.transform = p < 0.58 ? 'translateY(' + lerp(-100, 0, e3) + '%)' : 'translateY(' + lerp(0, 100, x3) + '%)';
-
-        if (p < 0.02) panel.style.opacity = String(eio(remap(p, 0, 0.02)));
-        if (p > 0.94) panel.style.opacity = String(1 - eio(remap(p, 0.94, 1)));
+      trigger: about, start: 'top 100%', end: 'top 15%', scrub: SCRUB,
+      onUpdate: function (s) {
+        var p = eio(s.progress);
+        div.style.transform = 'translateY(' + lerp(44, 0, p) + 'px)';
+        div.style.opacity   = String(clamp(s.progress * 3));
       }
     });
   }());
 
-  /* ══════════════════════════════════════════
-     T2 · About → Awards · BOUNDARY EXPAND
-     Plum band blooms from screen center to full,
-     then collapses upward revealing next section.
-  ══════════════════════════════════════════ */
+  /* ── About → Awards ────────────────────────────────────────
+     The "AWARDS & DISTINCTIONS" band and the legend beneath it
+     rise from below as Awards enters the viewport.             */
   (function () {
-    var panel  = document.getElementById('tx2');
-    var band   = document.getElementById('tx2-band');
-    var awards = document.getElementById('awards');
-    if (!panel || !awards) return;
-
+    var awards  = document.getElementById('awards');
+    var band    = awards && awards.querySelector('.band.center');
+    var legend  = awards && awards.querySelector('.legend');
+    if (!awards || !band) return;
+    initHidden(band,   60);
+    initHidden(legend, 40);
     ScrollTrigger.create({
-      trigger: awards,
-      start: 'top 100%',
-      end:   'top 0%',
-      scrub: SCRUB,
-      onUpdate: function (self) {
-        var p = self.progress;
-        panel.style.opacity = '1';
-
-        if (p < 0.5) {
-          band.style.transformOrigin = '50% 50%';
-          band.style.transform = 'scaleY(' + eio(remap(p, 0.02, 0.50)) + ')';
-        } else {
-          band.style.transformOrigin = '50% 0%';
-          band.style.transform = 'scaleY(' + (1 - eio(remap(p, 0.50, 0.98))) + ')';
+      trigger: awards, start: 'top 100%', end: 'top 12%', scrub: SCRUB,
+      onUpdate: function (s) {
+        var p  = eio(s.progress);
+        var p2 = eio(remap(s.progress, 0.12, 1));
+        band.style.transform   = 'translateY(' + lerp(60, 0, p) + 'px)';
+        band.style.opacity     = String(clamp(s.progress * 2.5));
+        if (legend) {
+          legend.style.transform = 'translateY(' + lerp(40, 0, p2) + 'px)';
+          legend.style.opacity   = String(clamp((s.progress - 0.1) * 3));
         }
-
-        if (p < 0.02) panel.style.opacity = String(eio(remap(p, 0, 0.02)));
-        if (p > 0.98) panel.style.opacity = String(1 - eio(remap(p, 0.98, 1)));
       }
     });
   }());
 
-  /* ══════════════════════════════════════════
-     T3 · Awards → Work · COLUMN PRINT
-     Accent columns, right-to-left entry order,
-     then lift left-to-right.
-  ══════════════════════════════════════════ */
+  /* ── Awards → Work ─────────────────────────────────────────
+     The keyboard strip label at the top of the Work section
+     slides up from below as Work enters the viewport.         */
   (function () {
-    var panel = document.getElementById('tx3');
-    var c1    = document.getElementById('tx3-c1');
-    var c2    = document.getElementById('tx3-c2');
-    var c3    = document.getElementById('tx3-c3');
     var work  = document.getElementById('work');
-    if (!panel || !work) return;
-
+    var strip = document.getElementById('kbStrip');
+    if (!work || !strip) return;
+    initHidden(strip, 50);
     ScrollTrigger.create({
-      trigger: work,
-      start: 'top 100%',
-      end:   'top 0%',
-      scrub: SCRUB,
-      onUpdate: function (self) {
-        var p = self.progress;
-        panel.style.opacity = '1';
-
-        /* Enter: col3 leads (right first), col2, col1 */
-        var e3 = eio(remap(p, 0,    0.26));
-        var e2 = eio(remap(p, 0.06, 0.32));
-        var e1 = eio(remap(p, 0.12, 0.38));
-        /* Exit: col1 lifts first (left first) */
-        var x1 = eio(remap(p, 0.58, 0.80));
-        var x2 = eio(remap(p, 0.64, 0.86));
-        var x3 = eio(remap(p, 0.70, 0.92));
-
-        c1.style.transform = p < 0.58 ? 'translateY(' + lerp(-100, 0, e1) + '%)' : 'translateY(' + lerp(0, 100, x1) + '%)';
-        c2.style.transform = p < 0.64 ? 'translateY(' + lerp(-100, 0, e2) + '%)' : 'translateY(' + lerp(0, 100, x2) + '%)';
-        c3.style.transform = p < 0.70 ? 'translateY(' + lerp(-100, 0, e3) + '%)' : 'translateY(' + lerp(0, 100, x3) + '%)';
-
-        if (p < 0.02) panel.style.opacity = String(eio(remap(p, 0, 0.02)));
-        if (p > 0.94) panel.style.opacity = String(1 - eio(remap(p, 0.94, 1)));
+      trigger: work, start: 'top 100%', end: 'top 12%', scrub: SCRUB,
+      onUpdate: function (s) {
+        var p = eio(s.progress);
+        strip.style.transform = 'translateY(' + lerp(50, 0, p) + 'px)';
+        strip.style.opacity   = String(clamp(s.progress * 2.5));
       }
     });
   }());
 
-  /* ══════════════════════════════════════════
-     T4 · Work → Teaching · BOUNDARY EXPAND
-     Ink band blooms from center to full screen,
-     then collapses upward.
-  ══════════════════════════════════════════ */
+  /* ── Work → Teaching ───────────────────────────────────────
+     The topmeta bar and the big "PRIVATE lessons" title block
+     rise staggered as Teaching enters the viewport.           */
   (function () {
-    var panel    = document.getElementById('tx4');
-    var band     = document.getElementById('tx4-band');
     var teaching = document.getElementById('teaching');
-    if (!panel || !teaching) return;
-
+    var meta     = teaching && teaching.querySelector('.topmeta');
+    var title    = teaching && teaching.querySelector('.title-block');
+    if (!teaching) return;
+    initHidden(meta,  28);
+    initHidden(title, 60);
     ScrollTrigger.create({
-      trigger: teaching,
-      start: 'top 100%',
-      end:   'top 0%',
-      scrub: SCRUB,
-      onUpdate: function (self) {
-        var p = self.progress;
-        panel.style.opacity = '1';
-
-        if (p < 0.5) {
-          band.style.transformOrigin = '50% 50%';
-          band.style.transform = 'scaleY(' + eio(remap(p, 0.02, 0.50)) + ')';
-        } else {
-          band.style.transformOrigin = '50% 0%';
-          band.style.transform = 'scaleY(' + (1 - eio(remap(p, 0.50, 0.98))) + ')';
+      trigger: teaching, start: 'top 100%', end: 'top 12%', scrub: SCRUB,
+      onUpdate: function (s) {
+        var p  = eio(s.progress);
+        var p2 = eio(remap(s.progress, 0.1, 1));
+        if (meta) {
+          meta.style.transform = 'translateY(' + lerp(28, 0, p) + 'px)';
+          meta.style.opacity   = String(clamp(s.progress * 3));
         }
-
-        if (p < 0.02) panel.style.opacity = String(eio(remap(p, 0, 0.02)));
-        if (p > 0.98) panel.style.opacity = String(1 - eio(remap(p, 0.98, 1)));
+        if (title) {
+          title.style.transform = 'translateY(' + lerp(60, 0, p2) + 'px)';
+          title.style.opacity   = String(clamp((s.progress - 0.08) * 2.8));
+        }
       }
     });
   }());
