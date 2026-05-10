@@ -10087,15 +10087,16 @@ window.__mikkaLazyInit("page-04", function(){
 (function(){
   if (typeof config === 'undefined') return;          /* fluid sim not active */
   config.TRANSPARENT = true;
-  /* Higher dissipation values = dye fades faster. Default is 1.0; we
-     lift this so each wisp clears quickly instead of pooling. */
-  config.DENSITY_DISSIPATION = 1.5;
-  config.VELOCITY_DISSIPATION = 0.6;
-  /* Even smaller splats so cursor leaves wisps, not clouds. */
-  config.SPLAT_RADIUS = 0.12;
+  /* Lower dissipation = dye lingers, so the smoke stays visible
+     between ambient splats without the user having to move the mouse. */
+  config.DENSITY_DISSIPATION = 0.55;
+  config.VELOCITY_DISSIPATION = 0.35;
+  config.SPLAT_RADIUS = 0.18;
+  config.SPLAT_FORCE = 4200;
+  config.CURL = 24;
   config.BLOOM = false;                                /* keep effect subtle */
   config.SUNRAYS = false;
-  if (typeof splatStack !== 'undefined') splatStack.push(8);
+  if (typeof splatStack !== 'undefined') splatStack.push(10);
 
   /* Pavel's render() calls drawCheckerboard(target) when TRANSPARENT is
      true — meant to indicate transparency on his demo page. We want the
@@ -10133,6 +10134,60 @@ window.__mikkaLazyInit("page-04", function(){
        opaque smoke. */
     return { r: r * 0.18, g: g * 0.18, b: b * 0.18 };
   };
+})();
+
+/* Ambient drift — gently push splats into the sim every ~700ms so the
+   smoke stays subtly alive without requiring cursor movement. Splats
+   are constrained to the side panels (outside the centered 480px
+   booklet column) and given a small random velocity so they read as
+   slow currents drifting across the dark cradle. */
+(function(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+  if (window.innerWidth < 1200) return;
+
+  var BOOKLET_HALF = 240;            /* booklet is 480px wide, centered */
+  var SIDE_PADDING = 36;             /* keep splats off the very edge   */
+  var INTERVAL_MS  = 700;            /* one ambient splat per side ~     */
+  var FORCE        = 320;            /* gentle velocity (px/sec-ish)     */
+
+  function ambientSplat(){
+    if (typeof splat !== 'function' || typeof generateColor !== 'function') return;
+    if (document.hidden) return;     /* pause when tab is backgrounded   */
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var bookletLeftEdge  = vw / 2 - BOOKLET_HALF;
+    var bookletRightEdge = vw / 2 + BOOKLET_HALF;
+
+    /* Alternate sides so both panels stay alive. */
+    var onLeft = Math.random() < 0.5;
+    var x;
+    if (onLeft) {
+      var maxX = Math.max(SIDE_PADDING + 1, bookletLeftEdge - SIDE_PADDING);
+      x = SIDE_PADDING + Math.random() * (maxX - SIDE_PADDING);
+    } else {
+      var minX = Math.min(vw - SIDE_PADDING - 1, bookletRightEdge + SIDE_PADDING);
+      x = minX + Math.random() * (vw - SIDE_PADDING - minX);
+    }
+    var y  = SIDE_PADDING + Math.random() * (vh - SIDE_PADDING * 2);
+    var dx = (Math.random() - 0.5) * FORCE;
+    var dy = (Math.random() - 0.5) * FORCE - 60;   /* slight upward bias */
+
+    /* Pavel's splat() expects pointer-style coords (canvas pixel space).
+       His script syncs canvas size to the window, so window pixels work. */
+    try { splat(x, y, dx, dy, generateColor()); } catch(e){ /* ignore */ }
+  }
+
+  /* Wait for the script to define `splat` before starting the loop. */
+  var waitId = setInterval(function(){
+    if (typeof splat === 'function' && typeof generateColor === 'function') {
+      clearInterval(waitId);
+      /* Initial breath — a few gentle splats so the panels aren't blank. */
+      for (var i = 0; i < 6; i++) ambientSplat();
+      setInterval(ambientSplat, INTERVAL_MS);
+    }
+  }, 200);
 })();
 </script>
 
