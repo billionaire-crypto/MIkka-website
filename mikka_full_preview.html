@@ -6234,50 +6234,79 @@ canvas.fluid-canvas {
 }
 
 /* ═══════════════════════════════════════════════════════
-   DESKTOP WIDTH OVERRIDE
-   The phone-first 480px column leaves wide dark gutters on
-   desktop. Widen the booklet, pages, page-boundary, and the
-   sticky legend on tablet/desktop viewports so content fills
-   the screen edge-to-edge instead of sitting in a narrow
-   phone-shaped column. Phones still get the 100% / 480px
-   width via the existing rules (these only kick in above
-   720px).
+   GUTTER FRAME — desktop decoration
+   The 480px booklet column leaves wide dark gutters on
+   desktop. Instead of resizing the column, fill the gutters
+   with brand-coherent decoration: big peach parenthesis
+   brackets flanking the booklet, sidebar rails with section
+   contents + studio location, and corner marks. Hidden under
+   1024px since narrower viewports don't have gutters to fill.
    ═══════════════════════════════════════════════════════ */
-@media (min-width: 720px) {
-  .booklet,
-  .about-page,
-  section.page,
-  section.page.page-02,
-  section.page.page-03,
-  section.page.page-04,
-  .page-boundary {
-    max-width: 880px;
-  }
-  .legend.legend-fixed { max-width: 880px; }
+.gutter-decor {
+  display: none;
+  position: fixed;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--mono);
+  color: var(--accent-warm);
+  text-transform: uppercase;
 }
+.gutter-decor.bracket {
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--cond);
+  font-size: clamp(220px, 30vw, 420px);
+  line-height: 0.78;
+  color: rgba(238, 144, 120, 0.32);
+  font-weight: 400;
+  text-shadow: 0 0 40px rgba(238, 144, 120, 0.15);
+  letter-spacing: -0.04em;
+}
+.gutter-decor.bracket.l { left: calc(50% - 240px - 110px); }
+.gutter-decor.bracket.r { right: calc(50% - 240px - 110px); }
+
+.gutter-decor.rail {
+  top: 96px;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  line-height: 1.9;
+  max-width: 220px;
+  opacity: 0.78;
+}
+.gutter-decor.rail.l { left: 36px; }
+.gutter-decor.rail.r { right: 36px; text-align: right; }
+.gutter-decor.rail .rail-block { margin-bottom: 32px; }
+.gutter-decor.rail .rail-label {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.36em;
+  opacity: 0.55;
+  margin-bottom: 12px;
+}
+.gutter-decor.rail .rail-line {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  opacity: 0.82;
+}
+.gutter-decor.rail .rail-line.dim { opacity: 0.55; }
+
+.gutter-decor.corner {
+  font-size: 9.5px;
+  letter-spacing: 0.32em;
+  opacity: 0.72;
+}
+.gutter-decor.corner.bl { bottom: 26px; left: 36px; }
+.gutter-decor.corner.br { bottom: 26px; right: 36px; }
+
 @media (min-width: 1024px) {
-  .booklet,
-  .about-page,
-  section.page,
-  section.page.page-02,
-  section.page.page-03,
-  section.page.page-04,
-  .page-boundary {
-    max-width: 1180px;
-  }
-  .legend.legend-fixed { max-width: 1180px; }
+  .gutter-decor { display: block; }
 }
-@media (min-width: 1440px) {
-  .booklet,
-  .about-page,
-  section.page,
-  section.page.page-02,
-  section.page.page-03,
-  section.page.page-04,
-  .page-boundary {
-    max-width: 1400px;
-  }
-  .legend.legend-fixed { max-width: 1400px; }
+@media (max-width: 1199px) {
+  /* Tuck the brackets in closer when the gutter is tighter */
+  .gutter-decor.bracket { font-size: clamp(180px, 22vw, 260px); }
+  .gutter-decor.bracket.l { left: calc(50% - 240px - 70px); }
+  .gutter-decor.bracket.r { right: calc(50% - 240px - 70px); }
 }
 
 </style>
@@ -6298,6 +6327,48 @@ canvas.fluid-canvas {
 
 <!-- Site-wide custom cursor (desktop only — hidden on touch via CSS) -->
 <div class="site-cursor" id="siteCursor" aria-hidden="true"></div>
+
+<!-- ───── GUTTER DECORATION (desktop only)
+       Big peach parenthesis brackets flanking the centered booklet
+       plus side-rail labels and corner marks that fill the wide
+       dark gutters on desktop without resizing the booklet. ───── -->
+<div class="gutter-decor bracket l" aria-hidden="true">(</div>
+<div class="gutter-decor bracket r" aria-hidden="true">)</div>
+
+<aside class="gutter-decor rail l" aria-hidden="true">
+  <div class="rail-block">
+    <span class="rail-label">— Contents —</span>
+    <span class="rail-line">00 · Frontispiece</span>
+    <span class="rail-line">01 · About</span>
+    <span class="rail-line">02 · Awards</span>
+    <span class="rail-line">03 · Work</span>
+    <span class="rail-line">04 · Teaching</span>
+  </div>
+  <div class="rail-block">
+    <span class="rail-label">— Practice —</span>
+    <span class="rail-line">Piano</span>
+    <span class="rail-line">Yatga</span>
+    <span class="rail-line dim">Collaboration</span>
+  </div>
+</aside>
+
+<aside class="gutter-decor rail r" aria-hidden="true">
+  <div class="rail-block">
+    <span class="rail-label">— On File —</span>
+    <span class="rail-line">A portfolio</span>
+    <span class="rail-line">in four parts —</span>
+    <span class="rail-line">pressed, plucked,</span>
+    <span class="rail-line dim">and quietly kept.</span>
+  </div>
+  <div class="rail-block">
+    <span class="rail-label">— Studio —</span>
+    <span class="rail-line">San Francisco</span>
+    <span class="rail-line dim">Ulaanbaatar</span>
+  </div>
+</aside>
+
+<div class="gutter-decor corner bl" aria-hidden="true">Press · Pluck · Practice</div>
+<div class="gutter-decor corner br" aria-hidden="true">© 2026 Mikka Chinbaatar</div>
 
 <!-- ───── STICKY LEGEND BAR (lives outside the booklet so it stays
        fixed across the whole page scroll). Runner row is still inside
