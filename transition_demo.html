@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Elegant Transitions — Mikka Chinbaatar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=IBM+Plex+Mono:wght@300&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F5E4DC; --ink:#2A1528; --accent:#C44860;
+  --plum:#8A4A95; --warm:#EE9078; --muted:#6E3E5A;
+}
+html{scroll-behavior:auto;}
+body{background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-weight:300;overflow-x:hidden;}
+
+/* ── INTRO ── */
+.intro{
+  height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:2rem;background:var(--ink);
+}
+.intro h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,11vw,10rem);line-height:.88;letter-spacing:.02em;color:var(--bg);
+}
+.intro p{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:2rem;line-height:2;}
+.arrow{margin-top:3.5rem;font-size:1.2rem;color:var(--accent);animation:bob 1.2s ease infinite alternate;}
+@keyframes bob{to{transform:translateY(12px);}}
+
+/* ── STAGE ── */
+.stage{height:100vh;width:100%;position:relative;overflow:hidden;}
+
+/* ── CARD ── */
+.card{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3rem;text-align:center;
+  will-change:transform,opacity,filter;
+}
+.card.lt{background:var(--bg);color:var(--ink);}
+.card.dk{background:var(--ink);color:var(--bg);}
+.card.dk{outline:1px solid rgba(255,255,255,.1);outline-offset:-20px;}
+.num{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;opacity:.3;margin-bottom:1.4rem;font-family:'IBM Plex Mono',monospace;}
+.card h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,11vw,11rem);line-height:.88;letter-spacing:.03em;
+}
+.card.dk h2{color:var(--accent);}
+.card .tagline{
+  font-family:'Fraunces',serif;font-style:italic;
+  font-size:clamp(.9rem,1.8vw,1.4rem);margin-top:1.5rem;opacity:.45;
+  letter-spacing:.02em;
+}
+
+/* ── LABEL ── */
+.label{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);opacity:.5;z-index:999;pointer-events:none;
+  text-align:center;line-height:2;
+}
+.label b{color:var(--accent);font-weight:400;}
+
+/* ── GAP ── */
+.gap{
+  height:25vh;display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--muted);background:var(--ink);opacity:.4;
+}
+
+/* ── OUTRO ── */
+.outro{
+  height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:2rem;background:var(--ink);
+}
+.outro p{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:1.8rem;}
+.outro h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,7vw,6rem);color:var(--bg);letter-spacing:.04em;}
+
+/* ══ 1. SLOW DISSOLVE ══ */
+#s1 .card-b{z-index:1;opacity:0;transform:scale(1.04);}
+#s1 .card-a{z-index:2;}
+
+/* ══ 2. LIGHT BLOOM ══ */
+#s2 .card-b{z-index:1;}
+#s2 .card-a{z-index:2;}
+#s2 canvas{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;}
+
+/* ══ 3. SILK VEIL ══ */
+#s3 .card-b{z-index:1;}
+#s3 .card-a{
+  z-index:2;
+  -webkit-mask-image:linear-gradient(to right,#000 0%,#000 35%,transparent 65%,transparent 100%);
+  mask-image:linear-gradient(to right,#000 0%,#000 35%,transparent 65%,transparent 100%);
+  -webkit-mask-size:250% 100%;
+  mask-size:250% 100%;
+  -webkit-mask-position:100% 0;
+  mask-position:100% 0;
+}
+
+/* ══ 4. BREATH ══ */
+#s4 .card-b{z-index:1;opacity:0;transform:scale(1.05);}
+#s4 .card-a{z-index:2;}
+
+/* ══ 5. LETTERBOX ══ */
+#s5 .card-b{z-index:1;}
+#s5 .card-a{z-index:2;}
+#s5 .bar{
+  position:absolute;left:0;right:0;z-index:4;
+  background:var(--ink);pointer-events:none;
+}
+#s5 .bar.top{top:0;height:50%;transform:translateY(-100%);}
+#s5 .bar.bot{bottom:0;height:50%;transform:translateY(100%);}
+
+/* ══ 6. VERTICAL GLIDE ══ */
+#s6 .card-b{z-index:1;transform:translateY(6%) scale(.97);opacity:0;}
+#s6 .card-a{z-index:2;}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<section class="intro">
+  <h1>ELEGANT<br>TRANSITIONS</h1>
+  <p>
+    6 refined styles<br>
+    scroll slowly through each<br>
+    <span style="color:var(--accent)">· pick one ·</span>
+  </p>
+  <div class="arrow">↓</div>
+</section>
+
+<!-- ══ 1 · SLOW DISSOLVE ══ -->
+<div class="stage" id="s1">
+  <div class="card dk card-b">
+    <div class="num">N° 01 / 04 · About</div>
+    <h2>ABOUT<br>THE<br>ARTIST</h2>
+    <div class="tagline">By way of Ulaanbaatar</div>
+  </div>
+  <div class="card lt card-a" id="s1a">
+    <div class="num">N° 00 / 04 · Hero</div>
+    <h2>MIKKA<br>CHINBAATAR</h2>
+    <div class="tagline">Piano · Yatga · Instructor</div>
+  </div>
+  <div class="label"><b>① Slow Dissolve</b><br>pages breathe through each other</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ══ 2 · LIGHT BLOOM ══ -->
+<div class="stage" id="s2">
+  <div class="card dk card-b">
+    <div class="num">N° 02 / 04 · Awards</div>
+    <h2>AWARDS<br>&amp;<br>DISTINCTIONS</h2>
+    <div class="tagline">Recognition · 2020–2026</div>
+  </div>
+  <div class="card lt card-a" id="s2a">
+    <div class="num">N° 01 / 04 · About</div>
+    <h2>ABOUT<br>THE<br>ARTIST</h2>
+    <div class="tagline">By way of Ulaanbaatar</div>
+  </div>
+  <canvas id="bloom"></canvas>
+  <div class="label"><b>② Light Bloom</b><br>warm light floods the page, then fades</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ══ 3 · SILK VEIL ══ -->
+<div class="stage" id="s3">
+  <div class="card dk card-b">
+    <div class="num">N° 03 / 04 · Work</div>
+    <h2>RECITAL<br>PROGRAM</h2>
+    <div class="tagline">6 pieces · 4 years · on scroll</div>
+  </div>
+  <div class="card lt card-a" id="s3a">
+    <div class="num">N° 02 / 04 · Awards</div>
+    <h2>AWARDS<br>&amp;<br>DISTINCTIONS</h2>
+    <div class="tagline">Recognition · 2020–2026</div>
+  </div>
+  <div class="label"><b>③ Silk Veil</b><br>a soft edge draws slowly across</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ══ 4 · BREATH ══ -->
+<div class="stage" id="s4">
+  <div class="card dk card-b" id="s4b">
+    <div class="num">N° 04 / 04 · Teaching</div>
+    <h2>PRIVATE<br>LESSONS</h2>
+    <div class="tagline">with Mikka · San Francisco</div>
+  </div>
+  <div class="card lt card-a" id="s4a">
+    <div class="num">N° 03 / 04 · Work</div>
+    <h2>RECITAL<br>PROGRAM</h2>
+    <div class="tagline">6 pieces · 4 years</div>
+  </div>
+  <div class="label"><b>④ Breath</b><br>pages inhale and exhale past each other</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ══ 5 · LETTERBOX ══ -->
+<div class="stage" id="s5">
+  <div class="card lt card-b" id="s5b">
+    <div class="num">N° 00 / 04 · Hero</div>
+    <h2>MIKKA<br>CHINBAATAR</h2>
+    <div class="tagline">Piano · Yatga · Instructor</div>
+  </div>
+  <div class="card dk card-a" id="s5a">
+    <div class="num">N° 04 / 04 · Teaching</div>
+    <h2>PRIVATE<br>LESSONS</h2>
+    <div class="tagline">with Mikka · San Francisco</div>
+  </div>
+  <div class="bar top" id="s5t"></div>
+  <div class="bar bot" id="s5b2"></div>
+  <div class="label" style="z-index:5;"><b>⑤ Letterbox</b><br>cinematic bars close, then open on new content</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ══ 6 · VERTICAL GLIDE ══ -->
+<div class="stage" id="s6">
+  <div class="card dk card-b" id="s6b">
+    <div class="num">N° 01 / 04 · About</div>
+    <h2>ABOUT<br>THE<br>ARTIST</h2>
+    <div class="tagline">By way of Ulaanbaatar</div>
+  </div>
+  <div class="card lt card-a" id="s6a">
+    <div class="num">N° 00 / 04 · Hero</div>
+    <h2>MIKKA<br>CHINBAATAR</h2>
+    <div class="tagline">Piano · Yatga · Instructor</div>
+  </div>
+  <div class="label"><b>⑥ Vertical Glide</b><br>pages drift upward like turning a heavy page</div>
+</div>
+
+<!-- OUTRO -->
+<section class="outro">
+  <p>Which felt right?</p>
+  <h2>PICK ONE<br>→ TELL<br>CLAUDE</h2>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+var SCRUB = 3;       /* high = very smooth / slow-feeling lag */
+var HOLD  = '+=380vh'; /* lots of scroll space = slow transition */
+
+function ease(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; } /* ease in-out quad */
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+/* ══════════════════════════════════════════════════════
+   1. SLOW DISSOLVE
+   Page A softly fades, slightly enlarges and blurs.
+   Page B rises from a breath of smaller scale.
+   Gentle, inevitable, like turning off a light.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var a = document.getElementById('s1a');
+  var b = document.querySelector('#s1 .card-b');
+  ScrollTrigger.create({
+    trigger:'#s1', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){
+      var p = ease(s.progress);
+      /* A exits: enlarges slightly, blurs, fades */
+      a.style.opacity   = (1-p).toFixed(4);
+      a.style.transform = 'scale('+(1+p*.06)+')';
+      a.style.filter    = 'blur('+(p*6)+'px)';
+      /* B enters: scales up from slightly small, clears */
+      b.style.opacity   = p.toFixed(4);
+      b.style.transform = 'scale('+(1.04-p*.04)+')';
+      b.style.filter    = 'blur('+((1-p)*6)+'px)';
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   2. LIGHT BLOOM
+   Canvas draws a radial warm-white glow that swells
+   from the centre, flooding page A in overexposure,
+   then gently contracts to reveal page B underneath.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var cvs = document.getElementById('bloom');
+  var DPR = Math.min(devicePixelRatio,2);
+  var W   = cvs.offsetWidth, H = cvs.offsetHeight;
+  cvs.width = W*DPR; cvs.height = H*DPR;
+  var ctx = cvs.getContext('2d'); ctx.scale(DPR,DPR);
+  var prog = 0;
+
+  (function render(){
+    requestAnimationFrame(render);
+    ctx.clearRect(0,0,W,H);
+    if(prog<=0.01) return;
+
+    var p   = prog < .5 ? ease(prog/.5) : ease(1-(prog-.5)/.5);
+    var r   = p * Math.sqrt(W*W+H*H) * .9;
+    var al  = p * .92; /* peak opacity */
+
+    /* Outer warm glow */
+    var g = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,r);
+    g.addColorStop(0,  'rgba(255,240,220,'+(al)+')');
+    g.addColorStop(.5, 'rgba(240,210,190,'+(al*.8)+')');
+    g.addColorStop(.8, 'rgba(200,160,140,'+(al*.4)+')');
+    g.addColorStop(1,  'rgba(180,130,110,0)');
+    ctx.beginPath();
+    ctx.arc(W/2,H/2,r,0,Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    /* Hard white centre at peak */
+    if(p > .6){
+      var cp  = (p-.6)/.4;
+      var cr  = r*.18*cp;
+      var cg  = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,cr);
+      cg.addColorStop(0,'rgba(255,255,255,'+(cp*.95)+')');
+      cg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.beginPath(); ctx.arc(W/2,H/2,cr,0,Math.PI*2);
+      ctx.fillStyle=cg; ctx.fill();
+    }
+  })();
+
+  ScrollTrigger.create({
+    trigger:'#s2', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){ prog=s.progress; }
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   3. SILK VEIL
+   A softly feathered edge draws across page A,
+   dissolving it left-to-right. The gradient is 30% wide
+   so it never looks like a hard wipe — it feels like silk
+   being slowly pulled from the frame.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var a = document.getElementById('s3a');
+  ScrollTrigger.create({
+    trigger:'#s3', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){
+      /* Animate mask-position from 100% → -150% over full progress.
+         mask-size 250% means the 35→65% gradient band is 75vw wide.
+         At pos 100%: element fully visible.  At pos -150%: fully hidden. */
+      var pos = (100 - s.progress * 250) + '% 0';
+      a.style.webkitMaskPosition = pos;
+      a.style.maskPosition = pos;
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   4. BREATH
+   The subtlest transition — pages feel alive.
+   A inhales deeply (scales up) as it fades; B exhales
+   (scales down to rest) as it appears. Like two people
+   passing in a dark corridor.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var a = document.getElementById('s4a');
+  var b = document.getElementById('s4b');
+  ScrollTrigger.create({
+    trigger:'#s4', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){
+      var p = ease(s.progress);
+      /* A exhales — scale up (moving away) and fades */
+      a.style.opacity   = (1-p).toFixed(4);
+      a.style.transform = 'scale('+(1+p*.08)+') translateY('+(-p*2)+'%)';
+      /* B inhales — comes from slightly above, settles */
+      b.style.opacity   = p.toFixed(4);
+      b.style.transform = 'scale('+(1.05-p*.05)+') translateY('+((1-p)*3)+'%)';
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   5. LETTERBOX
+   Cinematic black bars slide in from top and bottom,
+   meeting in the centre at the halfway point (full
+   blackout). Then they part to reveal the new page —
+   like a theatre curtain rising and descending at once.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var topBar = document.getElementById('s5t');
+  var botBar = document.getElementById('s5b2');
+  var b      = document.getElementById('s5b');
+  b.style.opacity = '0';
+
+  ScrollTrigger.create({
+    trigger:'#s5', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){
+      var p = s.progress;
+      if(p < .5){
+        /* Bars close */
+        var ep = ease(p/.5);
+        topBar.style.transform = 'translateY('+(-(1-ep)*100)+'%)';
+        botBar.style.transform = 'translateY('+((1-ep)*100)+'%)';
+        b.style.opacity = '0';
+      } else {
+        /* Bars open on page B */
+        var ep = ease((p-.5)/.5);
+        topBar.style.transform = 'translateY('+(-ep*100)+'%)';
+        botBar.style.transform = 'translateY('+(ep*100)+'%)';
+        b.style.opacity = (ep>.05?'1':'0');
+        /* Fade out page A as bars open */
+        document.getElementById('s5a').style.opacity = (1-ep).toFixed(4);
+      }
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   6. VERTICAL GLIDE
+   Pages drift upward with the weight of thick paper.
+   A rises and thins; B ascends from below with a slight
+   sense of gravity, like a heavy curtain being raised.
+   Paired with a subtle parallax on a background line.
+   ══════════════════════════════════════════════════════ */
+(function(){
+  var a = document.getElementById('s6a');
+  var b = document.getElementById('s6b');
+  ScrollTrigger.create({
+    trigger:'#s6', start:'top top', end:HOLD, pin:true, scrub:SCRUB,
+    onUpdate:function(s){
+      var p = ease(s.progress);
+      /* A lifts upward — slight scale and fade at the end */
+      a.style.transform = 'translateY('+(-p*105)+'%) scale('+(1-p*.03)+')';
+      a.style.opacity   = p > .7 ? (1-(p-.7)/.3).toFixed(4) : '1';
+      /* B rises from below — has slight initial resistance */
+      b.style.transform = 'translateY('+((1-p)*6)+'%) scale('+(0.97+p*.03)+')';
+      b.style.opacity   = (p*.05>.01 ? p*.05*20 : p*100<100 ? p*100/100 : 1).toFixed(4);
+      /* simpler: */
+      b.style.opacity   = Math.min(1, p*3).toFixed(4);
+    }
+  });
+})();
+</script>
+</body>
+</html>

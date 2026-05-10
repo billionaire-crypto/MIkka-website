@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Awards — Animation Picker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5E4DC;--ink:#2A1528;--acc:#C44860;--plum:#8A4A95;--warm:#EE9078;
+  --mono:'IBM Plex Mono',monospace;--cond:'Bebas Neue',sans-serif;
+}
+body{background:#14080F;font-family:var(--mono);overflow-x:hidden}
+
+/* ── picker ── */
+.picker{
+  position:sticky;top:0;z-index:200;
+  background:rgba(20,8,15,.98);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:.5rem .7rem .5rem;
+}
+.picker-row{
+  display:flex;align-items:center;gap:.4rem;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:.1rem;
+}
+.picker-row::-webkit-scrollbar{display:none}
+.p-btn{
+  flex-shrink:0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:rgba(245,228,220,.5);border-radius:4px;
+  font-family:var(--mono);font-size:.44rem;letter-spacing:.16em;text-transform:uppercase;
+  padding:.42rem .8rem;cursor:pointer;white-space:nowrap;
+  transition:background .18s,color .18s,border-color .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.p-btn.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:500}
+.desc{
+  font-size:.4rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(245,228,220,.35);padding:.35rem .1rem 0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-height:1.1rem;
+}
+.desc em{color:var(--warm);font-style:normal}
+
+/* ── demo ── */
+.demo{
+  background:var(--bg);color:var(--ink);
+  max-width:480px;margin:1.5rem auto 5rem;
+  box-shadow:0 0 0 1px rgba(42,21,40,.4),0 40px 100px -20px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.band{
+  background:var(--ink);color:var(--bg);
+  font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;
+  padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:center;gap:1rem;
+}
+.band span{color:var(--acc)}
+.cat-row{border-bottom:1px solid rgba(42,21,40,.13);padding:1.1rem 1rem 1.3rem}
+.cat-num{font-size:.4rem;letter-spacing:.22em;color:var(--acc);margin-bottom:.22rem;text-transform:uppercase}
+.cat-name{font-family:var(--cond);font-size:2.1rem;letter-spacing:.04em;line-height:1;margin-bottom:.12rem}
+.cat-count{font-size:.38rem;letter-spacing:.2em;opacity:.4;text-transform:uppercase;margin-bottom:.85rem}
+.award-cell{
+  border:1px solid rgba(42,21,40,.16);border-radius:2px;
+  padding:.7rem .8rem;margin:.45rem 0;
+  background:rgba(255,255,255,.32);
+}
+.award-cell.hero{background:linear-gradient(135deg,rgba(196,72,96,.09),rgba(238,144,120,.12))}
+.award-badge{font-size:.34rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);border:1px solid currentColor;display:inline-block;padding:.1rem .38rem;margin-bottom:.4rem}
+.award-year{font-size:.38rem;letter-spacing:.14em;opacity:.42;margin-bottom:.22rem;text-transform:uppercase}
+.award-title{font-size:.8rem;font-weight:400;margin-bottom:.18rem;line-height:1.3}
+.award-meta{font-size:.34rem;letter-spacing:.14em;text-transform:uppercase;opacity:.42}
+
+/* ══════════════════════════════════
+   ANIMATIONS — all cells start hidden
+   ══════════════════════════════════ */
+.cat-row .award-cell,.cat-row .cat-num,.cat-row .cat-name,.cat-row .cat-count{
+  will-change:transform,opacity;
+}
+
+/* ── 1 · SLOT: far left / far right alternating ── */
+.style-slot .award-cell{opacity:0}
+.style-slot .award-cell:nth-child(4n+1){transform:translateX(-160px)}
+.style-slot .award-cell:nth-child(4n+2){transform:translateX( 160px)}
+.style-slot .award-cell:nth-child(4n+3){transform:translateX(-160px)}
+.style-slot .award-cell:nth-child(4n+4){transform:translateX( 160px)}
+.style-slot .award-cell{transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .9s ease}
+.style-slot .award-cell:nth-child(2){transition-delay:.18s}
+.style-slot .award-cell:nth-child(3){transition-delay:.36s}
+.style-slot .award-cell:nth-child(4){transition-delay:.54s}
+.style-slot .award-cell:nth-child(5){transition-delay:.72s}
+.style-slot.go .award-cell{opacity:1;transform:translateX(0)}
+
+/* ── 2 · REGISTER: misregistered → snap ── */
+.style-reg .award-cell{opacity:.08}
+.style-reg .award-cell:nth-child(odd) {transform:translateX(-32px) scale(1.07)}
+.style-reg .award-cell:nth-child(even){transform:translateX( 32px) scale(1.07)}
+.style-reg .award-cell{transition:transform .8s cubic-bezier(.34,1.5,.64,1),opacity .55s ease}
+.style-reg .award-cell:nth-child(2){transition-delay:.12s}
+.style-reg .award-cell:nth-child(3){transition-delay:.24s}
+.style-reg .award-cell:nth-child(4){transition-delay:.36s}
+.style-reg .award-cell:nth-child(5){transition-delay:.48s}
+.style-reg.go .award-cell{opacity:1;transform:translateX(0) scale(1)}
+
+/* ── 3 · GRAVITY: odd rises from below, even falls from above ── */
+.style-grav .award-cell{opacity:0}
+.style-grav .award-cell:nth-child(odd) {transform:translateY( 120px)}
+.style-grav .award-cell:nth-child(even){transform:translateY(-120px)}
+.style-grav .award-cell{transition:transform 1.2s cubic-bezier(.22,1,.36,1),opacity .9s ease}
+.style-grav .award-cell:nth-child(2){transition-delay:.18s}
+.style-grav .award-cell:nth-child(3){transition-delay:.36s}
+.style-grav .award-cell:nth-child(4){transition-delay:.54s}
+.style-grav .award-cell:nth-child(5){transition-delay:.72s}
+.style-grav.go .award-cell{opacity:1;transform:translateY(0)}
+
+/* ── 4 · CASCADE: heading wipes from left, cards drop one by one ── */
+.style-casc .cat-num,.style-casc .cat-name,.style-casc .cat-count{
+  opacity:0;transform:translateX(-90px);
+  transition:transform 1s cubic-bezier(.22,1,.36,1),opacity .75s ease;
+}
+.style-casc .cat-num  {transition-delay:0s}
+.style-casc .cat-name {transition-delay:.12s}
+.style-casc .cat-count{transition-delay:.22s}
+.style-casc .award-cell{
+  opacity:0;transform:translateY(-60px);
+  transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .8s ease;
+}
+.style-casc .award-cell:nth-child(1){transition-delay:.38s}
+.style-casc .award-cell:nth-child(2){transition-delay:.56s}
+.style-casc .award-cell:nth-child(3){transition-delay:.74s}
+.style-casc .award-cell:nth-child(4){transition-delay:.92s}
+.style-casc .award-cell:nth-child(5){transition-delay:1.1s}
+.style-casc.go .cat-num,.style-casc.go .cat-name,.style-casc.go .cat-count{opacity:1;transform:translateX(0)}
+.style-casc.go .award-cell{opacity:1;transform:translateY(0)}
+
+/* ── 5 · CURTAIN: clip-path wipe top→bottom ── */
+.style-curtain .award-cell{
+  clip-path:inset(0 0 100% 0);
+  transition:clip-path 1.1s cubic-bezier(.22,1,.36,1);
+}
+.style-curtain .award-cell:nth-child(2){transition-delay:.2s}
+.style-curtain .award-cell:nth-child(3){transition-delay:.4s}
+.style-curtain .award-cell:nth-child(4){transition-delay:.6s}
+.style-curtain .award-cell:nth-child(5){transition-delay:.8s}
+.style-curtain.go .award-cell{clip-path:inset(0 0 0% 0)}
+
+/* ── 6 · CONVERGE: diagonal — odd top-left, even bottom-right ── */
+.style-conv .award-cell{opacity:0}
+.style-conv .award-cell:nth-child(odd) {transform:translate(-100px, 70px)}
+.style-conv .award-cell:nth-child(even){transform:translate( 100px,-70px)}
+.style-conv .award-cell{transition:transform 1.2s cubic-bezier(.22,1,.36,1),opacity .9s ease}
+.style-conv .award-cell:nth-child(2){transition-delay:.18s}
+.style-conv .award-cell:nth-child(3){transition-delay:.36s}
+.style-conv .award-cell:nth-child(4){transition-delay:.54s}
+.style-conv .award-cell:nth-child(5){transition-delay:.72s}
+.style-conv.go .award-cell{opacity:1;transform:translate(0,0)}
+
+/* ── 7 · BREATHE: scale up from center ── */
+.style-breathe .award-cell{
+  opacity:0;transform:scale(.78);
+  transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .85s ease;
+}
+.style-breathe .award-cell:nth-child(2){transition-delay:.18s}
+.style-breathe .award-cell:nth-child(3){transition-delay:.36s}
+.style-breathe .award-cell:nth-child(4){transition-delay:.54s}
+.style-breathe .award-cell:nth-child(5){transition-delay:.72s}
+.style-breathe.go .award-cell{opacity:1;transform:scale(1)}
+
+/* ── 8 · RISE: all from below, heavy stagger ── */
+.style-rise .award-cell{
+  opacity:0;transform:translateY(90px);
+  transition:transform 1.3s cubic-bezier(.16,1,.3,1),opacity 1s ease;
+}
+.style-rise .award-cell:nth-child(2){transition-delay:.22s}
+.style-rise .award-cell:nth-child(3){transition-delay:.44s}
+.style-rise .award-cell:nth-child(4){transition-delay:.66s}
+.style-rise .award-cell:nth-child(5){transition-delay:.88s}
+.style-rise.go .award-cell{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="picker">
+  <div class="picker-row">
+    <button class="p-btn active" data-style="slot"    data-desc="Odd blocks ← left · Even blocks → right">1 · Slot</button>
+    <button class="p-btn" data-style="reg"     data-desc="Blocks misaligned + big → snap into place">2 · Register</button>
+    <button class="p-btn" data-style="grav"    data-desc="Odd rises from below · Even falls from above">3 · Gravity</button>
+    <button class="p-btn" data-style="casc"    data-desc="Heading wipes from left → cards drop one by one">4 · Cascade</button>
+    <button class="p-btn" data-style="curtain" data-desc="Each card is unmasked top → bottom">5 · Curtain</button>
+    <button class="p-btn" data-style="conv"    data-desc="Diagonal — odd from top-left · even from bottom-right">6 · Converge</button>
+    <button class="p-btn" data-style="breathe" data-desc="Cards grow in from small → full size">7 · Breathe</button>
+    <button class="p-btn" data-style="rise"    data-desc="All cards rise from far below · slow heavy stagger">8 · Rise</button>
+  </div>
+  <div class="desc" id="desc"><em>Odd blocks ← left · Even blocks → right</em></div>
+</div>
+
+<div class="demo">
+  <div class="band"><span>●</span> AWARDS &amp; DISTINCTIONS <span>●</span></div>
+
+  <div class="cat-row style-slot" id="row1">
+    <div class="cat-num">N° 01 / 03</div>
+    <div class="cat-name">ACADEMIC</div>
+    <div class="cat-count">02 distinctions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">HIGHEST HONOR</div>
+      <div class="award-year">2019 — 2023</div>
+      <div class="award-title">Bachelor of Music</div>
+      <div class="award-meta">MSUAC · Traditional Music</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2018</div>
+      <div class="award-title">Academic Distinction Award</div>
+      <div class="award-meta">Faculty recognition · Spring</div>
+    </div>
+  </div>
+
+  <div class="cat-row style-slot" id="row2">
+    <div class="cat-num">N° 02 / 03</div>
+    <div class="cat-name">COMPETITION</div>
+    <div class="cat-count">04 placements</div>
+    <div class="award-cell hero">
+      <div class="award-badge">1ST PLACE</div>
+      <div class="award-year">2022</div>
+      <div class="award-title">National Piano Championship</div>
+      <div class="award-meta">Ulaanbaatar · Open Division</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2021</div>
+      <div class="award-title">Young Performer Prize</div>
+      <div class="award-meta">Mongolia Arts Council</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2020</div>
+      <div class="award-title">Collaborative Excellence</div>
+      <div class="award-meta">State Conservatory · Jury</div>
+    </div>
+  </div>
+
+  <div class="cat-row style-slot" id="row3">
+    <div class="cat-num">N° 03 / 03</div>
+    <div class="cat-name">PROFESSIONAL</div>
+    <div class="cat-count">02 recognitions</div>
+    <div class="award-cell hero">
+      <div class="award-badge">COMMERCIAL RECORDING</div>
+      <div class="award-year">2023</div>
+      <div class="award-title">Daughters of Heaven — featured performer</div>
+      <div class="award-meta">12-Track Album · Mongolia &amp; China</div>
+    </div>
+    <div class="award-cell">
+      <div class="award-year">2026</div>
+      <div class="award-title">Registered Performer — DIA</div>
+      <div class="award-meta">Detroit Institute of Arts · Film Theatre</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var rows   = document.querySelectorAll('.cat-row');
+  var btns   = document.querySelectorAll('.p-btn');
+  var desc   = document.getElementById('desc');
+  var current = 'slot';
+  var playing = false;
+
+  function setStyle(s){
+    rows.forEach(function(r){
+      r.classList.remove('style-'+current,'go');
+      r.classList.add('style-'+s);
+    });
+    current = s;
+  }
+
+  function play(){
+    if(playing) return;
+    playing = true;
+    /* first remove go so cells snap back to hidden */
+    rows.forEach(function(r){ r.classList.remove('go'); });
+    /* force reflow so the removal registers */
+    rows[0].offsetHeight;
+    /* then stagger rows */
+    rows.forEach(function(r,i){
+      setTimeout(function(){ r.classList.add('go'); }, 120 + i * 200);
+    });
+    /* unlock after longest animation */
+    setTimeout(function(){ playing = false; }, 2400);
+  }
+
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(btn.classList.contains('active')){ play(); return; }
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      desc.innerHTML = '<em>' + btn.dataset.desc + '</em>';
+      setStyle(btn.dataset.style);
+      setTimeout(play, 50);
+    });
+  });
+
+  /* auto-play on load */
+  setTimeout(play, 500);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mikka — Transition Demo IV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:   #F5E4DC; --ink: #2A1528; --accent: #C44860;
+      --plum: #8A4A95; --warm: #EE9078; --deep:  #130a18;
+    }
+    html { scroll-behavior: auto; }
+    body { overflow-x: hidden; font-family: 'Inter', sans-serif; background: var(--ink); }
+
+    #lbl {
+      position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+      z-index: 9999; padding: .55rem 1.4rem;
+      background: rgba(19,10,24,.82); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.1);
+      font-size: .58rem; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(245,228,220,.85); pointer-events: none;
+      opacity: 0; transition: opacity .3s; white-space: nowrap;
+    }
+
+    .stage  { position: relative; }
+    .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+    .panel  { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+    .bg-ink  { background: var(--ink); }
+    .bg-bg   { background: var(--bg); }
+    .bg-deep { background: var(--deep); }
+    .bg-plum { background: var(--plum); }
+    .bg-rose { background: var(--accent); }
+
+    .copy { text-align: center; padding: 2rem; }
+    .eye  { font-size:.6rem; letter-spacing:.25em; text-transform:uppercase; margin-bottom:1.25rem; display:block; }
+    .ttl  { font-family:'Cormorant Garamond',serif; font-weight:300; line-height:1.0; margin-bottom:1.25rem; }
+    .sub  { font-size:.82rem; font-weight:300; letter-spacing:.04em; line-height:1.85; max-width:32ch; margin:0 auto; display:block; }
+
+    .bg-ink .eye,  .bg-deep .eye  { color: var(--warm); }
+    .bg-ink .ttl,  .bg-deep .ttl  { color: var(--bg); }
+    .bg-ink .sub,  .bg-deep .sub  { color: rgba(245,228,220,.45); }
+    .bg-bg .eye    { color: var(--accent); }
+    .bg-bg .ttl    { color: var(--ink); }
+    .bg-bg .sub    { color: #7a4d5e; }
+    .bg-plum .eye  { color: rgba(245,228,220,.6); }
+    .bg-plum .ttl, .bg-plum .sub { color: #fff; }
+    .bg-plum .sub  { opacity:.6; }
+    .bg-rose .eye  { color: rgba(255,255,255,.65); }
+    .bg-rose .ttl, .bg-rose .sub { color: #fff; }
+    .bg-rose .sub  { opacity:.7; }
+
+    #intro { height: 100vh; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+    #intro .eye { color: var(--warm); }
+    #intro .ttl { color: var(--bg); font-size: clamp(2.6rem,6vw,5.5rem); }
+    #intro em   { font-style: italic; color: var(--warm); }
+    #intro .sub { color: rgba(245,228,220,.4); }
+    .arr { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+    .arr span { font-size: .55rem; letter-spacing: .22em; text-transform: uppercase; color: rgba(245,228,220,.3); }
+    .arr-line { width: 1px; height: 44px; background: linear-gradient(to bottom, rgba(245,228,220,.35), transparent); animation: drip 1.5s ease-in-out infinite; }
+    @keyframes drip { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 50.01%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+    .gap { height: 3px; background: rgba(255,255,255,.03); }
+
+    /* T1: each stage height */
+    #t1,#t2,#t3,#t4,#t5 { height: 420vh; }
+
+    /* word-span inline block for splitting */
+    .word { display: inline-block; will-change: transform, opacity; }
+
+    #end { height: 100vh; background: var(--plum); display: flex; align-items: center; justify-content: center; }
+    #end .ttl { color: #fff; font-size: clamp(2.5rem,5vw,4.5rem); }
+    #end .eye { color: rgba(255,255,255,.6); }
+    #end .sub { color: rgba(255,255,255,.6); }
+  </style>
+</head>
+<body>
+
+<div id="lbl"></div>
+
+<div id="intro">
+  <div class="copy">
+    <p class="eye">More like 2, 3 &amp; 5</p>
+    <h1 class="ttl">Five More<br/><em>Content-Driven</em></h1>
+    <p class="sub">All content-first — the text and elements are the animation.</p>
+    <div class="arr"><span>Scroll</span><div class="arr-line"></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     T1 — HORIZONTAL PUSH
+     Everything on the current page slides
+     LEFT hard and fast. New page pushes in
+     from the RIGHT with elastic snap.
+     Like a hard magazine page swipe.
+════════════════════════════════════════ -->
+<div id="t1" class="stage">
+  <div class="sticky" id="t1-s">
+    <div class="panel bg-ink" id="t1-a">
+      <div class="copy">
+        <span class="eye" id="t1a-eye">Hero</span>
+        <h2 class="ttl" id="t1a-ttl" style="font-size:clamp(3rem,7vw,6.5rem)">Mikka<br/><em style="font-style:italic;color:var(--warm)">Chinbaatar</em></h2>
+        <span class="sub" id="t1a-sub">Pianist · Educator · Yatga Soloist</span>
+      </div>
+    </div>
+    <div class="panel bg-bg" id="t1-b">
+      <div class="copy" style="opacity:0" id="t1-bw">
+        <span class="eye" id="t1b-eye">① Horizontal Push</span>
+        <h2 class="ttl" id="t1b-ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Artist &amp;<br/>Educator</h2>
+        <span class="sub" id="t1b-sub">Everything slides left hard. New content pushes in from the right with elastic snap. Clean, fast, directional.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ════════════════════════════════════════
+     T2 — CASCADE RAIN
+     Elements fall downward out of the frame,
+     staggered bottom-to-top (heaviest first).
+     New elements rain in from above,
+     top-to-bottom, with weight.
+════════════════════════════════════════ -->
+<div id="t2" class="stage">
+  <div class="sticky" id="t2-s">
+    <div class="panel bg-bg" id="t2-a">
+      <div class="copy">
+        <span class="eye" id="t2a-eye">About</span>
+        <h2 class="ttl" id="t2a-ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Artist &amp;<br/>Educator</h2>
+        <span class="sub" id="t2a-sub">Bridging classical tradition and the rich musical heritage of Mongolia.</span>
+      </div>
+    </div>
+    <div class="panel bg-deep" id="t2-b">
+      <div class="copy" style="opacity:0" id="t2-bw">
+        <span class="eye" id="t2b-eye">② Cascade Rain</span>
+        <h2 class="ttl" id="t2b-ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Awards &amp;<br/>Distinctions</h2>
+        <span class="sub" id="t2b-sub">Elements fall out bottom-to-top. New elements rain in from above top-to-bottom, with weight and stagger.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ════════════════════════════════════════
+     T3 — DIVERGE & CONVERGE
+     The title floats UP off screen while
+     the subtitle drops DOWN — they part
+     like curtains, revealing the center.
+     New content converges from opposite edges.
+════════════════════════════════════════ -->
+<div id="t3" class="stage">
+  <div class="sticky" id="t3-s">
+    <div class="panel bg-deep" id="t3-a">
+      <div class="copy">
+        <span class="eye" id="t3a-eye" style="will-change:transform,opacity">Recognition</span>
+        <h2 class="ttl" id="t3a-ttl" style="font-size:clamp(2.5rem,5vw,5rem);will-change:transform,opacity">Awards &amp;<br/>Distinctions</h2>
+        <span class="sub" id="t3a-sub" style="will-change:transform,opacity">Excellence in Collaborative Piano · First Prize Pacific Music Competition</span>
+      </div>
+    </div>
+    <div class="panel bg-bg" id="t3-b">
+      <div class="copy" style="opacity:0" id="t3-bw">
+        <span class="eye" id="t3b-eye" style="will-change:transform,opacity;transform:translateY(80px)">③ Diverge &amp; Converge</span>
+        <h2 class="ttl" id="t3b-ttl" style="font-size:clamp(2.5rem,5vw,5rem);will-change:transform,opacity;transform:translateY(-80px)">Recital &amp;<br/>Work</h2>
+        <span class="sub" id="t3b-sub" style="will-change:transform,opacity;transform:translateY(60px)">Title flies up, subtitle drops down — they part like curtains. New content converges from opposite edges.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ════════════════════════════════════════
+     T4 — BLUR DRIFT
+     Current content drifts sideways and
+     goes out of focus (CSS blur). New content
+     arrives sharp from the other side —
+     like a camera rack focus between planes.
+════════════════════════════════════════ -->
+<div id="t4" class="stage">
+  <div class="sticky" id="t4-s">
+    <div class="panel bg-bg" id="t4-a">
+      <div class="copy" id="t4-aw">
+        <span class="eye" id="t4a-eye" style="will-change:transform,opacity,filter">Work</span>
+        <h2 class="ttl" id="t4a-ttl" style="font-size:clamp(2.5rem,5vw,5rem);will-change:transform,opacity,filter">Recital &amp;<br/>Work</h2>
+        <span class="sub" id="t4a-sub" style="will-change:transform,opacity,filter">Six performances, recorded and shared.</span>
+      </div>
+    </div>
+    <div class="panel bg-ink" id="t4-b">
+      <div class="copy" id="t4-bw" style="opacity:0">
+        <span class="eye" id="t4b-eye" style="will-change:transform,opacity,filter">④ Blur Drift</span>
+        <h2 class="ttl" id="t4b-ttl" style="font-size:clamp(2.5rem,5vw,5rem);will-change:transform,opacity,filter">Studio<br/>Sessions</h2>
+        <span class="sub" id="t4b-sub" style="will-change:transform,opacity,filter">Content drifts and goes blurry — like racking camera focus between two planes. New content arrives sharp.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ════════════════════════════════════════
+     T5 — WORD SCATTER
+     Each individual word of the title exits
+     in a different random direction.
+     New title's words arrive from scattered
+     positions and snap together.
+════════════════════════════════════════ -->
+<div id="t5" class="stage">
+  <div class="sticky" id="t5-s">
+    <div class="panel bg-ink" id="t5-a">
+      <div class="copy">
+        <span class="eye" id="t5a-eye" style="will-change:transform,opacity">Teaching</span>
+        <h2 class="ttl" id="t5a-ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Studio<br/>Sessions</h2>
+        <span class="sub" id="t5a-sub" style="will-change:transform,opacity">Students of all levels, guided with warmth and rigor.</span>
+      </div>
+    </div>
+    <div class="panel bg-rose" id="t5-b">
+      <div class="copy" style="opacity:0" id="t5-bw">
+        <span class="eye" id="t5b-eye" style="will-change:transform,opacity">⑤ Word Scatter</span>
+        <h2 class="ttl" id="t5b-ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Let's<br/>Connect</h2>
+        <span class="sub" id="t5b-sub" style="will-change:transform,opacity">Each word exits in a different direction. The new title's words arrive from random positions and snap into place.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="end">
+  <div class="copy">
+    <p class="eye">Done</p>
+    <h2 class="ttl">Which one?</h2>
+    <p class="sub">From all demos: 2, 3, 5 from demo III — or 1–5 from this demo. Pick any and I'll apply it to the real site.</p>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+var SCRUB = 2;
+
+/* ── helpers ── */
+function eio(t){ return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; }
+function eout(t){ return 1-Math.pow(1-t,3); }
+function ein(t){ return t*t*t; }
+function eel(t){ /* elastic out */
+  var c4=(2*Math.PI)/4.5;
+  return t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-.75)*c4)+1;
+}
+function clamp(v){ return Math.min(1,Math.max(0,v)); }
+function remap(p,a,b){ return clamp((p-a)/(b-a)); }
+
+/* ── badge ── */
+var lbl=document.getElementById('lbl');
+var lblM={'t1':'① Horizontal Push','t2':'② Cascade Rain','t3':'③ Diverge & Converge','t4':'④ Blur Drift','t5':'⑤ Word Scatter'};
+Object.keys(lblM).forEach(function(id){
+  ScrollTrigger.create({
+    trigger:'#'+id,start:'top 60%',end:'bottom 40%',
+    onEnter:    function(){lbl.textContent=lblM[id];lbl.style.opacity='1';},
+    onEnterBack:function(){lbl.textContent=lblM[id];lbl.style.opacity='1';},
+    onLeave:    function(){lbl.style.opacity='0';},
+    onLeaveBack:function(){lbl.style.opacity='0';},
+  });
+});
+
+/* ══════════════════════════════
+   T1 — HORIZONTAL PUSH
+   Exit: elements slide hard LEFT with stagger
+   Entry: elements push in from RIGHT with elastic
+══════════════════════════════ */
+(function(){
+  var pA=document.getElementById('t1-a');
+  var bw=document.getElementById('t1-bw');
+  var exits=[
+    {el:document.getElementById('t1a-eye'), lag:0,    dist:260},
+    {el:document.getElementById('t1a-ttl'), lag:0.03, dist:340},
+    {el:document.getElementById('t1a-sub'), lag:0.06, dist:220},
+  ];
+  var enters=[
+    {el:document.getElementById('t1b-eye'), lag:0,    dist:260},
+    {el:document.getElementById('t1b-ttl'), lag:0.04, dist:340},
+    {el:document.getElementById('t1b-sub'), lag:0.08, dist:220},
+  ];
+  /* set initial offscreen right */
+  enters.forEach(function(e){
+    e.el.style.transform='translateX('+e.dist+'px)';
+    e.el.style.opacity='0';
+  });
+
+  ScrollTrigger.create({
+    trigger:'#t1',start:'top top',end:'bottom bottom',scrub:SCRUB,
+    onUpdate:function(self){
+      var p=self.progress;
+      /* exits: slide left, 0 → 0.45 */
+      exits.forEach(function(item){
+        var t=eio(remap(p, item.lag, 0.46+item.lag));
+        item.el.style.opacity=String(1-t);
+        item.el.style.transform='translateX(-'+(item.dist*t)+'px)';
+      });
+      /* bg crossfade */
+      pA.style.opacity=String(1-eio(remap(p,0.22,0.58)));
+      /* wrapper */
+      bw.style.opacity=String(clamp(remap(p,0.3,0.95)*1.6));
+      /* entries: arrive from right with elastic snap */
+      enters.forEach(function(item){
+        var start=0.38+item.lag;
+        var t=eel(remap(p,start,Math.min(0.95,start+0.4)));
+        item.el.style.opacity=String(clamp(remap(p,start,start+0.12)));
+        item.el.style.transform='translateX('+(item.dist*(1-t))+'px)';
+      });
+    }
+  });
+})();
+
+/* ══════════════════════════════
+   T2 — CASCADE RAIN
+   Exit: sub first → title → eye, all fall DOWN
+   Entry: eye first → title → sub, rain from ABOVE
+══════════════════════════════ */
+(function(){
+  var pA=document.getElementById('t2-a');
+  var bw=document.getElementById('t2-bw');
+  /* exits: bottom-to-top order (sub first) */
+  var exits=[
+    {el:document.getElementById('t2a-sub'), lag:0,    dy:160},
+    {el:document.getElementById('t2a-ttl'), lag:0.05, dy:130},
+    {el:document.getElementById('t2a-eye'), lag:0.10, dy:100},
+  ];
+  /* entries: top-to-bottom (eye first) */
+  var enters=[
+    {el:document.getElementById('t2b-eye'), lag:0,    dy:-90},
+    {el:document.getElementById('t2b-ttl'), lag:0.05, dy:-120},
+    {el:document.getElementById('t2b-sub'), lag:0.10, dy:-100},
+  ];
+  enters.forEach(function(e){
+    e.el.style.transform='translateY('+e.dy+'px)';
+    e.el.style.opacity='0';
+  });
+
+  ScrollTrigger.create({
+    trigger:'#t2',start:'top top',end:'bottom bottom',scrub:SCRUB,
+    onUpdate:function(self){
+      var p=self.progress;
+      exits.forEach(function(item){
+        var t=eio(remap(p,item.lag,0.44+item.lag));
+        item.el.style.opacity=String(1-t);
+        item.el.style.transform='translateY('+(item.dy*t)+'px)';
+      });
+      pA.style.opacity=String(1-eio(remap(p,0.2,0.58)));
+      bw.style.opacity=String(clamp(remap(p,0.32,0.95)*1.5));
+      enters.forEach(function(item){
+        var start=0.38+item.lag;
+        var t=eel(remap(p,start,Math.min(0.95,start+0.38)));
+        item.el.style.opacity=String(clamp(remap(p,start,start+0.12)));
+        item.el.style.transform='translateY('+(item.dy*(1-t))+'px)';
+      });
+    }
+  });
+})();
+
+/* ══════════════════════════════
+   T3 — DIVERGE & CONVERGE
+   Title flies UP, sub drops DOWN (parting curtains)
+   New title arrives from BELOW, new sub from ABOVE
+══════════════════════════════ */
+(function(){
+  var pA=document.getElementById('t3-a');
+  var bw=document.getElementById('t3-bw');
+  var eyeA=document.getElementById('t3a-eye');
+  var ttlA=document.getElementById('t3a-ttl');
+  var subA=document.getElementById('t3a-sub');
+  var eyeB=document.getElementById('t3b-eye');
+  var ttlB=document.getElementById('t3b-ttl');
+  var subB=document.getElementById('t3b-sub');
+
+  ScrollTrigger.create({
+    trigger:'#t3',start:'top top',end:'bottom bottom',scrub:SCRUB,
+    onUpdate:function(self){
+      var p=self.progress;
+
+      /* A exits: title floats UP, eye fades, sub drops DOWN */
+      var tA=eio(remap(p,0.05,0.5));
+      eyeA.style.opacity=String(1-eio(remap(p,0.05,0.35)));
+      ttlA.style.opacity=String(1-tA);
+      ttlA.style.transform='translateY(-'+(130*tA)+'px)';
+      subA.style.opacity=String(1-tA);
+      subA.style.transform='translateY('+(90*tA)+'px)';
+
+      /* bg crossfade */
+      pA.style.opacity=String(1-eio(remap(p,0.28,0.62)));
+      bw.style.opacity=String(clamp(remap(p,0.35,0.95)*1.5));
+
+      /* B arrives: eye from below, title from above (converge) */
+      var tBe=eel(remap(p,0.42,0.82));
+      eyeB.style.opacity=String(clamp(remap(p,0.42,0.55)));
+      eyeB.style.transform='translateY('+(80*(1-tBe))+'px)';
+
+      var tBt=eel(remap(p,0.46,0.86));
+      ttlB.style.opacity=String(clamp(remap(p,0.46,0.59)));
+      ttlB.style.transform='translateY('+(-80*(1-tBt))+'px)';
+
+      var tBs=eel(remap(p,0.50,0.90));
+      subB.style.opacity=String(clamp(remap(p,0.50,0.63)));
+      subB.style.transform='translateY('+(60*(1-tBs))+'px)';
+    }
+  });
+})();
+
+/* ══════════════════════════════
+   T4 — BLUR DRIFT
+   All A elements drift LEFT + blur out.
+   All B elements arrive from RIGHT + unblur (rack focus).
+══════════════════════════════ */
+(function(){
+  var pA=document.getElementById('t4-a');
+  var bw=document.getElementById('t4-bw');
+  var aw=document.getElementById('t4-aw');
+  var eyeA=document.getElementById('t4a-eye');
+  var ttlA=document.getElementById('t4a-ttl');
+  var subA=document.getElementById('t4a-sub');
+  var eyeB=document.getElementById('t4b-eye');
+  var ttlB=document.getElementById('t4b-ttl');
+  var subB=document.getElementById('t4b-sub');
+
+  /* B starts offset right, blurry */
+  var startBlur=22;
+  var startOffset=100;
+  eyeB.style.transform='translateX('+startOffset+'px)';
+  eyeB.style.filter='blur('+startBlur+'px)';
+  eyeB.style.opacity='0';
+  ttlB.style.transform='translateX('+startOffset+'px)';
+  ttlB.style.filter='blur('+startBlur+'px)';
+  ttlB.style.opacity='0';
+  subB.style.transform='translateX('+startOffset+'px)';
+  subB.style.filter='blur('+startBlur+'px)';
+  subB.style.opacity='0';
+
+  ScrollTrigger.create({
+    trigger:'#t4',start:'top top',end:'bottom bottom',scrub:SCRUB,
+    onUpdate:function(self){
+      var p=self.progress;
+
+      /* A: drifts left + blurs */
+      var tA=eio(remap(p,0.05,0.65));
+      var blurA=startBlur*tA;
+      var driftA=startOffset*tA;
+      eyeA.style.opacity=String(1-tA);
+      eyeA.style.transform='translateX(-'+driftA+'px)';
+      eyeA.style.filter='blur('+blurA+'px)';
+      ttlA.style.opacity=String(1-tA);
+      ttlA.style.transform='translateX(-'+driftA+'px)';
+      ttlA.style.filter='blur('+blurA+'px)';
+      subA.style.opacity=String(1-tA);
+      subA.style.transform='translateX(-'+driftA+'px)';
+      subA.style.filter='blur('+blurA+'px)';
+
+      /* bg */
+      pA.style.opacity=String(1-eio(remap(p,0.3,0.68)));
+
+      /* B: arrives from right, sharpens */
+      bw.style.opacity=String(clamp(remap(p,0.35,0.95)*1.5));
+      var tB=eio(remap(p,0.38,0.88));
+      var blurB=startBlur*(1-tB);
+      var driftB=startOffset*(1-tB);
+      eyeB.style.opacity=String(clamp(remap(p,0.38,0.52)));
+      eyeB.style.transform='translateX('+driftB+'px)';
+      eyeB.style.filter='blur('+blurB+'px)';
+      ttlB.style.opacity=String(clamp(remap(p,0.42,0.56)));
+      ttlB.style.transform='translateX('+driftB+'px)';
+      ttlB.style.filter='blur('+blurB+'px)';
+      subB.style.opacity=String(clamp(remap(p,0.46,0.60)));
+      subB.style.transform='translateX('+driftB+'px)';
+      subB.style.filter='blur('+blurB+'px)';
+    }
+  });
+})();
+
+/* ══════════════════════════════
+   T5 — WORD SCATTER
+   Split each title word into a span.
+   A's words scatter in random directions.
+   B's words arrive from random positions and snap.
+══════════════════════════════ */
+(function(){
+  var pA=document.getElementById('t5-a');
+  var bw=document.getElementById('t5-bw');
+  var eyeA=document.getElementById('t5a-eye');
+  var subA=document.getElementById('t5a-sub');
+  var eyeB=document.getElementById('t5b-eye');
+  var subB=document.getElementById('t5b-sub');
+
+  /* Split a heading into word spans */
+  function splitWords(el){
+    var html=el.innerHTML;
+    /* split on spaces and <br/> */
+    var parts=html.split(/(\s+|<br\s*\/?>)/gi);
+    el.innerHTML='';
+    var spans=[];
+    parts.forEach(function(part){
+      if(/^<br/i.test(part)){ el.appendChild(document.createElement('br')); }
+      else if(/^\s+$/.test(part)){ el.appendChild(document.createTextNode(' ')); }
+      else if(part.length>0){
+        var sp=document.createElement('span');
+        sp.textContent=part;
+        sp.className='word';
+        el.appendChild(sp);
+        spans.push(sp);
+      }
+    });
+    return spans;
+  }
+
+  var ttlA=document.getElementById('t5a-ttl');
+  var ttlB=document.getElementById('t5b-ttl');
+  var wordsA=splitWords(ttlA);
+  var wordsB=splitWords(ttlB);
+
+  /* Assign exit vectors for A */
+  var exitVecs=[
+    {dx:-280, dy:-140},
+    {dx: 180, dy:-200},
+    {dx:-150, dy: 160},
+    {dx: 250, dy: 120},
+    {dx:-220, dy: 80 },
+    {dx: 160, dy:-160},
+  ];
+  wordsA.forEach(function(w,i){
+    var v=exitVecs[i%exitVecs.length];
+    w._dx=v.dx; w._dy=v.dy;
+  });
+
+  /* Assign entry offsets for B (start scattered, converge) */
+  var entryVecs=[
+    {dx: 200, dy: 160},
+    {dx:-180, dy: 200},
+    {dx: 140, dy:-180},
+    {dx:-250, dy:-100},
+  ];
+  wordsB.forEach(function(w,i){
+    var v=entryVecs[i%entryVecs.length];
+    w._dx=v.dx; w._dy=v.dy;
+    w.style.transform='translate('+v.dx+'px,'+v.dy+'px)';
+    w.style.opacity='0';
+  });
+
+  ScrollTrigger.create({
+    trigger:'#t5',start:'top top',end:'bottom bottom',scrub:SCRUB,
+    onUpdate:function(self){
+      var p=self.progress;
+
+      /* Eye A, Sub A fade with small offset */
+      eyeA.style.opacity=String(1-eio(remap(p,0.05,0.38)));
+      subA.style.opacity=String(1-eio(remap(p,0.08,0.42)));
+
+      /* Words A scatter — each at a slightly different rate */
+      wordsA.forEach(function(w,i){
+        var lag=i*0.04;
+        var t=eio(remap(p,lag,0.46+lag));
+        w.style.opacity=String(1-t);
+        w.style.transform='translate('+(w._dx*t)+'px,'+(w._dy*t)+'px)';
+      });
+
+      /* bg crossfade */
+      pA.style.opacity=String(1-eio(remap(p,0.25,0.6)));
+      bw.style.opacity=String(clamp(remap(p,0.32,0.95)*1.5));
+
+      /* Eye B, Sub B arrive */
+      eyeB.style.opacity=String(clamp(remap(p,0.42,0.56)));
+      subB.style.opacity=String(clamp(remap(p,0.52,0.66)));
+
+      /* Words B converge from scatter — elastic snap */
+      wordsB.forEach(function(w,i){
+        var start=0.40+i*0.05;
+        var t=eel(remap(p,start,Math.min(0.95,start+0.38)));
+        w.style.opacity=String(clamp(remap(p,start,start+0.12)));
+        w.style.transform='translate('+(w._dx*(1-t))+'px,'+(w._dy*(1-t))+'px)';
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>
