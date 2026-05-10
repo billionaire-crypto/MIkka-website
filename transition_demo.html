@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scroll Transition Demo — Mikka Chinbaatar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@1,9..144,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #F5E4DC;
+  --ink:    #2A1528;
+  --accent: #C44860;
+  --plum:   #8A4A95;
+  --warm:   #EE9078;
+  --muted:  #6E3E5A;
+  --cond:   'Bebas Neue', sans-serif;
+  --serif:  'Fraunces', serif;
+  --mono:   'IBM Plex Mono', monospace;
+}
+
+html { scroll-behavior: auto; }
+body { background: var(--ink); color: var(--bg); font-family: var(--mono); overflow-x: hidden; }
+
+/* ── Intro ── */
+.intro {
+  height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  background: var(--ink);
+}
+.intro h1 {
+  font-family: var(--cond);
+  font-size: clamp(3.5rem, 9vw, 8rem);
+  letter-spacing: .04em; line-height: .95;
+  color: var(--bg);
+}
+.intro p { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-top: 1.5rem; }
+.intro .arrow { margin-top: 3rem; font-size: 1.4rem; color: var(--accent); animation: bob .9s ease infinite alternate; }
+@keyframes bob { to { transform: translateY(10px); } }
+
+/* ── Stage (each demo lives here) ── */
+.stage {
+  height: 100vh; width: 100%;
+  position: relative; overflow: hidden;
+}
+
+/* ── Page card ── */
+.card {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 3rem; text-align: center;
+}
+.card.light  { background: var(--bg); color: var(--ink); }
+.card.dark   { background: var(--ink); color: var(--bg); outline: 1px solid var(--muted); outline-offset: -12px; }
+.card .num   { font-family: var(--mono); font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; opacity: .45; margin-bottom: 1.2rem; }
+.card h2     { font-family: var(--cond); font-size: clamp(3.5rem, 9vw, 9rem); line-height: .95; letter-spacing: .03em; }
+.card.dark h2 { color: var(--accent); }
+.card .sub   { font-family: var(--serif); font-style: italic; font-size: clamp(.9rem, 2vw, 1.5rem); margin-top: 1.2rem; opacity: .6; }
+
+/* ── Label chip ── */
+.chip {
+  position: absolute; top: 1.5rem; left: 1.5rem; z-index: 200;
+  background: var(--accent); color: #fff;
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .14em;
+  text-transform: uppercase; padding: .38rem .85rem;
+  pointer-events: none;
+}
+
+/* ── Scroll hint ── */
+.hint {
+  position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--muted); opacity: .7; z-index: 200;
+  pointer-events: none;
+}
+
+/* ── Spacer between demos ── */
+.gap {
+  height: 25vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ink);
+  font-family: var(--mono); font-size: .6rem;
+  letter-spacing: .25em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ── Outro ── */
+.outro {
+  height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  background: var(--ink);
+}
+.outro p  { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+.outro h2 { font-family: var(--cond); font-size: clamp(2.5rem, 7vw, 6rem); letter-spacing: .04em; color: var(--bg); }
+
+/* ══════════════════════════════════════════
+   1. PAGE TURN — 3D rotateY around left edge
+   ══════════════════════════════════════════ */
+#s1 { perspective: 2000px; }
+#s1 .card-a {
+  transform-origin: left center;
+  backface-visibility: hidden;
+  z-index: 2;
+  box-shadow: -8px 0 40px rgba(0,0,0,.4);
+}
+#s1 .card-b { z-index: 1; backface-visibility: hidden; }
+
+/* ══════════════════════════════════════════
+   2. CURTAIN WIPE — panel sweeps left→right
+   ══════════════════════════════════════════ */
+#s2 .card-b { z-index: 1; }
+#s2 .card-a { z-index: 2; }
+#s2 .curtain {
+  position: absolute; inset: 0; z-index: 5;
+  background: var(--accent);
+  transform: translateX(-101%);
+  display: flex; align-items: center; justify-content: center;
+}
+#s2 .curtain span {
+  font-family: var(--cond); font-size: clamp(2rem,5vw,4.5rem);
+  letter-spacing: .1em; color: rgba(255,255,255,.12);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════
+   3. ZOOM THROUGH — page A scales to infinity
+   ══════════════════════════════════════════ */
+#s3 .card-b { z-index: 1; }
+#s3 .card-a { z-index: 2; transform-origin: center center; }
+#s3 .vignette {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,.95) 100%);
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════
+   4. FADE + SCALE — shrink out / grow in
+   ══════════════════════════════════════════ */
+#s4 .card-b { z-index: 1; opacity: 0; transform: scale(1.1); }
+#s4 .card-a { z-index: 2; }
+
+/* ══════════════════════════════════════════
+   5. SLIDE — pages push horizontally
+   ══════════════════════════════════════════ */
+#s5 { overflow: hidden; }
+#s5 .card-a { z-index: 2; }
+#s5 .card-b { z-index: 1; transform: translateX(100%); }
+</style>
+</head>
+<body>
+
+<!-- ── Intro ── -->
+<section class="intro">
+  <h1>SCROLL<br>TRANSITION<br>DEMO</h1>
+  <p>5 styles · scroll through each · pick one</p>
+  <div class="arrow">↓</div>
+</section>
+
+<!-- ════════════════ 1 · PAGE TURN ════════════════ -->
+<div class="stage" id="s1">
+  <div class="chip">① Page Turn</div>
+  <div class="card light card-a">
+    <div class="num">N° 00 / 04 · Hero</div>
+    <h2>MIKKA<br>CHINBAATAR</h2>
+    <div class="sub">Piano · Yatga · Instructor</div>
+  </div>
+  <div class="card dark card-b">
+    <div class="num">N° 01 / 04 · About</div>
+    <h2>ABOUT<br>THE<br>ARTIST</h2>
+    <div class="sub">By way of Ulaanbaatar</div>
+  </div>
+  <div class="hint">scroll ↓</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ════════════════ 2 · CURTAIN WIPE ════════════════ -->
+<div class="stage" id="s2">
+  <div class="chip">② Curtain Wipe</div>
+  <div class="card dark card-b">
+    <div class="num">N° 02 / 04 · Awards</div>
+    <h2>AWARDS<br>&amp;<br>DISTINCTIONS</h2>
+    <div class="sub">Recognition · 2020–2026</div>
+  </div>
+  <div class="curtain"><span>AWARDS &amp; DISTINCTIONS · AWARDS &amp; DISTINCTIONS</span></div>
+  <div class="card light card-a">
+    <div class="num">N° 01 / 04 · About</div>
+    <h2>ABOUT<br>THE<br>ARTIST</h2>
+    <div class="sub">By way of Ulaanbaatar</div>
+  </div>
+  <div class="hint">scroll ↓</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ════════════════ 3 · ZOOM THROUGH ════════════════ -->
+<div class="stage" id="s3">
+  <div class="chip">③ Zoom Through</div>
+  <div class="card dark card-b">
+    <div class="num">N° 03 / 04 · Work</div>
+    <h2>RECITAL<br>PROGRAM</h2>
+    <div class="sub">6 pieces · 4 years</div>
+  </div>
+  <div class="vignette" id="s3-vig"></div>
+  <div class="card light card-a" id="s3-a">
+    <div class="num">N° 02 / 04 · Awards</div>
+    <h2>AWARDS<br>&amp;<br>DISTINCTIONS</h2>
+    <div class="sub">Recognition · 2020–2026</div>
+  </div>
+  <div class="hint">scroll ↓</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ════════════════ 4 · FADE + SCALE ════════════════ -->
+<div class="stage" id="s4">
+  <div class="chip">④ Fade + Scale</div>
+  <div class="card dark card-b" id="s4-b">
+    <div class="num">N° 04 / 04 · Teaching</div>
+    <h2>PRIVATE<br>LESSONS</h2>
+    <div class="sub">with Mikka · San Francisco</div>
+  </div>
+  <div class="card light card-a" id="s4-a">
+    <div class="num">N° 03 / 04 · Work</div>
+    <h2>RECITAL<br>PROGRAM</h2>
+    <div class="sub">6 pieces · 4 years</div>
+  </div>
+  <div class="hint">scroll ↓</div>
+</div>
+<div class="gap">· · ·</div>
+
+<!-- ════════════════ 5 · SLIDE ════════════════ -->
+<div class="stage" id="s5">
+  <div class="chip">⑤ Slide</div>
+  <div class="card dark card-b" id="s5-b">
+    <div class="num">N° 04 / 04 · Teaching</div>
+    <h2>PRIVATE<br>LESSONS</h2>
+    <div class="sub">with Mikka · San Francisco</div>
+  </div>
+  <div class="card light card-a" id="s5-a">
+    <div class="num">N° 03 / 04 · Work</div>
+    <h2>RECITAL<br>PROGRAM</h2>
+    <div class="sub">6 pieces · 4 years</div>
+  </div>
+  <div class="hint">scroll ↓</div>
+</div>
+
+<!-- ── Outro ── -->
+<section class="outro">
+  <p>Which felt right?</p>
+  <h2>PICK ONE<br>→ TELL<br>CLAUDE</h2>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+var SCRUB = 1.4, HOLD = '+=220vh';
+
+/* ── 1. PAGE TURN ─────────────────────────── */
+var s1a = document.querySelector('#s1 .card-a');
+var s1b = document.querySelector('#s1 .card-b');
+ScrollTrigger.create({
+  trigger: '#s1', start: 'top top', end: HOLD, pin: true, scrub: SCRUB,
+  onUpdate: function(self) {
+    var p = self.progress;
+    s1a.style.transform = 'rotateY(' + (p * -180) + 'deg)';
+    /* cast shadow as it turns */
+    var shadow = Math.sin(p * Math.PI) * 40;
+    s1a.style.boxShadow = '-' + shadow + 'px 0 ' + (shadow*2) + 'px rgba(0,0,0,' + (p < .5 ? p*.8 : (1-p)*.8) + ')';
+  }
+});
+
+/* ── 2. CURTAIN WIPE ──────────────────────── */
+var s2a  = document.querySelector('#s2 .card-a');
+var s2ct = document.querySelector('#s2 .curtain');
+ScrollTrigger.create({
+  trigger: '#s2', start: 'top top', end: HOLD, pin: true, scrub: SCRUB,
+  onUpdate: function(self) {
+    var p = self.progress;
+    if (p <= .45) {
+      /* curtain slides in from left */
+      var p1 = p / .45;
+      s2ct.style.transform = 'translateX(' + ((1 - p1) * -101) + '%)';
+      s2a.style.opacity = '1';
+    } else if (p <= .55) {
+      /* brief pause: curtain covers everything */
+      s2ct.style.transform = 'translateX(0%)';
+      s2a.style.opacity = '0';
+    } else {
+      /* curtain exits to the right */
+      var p2 = (p - .55) / .45;
+      s2ct.style.transform = 'translateX(' + (p2 * 101) + '%)';
+      s2a.style.opacity = '0';
+    }
+  }
+});
+
+/* ── 3. ZOOM THROUGH ─────────────────────── */
+var s3a   = document.getElementById('s3-a');
+var s3vig = document.getElementById('s3-vig');
+ScrollTrigger.create({
+  trigger: '#s3', start: 'top top', end: HOLD, pin: true, scrub: SCRUB,
+  onUpdate: function(self) {
+    var p = self.progress;
+    var scale   = 1 + p * 28;
+    var opacity = Math.max(0, 1 - p * 2.2);
+    s3a.style.transform = 'scale(' + scale + ')';
+    s3a.style.opacity   = opacity;
+    s3vig.style.opacity = Math.min(1, p * 2.5);
+  }
+});
+
+/* ── 4. FADE + SCALE ─────────────────────── */
+var s4a = document.getElementById('s4-a');
+var s4b = document.getElementById('s4-b');
+ScrollTrigger.create({
+  trigger: '#s4', start: 'top top', end: HOLD, pin: true, scrub: SCRUB,
+  onUpdate: function(self) {
+    var p = self.progress;
+    s4a.style.opacity   = Math.max(0, 1 - p * 2.2);
+    s4a.style.transform = 'scale(' + (1 - p * .14) + ')';
+    s4b.style.opacity   = Math.min(1, Math.max(0, p * 2.2 - 0.3));
+    s4b.style.transform = 'scale(' + (1.1 - p * .1) + ')';
+  }
+});
+
+/* ── 5. SLIDE ─────────────────────────────── */
+var s5a = document.getElementById('s5-a');
+var s5b = document.getElementById('s5-b');
+ScrollTrigger.create({
+  trigger: '#s5', start: 'top top', end: HOLD, pin: true, scrub: SCRUB,
+  onUpdate: function(self) {
+    var p = self.progress;
+    s5a.style.transform = 'translateX(' + (-p * 100) + '%)';
+    s5b.style.transform = 'translateX(' + ((1 - p) * 100) + '%)';
+  }
+});
+</script>
+</body>
+</html>
