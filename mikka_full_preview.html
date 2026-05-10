@@ -6233,68 +6233,6 @@ canvas.fluid-canvas {
   z-index: 2;
 }
 
-/* ═══════════════════════════════════════════════════════
-   GUTTER FRAME — chunky brackets that flank the booklet
-   on desktop and animate inward on load so the booklet
-   reads as if it's settling between them. Hidden under
-   1024px since narrower viewports have no gutter to fill.
-   ═══════════════════════════════════════════════════════ */
-.frame-bracket {
-  display: none;
-  position: fixed;
-  top: 50%;
-  z-index: 3;
-  height: 78vh;
-  width: auto;
-  color: var(--accent-warm);
-  pointer-events: none;
-  opacity: 0;
-  filter: drop-shadow(0 0 28px rgba(238, 144, 120, 0.18));
-  will-change: transform, opacity;
-}
-.frame-bracket.l {
-  left: calc(50% - 240px - 96px);
-  /* Start tucked far behind the booklet edge, then slide outward */
-  transform: translate(40vw, -50%) scale(.85);
-}
-.frame-bracket.r {
-  right: calc(50% - 240px - 96px);
-  transform: translate(-40vw, -50%) scale(.85);
-}
-@media (min-width: 1024px) {
-  .frame-bracket { display: block; }
-}
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .frame-bracket { height: 64vh; }
-  .frame-bracket.l { left: calc(50% - 240px - 60px); }
-  .frame-bracket.r { right: calc(50% - 240px - 60px); }
-}
-@keyframes frame-bracket-in-l {
-  to { opacity: .92; transform: translate(0, -50%) scale(1); }
-}
-@keyframes frame-bracket-in-r {
-  to { opacity: .92; transform: translate(0, -50%) scale(1); }
-}
-.is-loaded .frame-bracket.l {
-  animation: frame-bracket-in-l 1.6s cubic-bezier(.2,.7,.2,1) .9s forwards;
-}
-.is-loaded .frame-bracket.r {
-  animation: frame-bracket-in-r 1.6s cubic-bezier(.2,.7,.2,1) .9s forwards;
-}
-
-/* Booklet itself: small entrance — fade up + scale in slightly,
-   so it visibly drops into the bracket frame. */
-.booklet {
-  opacity: 0;
-  transform: translateY(28px) scale(.985);
-  transition: opacity 1.2s cubic-bezier(.2,.7,.2,1),
-              transform 1.2s cubic-bezier(.2,.7,.2,1);
-}
-.is-loaded .booklet {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
 </style>
 </head>
 <body>
@@ -6313,17 +6251,6 @@ canvas.fluid-canvas {
 
 <!-- Site-wide custom cursor (desktop only — hidden on touch via CSS) -->
 <div class="site-cursor" id="siteCursor" aria-hidden="true"></div>
-
-<!-- ───── GUTTER FRAME (desktop only)
-       Two chunky SVG brackets flank the booklet. They start
-       tucked behind it and animate outward when .is-loaded
-       fires, so the booklet visibly settles into the frame. ───── -->
-<svg class="frame-bracket l" viewBox="0 0 80 320" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-  <path fill="currentColor" d="M 80 0 L 30 0 L 30 32 C 0 92, 0 228, 30 288 L 30 320 L 80 320 Z"/>
-</svg>
-<svg class="frame-bracket r" viewBox="0 0 80 320" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-  <path fill="currentColor" d="M 0 0 L 50 0 L 50 32 C 80 92, 80 228, 50 288 L 50 320 L 0 320 Z"/>
-</svg>
 
 <!-- ───── STICKY LEGEND BAR (lives outside the booklet so it stays
        fixed across the whole page scroll). Runner row is still inside
