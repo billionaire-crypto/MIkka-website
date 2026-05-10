@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mikka — Transition Demo III</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #F5E4DC;
+      --ink:    #2A1528;
+      --accent: #C44860;
+      --plum:   #8A4A95;
+      --warm:   #EE9078;
+      --deep:   #130a18;
+    }
+    html { scroll-behavior: auto; }
+    body { overflow-x: hidden; font-family: 'Inter', sans-serif; background: var(--ink); }
+
+    /* ── floating label ── */
+    #lbl {
+      position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+      z-index: 9999; padding: .55rem 1.4rem;
+      background: rgba(19,10,24,.8); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.1);
+      font-size: .58rem; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(245,228,220,.8); pointer-events: none;
+      opacity: 0; transition: opacity .3s; white-space: nowrap;
+    }
+
+    /* ── sections ── */
+    .stage { position: relative; }
+    .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+    .panel  { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+    .bg-ink   { background: var(--ink); }
+    .bg-bg    { background: var(--bg); }
+    .bg-deep  { background: var(--deep); }
+    .bg-plum  { background: var(--plum); }
+    .bg-rose  { background: var(--accent); }
+
+    /* ── copy ── */
+    .copy { text-align: center; padding: 2rem; }
+    .eye  { font-size:.6rem; letter-spacing:.25em; text-transform:uppercase; margin-bottom:1.25rem; }
+    .ttl  { font-family:'Cormorant Garamond',serif; font-weight:300; line-height:1.0; margin-bottom:1.25rem; }
+    .sub  { font-size:.82rem; font-weight:300; letter-spacing:.04em; line-height:1.85; max-width:32ch; margin:0 auto; }
+
+    .bg-ink .eye, .bg-deep .eye { color:var(--warm); }
+    .bg-ink .ttl, .bg-deep .ttl { color:var(--bg); }
+    .bg-ink .sub, .bg-deep .sub { color:rgba(245,228,220,.45); }
+
+    .bg-bg .eye { color:var(--accent); }
+    .bg-bg .ttl { color:var(--ink); }
+    .bg-bg .sub { color:#7a4d5e; }
+
+    .bg-plum .eye { color:rgba(245,228,220,.6); }
+    .bg-plum .ttl, .bg-plum .sub { color:#fff; }
+    .bg-plum .sub { opacity:.6; }
+
+    .bg-rose .eye { color:rgba(255,255,255,.65); }
+    .bg-rose .ttl, .bg-rose .sub { color:#fff; }
+    .bg-rose .sub { opacity:.7; }
+
+    /* ── intro ── */
+    #intro { height:100vh; background:var(--ink); display:flex; align-items:center; justify-content:center; }
+    #intro .eye { color:var(--warm); }
+    #intro .ttl { color:var(--bg); font-size:clamp(2.6rem,6vw,5.5rem); }
+    #intro em   { font-style:italic; color:var(--warm); }
+    #intro .sub { color:rgba(245,228,220,.4); }
+    .arrow { margin-top:3rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+    .arrow span { font-size:.55rem; letter-spacing:.22em; text-transform:uppercase; color:rgba(245,228,220,.3); }
+    .arrow-line { width:1px; height:44px; background:linear-gradient(to bottom,rgba(245,228,220,.35),transparent); animation:fall 1.5s ease-in-out infinite; }
+    @keyframes fall { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 50.01%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+    .gap { height:3px; background:rgba(255,255,255,.03); }
+
+    /* ── SVG hidden ── */
+    svg.filters { position:absolute; width:0; height:0; }
+
+    /* ════════════════════════════════
+       T1: TITLE TAKEOVER
+       The next section's title grows from
+       tiny to fill the entire screen,
+       then page-B assembles around it.
+    ════════════════════════════════ */
+    #t1 { height: 420vh; }
+    #t1-a { z-index:2; will-change:opacity,transform; }
+    #t1-b { z-index:1; }
+    /* The big title that explodes */
+    #t1-big {
+      position:absolute; z-index:3;
+      font-family:'Cormorant Garamond',serif;
+      font-weight:300; font-style:italic;
+      color: var(--bg);
+      font-size: 8rem; /* starts small-ish, will scale */
+      line-height:1;
+      text-align:center;
+      white-space:nowrap;
+      transform-origin: center center;
+      pointer-events:none;
+      will-change: transform, opacity;
+    }
+    #t1-b-content { will-change: opacity, transform; }
+
+    /* ════════════════════════════════
+       T2: CONTENT STORM
+       Each element exits in a different
+       direction; new elements arrive from
+       all edges simultaneously.
+    ════════════════════════════════ */
+    #t2 { height: 420vh; }
+    #t2-a { z-index:2; }
+    #t2-b { z-index:1; }
+    .storm-el { will-change: transform, opacity; display:block; }
+    #t2-b-wrap { will-change: opacity; }
+
+    /* ════════════════════════════════
+       T3: OBLIQUE SLASH + PARALLAX
+       A diagonal cut sweeps across; page-A
+       content drifts left, page-B arrives
+       from right — at different speeds.
+    ════════════════════════════════ */
+    #t3 { height: 400vh; }
+    #t3-a { z-index:2; will-change:clip-path; }
+    #t3-a-content { will-change: transform, opacity; }
+    #t3-b { z-index:1; }
+    #t3-b-content { will-change: transform, opacity; }
+
+    /* ════════════════════════════════
+       T4: 3D PAGE LIFT
+       Current page folds back in 3D
+       perspective, like a heavy card
+       being lifted from a table.
+    ════════════════════════════════ */
+    #t4 { height: 400vh; }
+    #t4-sticky { perspective: 900px; perspective-origin: 50% 60%; }
+    #t4-a {
+      z-index:2;
+      transform-origin: 50% 100%;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+    }
+    #t4-b { z-index:1; }
+    #t4-b-content { will-change: opacity, transform; }
+
+    /* ════════════════════════════════
+       T5: STAGGER EXIT + ASSEMBLE
+       Outgoing elements exit upward with
+       stagger. Incoming elements arrive
+       from below and snap into place with
+       elastic overshoot.
+    ════════════════════════════════ */
+    #t5 { height: 420vh; }
+    #t5-a { z-index:2; }
+    #t5-b { z-index:1; }
+    .exit-el  { will-change: transform, opacity; display:block; }
+    .enter-el { will-change: transform, opacity; display:block; }
+    #t5-b-wrap { }
+
+    /* ── end ── */
+    #end { height:100vh; background:var(--accent); display:flex; align-items:center; justify-content:center; }
+    #end .ttl { color:#fff; font-size:clamp(2.5rem,5vw,4.5rem); }
+    #end .eye { color:rgba(255,255,255,.65); }
+    #end .sub { color:rgba(255,255,255,.65); }
+  </style>
+</head>
+<body>
+
+<!-- SVG filters for organic edges -->
+<svg class="filters" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="ink" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03 0.05" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="80" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- floating badge -->
+<div id="lbl"></div>
+
+<!-- ── Intro ── -->
+<div id="intro">
+  <div class="copy">
+    <p class="eye">Scroll slowly</p>
+    <h1 class="ttl">Content-First<br/><em>Transitions</em></h1>
+    <p class="sub">Five techniques where the text and images <em>become</em> the transition — not just shapes moving around them.</p>
+    <div class="arrow"><span>Scroll</span><div class="arrow-line"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     T1 — TITLE TAKEOVER
+════════════════════════════════════════ -->
+<div id="t1" class="stage">
+  <div class="sticky" id="t1-sticky">
+    <!-- Page A: Hero -->
+    <div class="panel bg-ink" id="t1-a">
+      <div class="copy" id="t1-a-content">
+        <p class="eye">Hero</p>
+        <h2 class="ttl" style="font-size:clamp(3rem,7vw,6.5rem)">Mikka<br/><em style="font-style:italic;color:var(--warm)">Chinbaatar</em></h2>
+        <p class="sub">Pianist · Educator · Yatga Soloist</p>
+      </div>
+    </div>
+    <!-- The big title that takes over the screen -->
+    <div id="t1-big">Artist &amp; Educator</div>
+    <!-- Page B: About -->
+    <div class="panel bg-bg" id="t1-b">
+      <div class="copy" id="t1-b-content" style="opacity:0">
+        <p class="eye" style="color:rgba(168,100,50,.5);letter-spacing:.3em">① Title Takeover</p>
+        <h2 class="ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Artist &amp;<br/>Educator</h2>
+        <p class="sub">The title of the next section grows to fill the entire screen, then page-B assembles around it.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════
+     T2 — CONTENT STORM
+════════════════════════════════════════ -->
+<div id="t2" class="stage">
+  <div class="sticky" id="t2-sticky">
+    <!-- Page A: About — exits in pieces -->
+    <div class="panel bg-bg" id="t2-a">
+      <div class="copy">
+        <p class="eye storm-el" id="t2-eye-a">About</p>
+        <h2 class="ttl storm-el" id="t2-ttl-a" style="font-size:clamp(2.5rem,5vw,5rem)">Artist &amp;<br/>Educator</h2>
+        <p class="sub storm-el" id="t2-sub-a">Bridging classical tradition and the rich musical heritage of Mongolia.</p>
+      </div>
+    </div>
+    <!-- Page B: Awards — arrives in pieces -->
+    <div class="panel bg-deep" id="t2-b">
+      <div class="copy" id="t2-b-wrap" style="opacity:0">
+        <p class="eye storm-el" id="t2-eye-b" style="transform:translateY(60px)">② Content Storm</p>
+        <h2 class="ttl storm-el" id="t2-ttl-b" style="font-size:clamp(2.5rem,5vw,5rem);transform:translateY(90px)">Awards &amp;<br/>Distinctions</h2>
+        <p class="sub storm-el" id="t2-sub-b" style="transform:translateY(120px)">Each element exits in a different direction. Incoming elements arrive from all four edges with staggered timing.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════
+     T3 — OBLIQUE SLASH + PARALLAX
+════════════════════════════════════════ -->
+<div id="t3" class="stage">
+  <div class="sticky" id="t3-sticky">
+    <!-- Page B behind (parallax arrives from right) -->
+    <div class="panel bg-bg" id="t3-b">
+      <div class="copy" id="t3-b-content" style="transform:translateX(80px);opacity:0">
+        <p class="eye" style="color:rgba(168,100,50,.5);letter-spacing:.3em">③ Oblique Slash</p>
+        <h2 class="ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Recital &amp;<br/>Work</h2>
+        <p class="sub">A diagonal cut sweeps across. Content drifts left while new content arrives from the right — at different speeds.</p>
+      </div>
+    </div>
+    <!-- Page A (clipped by diagonal, content drifts left) -->
+    <div class="panel bg-deep" id="t3-a">
+      <div class="copy" id="t3-a-content">
+        <p class="eye">Recognition</p>
+        <h2 class="ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Awards &amp;<br/>Distinctions</h2>
+        <p class="sub">Excellence in Collaborative Piano · Pacific Music Competition First Prize</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════
+     T4 — 3D PAGE LIFT
+════════════════════════════════════════ -->
+<div id="t4" class="stage">
+  <div class="sticky" id="t4-sticky">
+    <!-- Page B (revealed as A lifts) -->
+    <div class="panel bg-ink" id="t4-b">
+      <div class="copy" id="t4-b-content" style="opacity:0;transform:scale(.97)">
+        <p class="eye">④ 3D Page Lift</p>
+        <h2 class="ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Studio<br/>Sessions</h2>
+        <p class="sub">The current page folds backward in 3D space — like a heavy card lifted from a table — revealing what was always underneath.</p>
+      </div>
+    </div>
+    <!-- Page A (lifts back in 3D) -->
+    <div class="panel bg-bg" id="t4-a">
+      <div class="copy">
+        <p class="eye">Work</p>
+        <h2 class="ttl" style="font-size:clamp(2.5rem,5vw,5rem)">Recital &amp;<br/>Work</h2>
+        <p class="sub">Six performances, recorded and shared.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gap"></div>
+
+<!-- ══════════════════════════════════════
+     T5 — STAGGER EXIT + ASSEMBLE
+════════════════════════════════════════ -->
+<div id="t5" class="stage">
+  <div class="sticky" id="t5-sticky">
+    <!-- Page B (assembles from below) -->
+    <div class="panel bg-rose" id="t5-b">
+      <div class="copy" id="t5-b-wrap" style="opacity:0">
+        <p class="eye exit-el enter-el" id="t5-eye-b"  style="transform:translateY(70px)">⑤ Stagger Assemble</p>
+        <h2 class="ttl enter-el"        id="t5-ttl-b"  style="font-size:clamp(2.5rem,5vw,5rem);transform:translateY(100px)">Let's<br/>Connect</h2>
+        <p class="sub enter-el"         id="t5-sub-b"  style="transform:translateY(130px)">Outgoing elements exit upward with stagger. Incoming elements snap into place from below with elastic overshoot.</p>
+        <a class="enter-el"             id="t5-cta-b"
+           style="display:inline-block;margin-top:2rem;padding:.75rem 2rem;border:1px solid rgba(255,255,255,.5);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:#fff;text-decoration:none;transform:translateY(160px)">
+          hello@mikkachinbaatar.com
+        </a>
+      </div>
+    </div>
+    <!-- Page A (exits upward piece by piece) -->
+    <div class="panel bg-ink" id="t5-a">
+      <div class="copy">
+        <p class="eye exit-el" id="t5-eye-a">Teaching</p>
+        <h2 class="ttl exit-el" id="t5-ttl-a" style="font-size:clamp(2.5rem,5vw,5rem)">Studio<br/>Sessions</h2>
+        <p class="sub exit-el"  id="t5-sub-a">Students of all levels, guided with warmth and rigor.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── End ── -->
+<div id="end">
+  <div class="copy">
+    <p class="eye">Done</p>
+    <h2 class="ttl">Which one?</h2>
+    <p class="sub">1 · 2 · 3 · 4 · 5 — or tell Claude "none, try again."</p>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+var SCRUB = 2;
+
+// badge
+var lbl = document.getElementById('lbl');
+var lblMap = {
+  't1':'① Title Takeover',
+  't2':'② Content Storm',
+  't3':'③ Oblique Slash + Parallax',
+  't4':'④ 3D Page Lift',
+  't5':'⑤ Stagger Exit + Assemble',
+};
+Object.keys(lblMap).forEach(function(id){
+  ScrollTrigger.create({
+    trigger:'#'+id, start:'top 60%', end:'bottom 40%',
+    onEnter:    function(){ lbl.textContent=lblMap[id]; lbl.style.opacity='1'; },
+    onEnterBack:function(){ lbl.textContent=lblMap[id]; lbl.style.opacity='1'; },
+    onLeave:    function(){ lbl.style.opacity='0'; },
+    onLeaveBack:function(){ lbl.style.opacity='0'; },
+  });
+});
+
+function eio(t){ return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; }
+function eout(t){ return 1-Math.pow(1-t,3); }
+function ein(t){ return t*t*t; }
+function clamp(v){ return Math.min(1,Math.max(0,v)); }
+function remap(p,a,b){ return clamp((p-a)/(b-a)); }
+
+/* elastic-out for snapping into place */
+function eelastic(t){
+  var c4 = (2*Math.PI)/4.5;
+  return t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*c4)+1;
+}
+
+
+/* ══════════════════════════
+   T1 — TITLE TAKEOVER
+════════════════════════════ */
+(function(){
+  var pageA    = document.getElementById('t1-a');
+  var pageAcon = document.getElementById('t1-a-content');
+  var big      = document.getElementById('t1-big');
+  var bCon     = document.getElementById('t1-b-content');
+
+  /* Big title: starts at 8rem, grows to fill ~100vw
+     Needs scale factor relative to viewport width.
+     "Artist & Educator" at 8rem ≈ 128px.
+     At clamp(3rem, 7vw, 6.5rem), the h2 in page-B is ~96px.
+     We want big to grow to ~100vw wide.
+     Text approx 15chars × char-width. At 8rem ≈ 640px wide?
+     Just use a generous scale like 18× to fill most of viewport. */
+  var targetScale = Math.max(window.innerWidth / 460, 1) * 1.05;
+
+  ScrollTrigger.create({
+    trigger: '#t1', start:'top top', end:'bottom bottom',
+    scrub: SCRUB,
+    onUpdate: function(self){
+      var p = self.progress;
+
+      /* 0→0.3: page-A content drifts and fades */
+      var dA = eio(remap(p, 0, 0.35));
+      pageAcon.style.opacity    = String(1 - dA);
+      pageAcon.style.transform  = 'scale(' + (1 - dA * 0.06) + ')';
+
+      /* 0.05→0.6: big title grows */
+      var gT = eio(remap(p, 0.05, 0.6));
+      var sc = 1 + (targetScale - 1) * gT;
+      big.style.transform = 'translate(-50%, -50%) scale(' + sc + ')';
+      big.style.left = '50%';
+      big.style.top  = '50%';
+      big.style.position = 'absolute';
+      /* fades near peak */
+      var bigOpacity = p < 0.55 ? 1 : 1 - eio(remap(p, 0.55, 0.8));
+      big.style.opacity = String(bigOpacity);
+
+      /* 0.4→0.65: background transitions (page-A fades out) */
+      var bgT = eio(remap(p, 0.4, 0.65));
+      pageA.style.opacity = String(1 - bgT);
+
+      /* 0.6→0.9: page-B content fades in */
+      var bT = eio(remap(p, 0.6, 0.9));
+      bCon.style.opacity   = String(bT);
+      bCon.style.transform = 'translateY(' + (20 - bT * 20) + 'px)';
+    }
+  });
+})();
+
+
+/* ══════════════════════════
+   T2 — CONTENT STORM
+════════════════════════════ */
+(function(){
+  var pageA  = document.getElementById('t2-a');
+  var pageB  = document.getElementById('t2-b');
+  var bWrap  = document.getElementById('t2-b-wrap');
+
+  /* Exit vectors for page-A elements (x%, y%) */
+  var exits = [
+    { el: document.getElementById('t2-eye-a'), dx: -30,  dy: -60  },
+    { el: document.getElementById('t2-ttl-a'), dx: 40,   dy: -120 },
+    { el: document.getElementById('t2-sub-a'), dx: -50,  dy: 60   },
+  ];
+  /* Entry start positions for page-B elements (already set in HTML via transform) */
+  var enters = [
+    { el: document.getElementById('t2-eye-b'), dy: 60  },
+    { el: document.getElementById('t2-ttl-b'), dy: 90  },
+    { el: document.getElementById('t2-sub-b'), dy: 120 },
+  ];
+
+  ScrollTrigger.create({
+    trigger: '#t2', start:'top top', end:'bottom bottom',
+    scrub: SCRUB,
+    onUpdate: function(self){
+      var p = self.progress;
+
+      /* Page A exits (0→0.45), each with slight stagger */
+      exits.forEach(function(item, i){
+        var start = i * 0.04;
+        var t = eio(remap(p, start, 0.48 + start));
+        item.el.style.opacity   = String(1 - t);
+        item.el.style.transform = 'translateX(' + item.dx * t + 'px) translateY(' + item.dy * t + 'px)';
+      });
+
+      /* Background crossfade */
+      var bgT = eio(remap(p, 0.25, 0.6));
+      pageA.style.opacity = String(1 - bgT);
+
+      /* Page B wrapper */
+      var bShow = remap(p, 0.3, 0.95);
+      bWrap.style.opacity = String(Math.min(1, bShow * 1.5));
+
+      /* Page B elements arrive from below with stagger + elastic snap */
+      enters.forEach(function(item, i){
+        var start = 0.38 + i * 0.06;
+        var t = eelastic(remap(p, start, Math.min(0.95, start + 0.38)));
+        item.el.style.opacity   = String(remap(p, start, start + 0.15));
+        item.el.style.transform = 'translateY(' + item.dy * (1 - t) + 'px)';
+      });
+    }
+  });
+})();
+
+
+/* ══════════════════════════
+   T3 — OBLIQUE SLASH + PARALLAX
+════════════════════════════ */
+(function(){
+  var pageA    = document.getElementById('t3-a');
+  var aCon     = document.getElementById('t3-a-content');
+  var bCon     = document.getElementById('t3-b-content');
+
+  ScrollTrigger.create({
+    trigger: '#t3', start:'top top', end:'bottom bottom',
+    scrub: SCRUB,
+    onUpdate: function(self){
+      var p = self.progress;
+      var t = eio(remap(p, 0.05, 0.92));
+
+      /* Oblique clip on page-A:
+         Leading edge = diagonal line going from (top, x%) to (bottom, x+20%)
+         As t→1 the edge sweeps from right to left, reducing visible area of A */
+      var top = 105 - t * 115;   /* 105 → -10 */
+      var bot = top + 22;         /* 20% horizontal skew = ~12° from vertical */
+      pageA.style.clipPath = 'polygon(-5% 0, ' + top + '% 0, ' + bot + '% 100%, -5% 100%)';
+
+      /* Page A content drifts left (parallax) */
+      var drift = t * 80;
+      aCon.style.transform = 'translateX(-' + drift + 'px)';
+      aCon.style.opacity   = String(1 - eio(remap(p, 0.55, 0.88)));
+
+      /* Page B content arrives from right (parallax, slightly faster) */
+      var arrive = (1 - eio(remap(p, 0.15, 0.85))) * 80;
+      bCon.style.transform = 'translateX(' + arrive + 'px)';
+      bCon.style.opacity   = String(eio(remap(p, 0.2, 0.75)));
+    }
+  });
+})();
+
+
+/* ══════════════════════════
+   T4 — 3D PAGE LIFT
+════════════════════════════ */
+(function(){
+  var pageA = document.getElementById('t4-a');
+  var bCon  = document.getElementById('t4-b-content');
+
+  ScrollTrigger.create({
+    trigger: '#t4', start:'top top', end:'bottom bottom',
+    scrub: SCRUB,
+    onUpdate: function(self){
+      var p = self.progress;
+
+      /* Page A: folds back (rotateX) + slight scale + shadow fade */
+      var t = eio(remap(p, 0.05, 0.75));
+      var rx = -78 * t;
+      var sc = 1 - 0.12 * t;
+      pageA.style.transform = 'rotateX(' + rx + 'deg) scale(' + sc + ')';
+      pageA.style.opacity   = String(1 - ein(remap(p, 0.4, 0.75)));
+
+      /* Page B content fades in and lifts slightly */
+      var bt = eio(remap(p, 0.5, 0.92));
+      bCon.style.opacity   = String(bt);
+      bCon.style.transform = 'scale(' + (0.97 + bt * 0.03) + ')';
+    }
+  });
+})();
+
+
+/* ══════════════════════════
+   T5 — STAGGER EXIT + ASSEMBLE
+════════════════════════════ */
+(function(){
+  var pageA = document.getElementById('t5-a');
+  var bWrap = document.getElementById('t5-b-wrap');
+
+  var exits = [
+    { el: document.getElementById('t5-eye-a'), dy: -50  },
+    { el: document.getElementById('t5-ttl-a'), dy: -90  },
+    { el: document.getElementById('t5-sub-a'), dy: -60  },
+  ];
+  var enters = [
+    { el: document.getElementById('t5-eye-b'), dy: 70  },
+    { el: document.getElementById('t5-ttl-b'), dy: 100 },
+    { el: document.getElementById('t5-sub-b'), dy: 130 },
+    { el: document.getElementById('t5-cta-b'), dy: 160 },
+  ];
+
+  ScrollTrigger.create({
+    trigger: '#t5', start:'top top', end:'bottom bottom',
+    scrub: SCRUB,
+    onUpdate: function(self){
+      var p = self.progress;
+
+      /* Page A: elements exit upward with stagger */
+      exits.forEach(function(item, i){
+        var start = i * 0.045;
+        var t = eio(remap(p, start, 0.42 + start));
+        item.el.style.opacity   = String(1 - t);
+        item.el.style.transform = 'translateY(' + item.dy * t + 'px)';
+      });
+
+      /* Background crossfade */
+      pageA.style.opacity = String(1 - eio(remap(p, 0.2, 0.55)));
+
+      /* Page B: wrapper */
+      bWrap.style.opacity = String(Math.min(1, remap(p, 0.3, 1) * 1.5));
+
+      /* Page B: elements arrive from below with elastic snap, staggered */
+      enters.forEach(function(item, i){
+        var start = 0.4 + i * 0.06;
+        var end   = Math.min(0.97, start + 0.38);
+        var t     = eelastic(remap(p, start, end));
+        var fader = remap(p, start, start + 0.14);
+        item.el.style.opacity   = String(clamp(fader));
+        item.el.style.transform = 'translateY(' + item.dy * (1 - t) + 'px)';
+      });
+    }
+  });
+})();
+
+/* helpers */
+function clamp(v){ return Math.min(1,Math.max(0,v)); }
+</script>
+</body>
+</html>
