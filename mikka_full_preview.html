@@ -10,25 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<!-- Three.js (loaded at end of body for non-blocking render) -->
-
 <style>
-/* ── Three.js 3D scene slots ── */
-.spline-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-  mix-blend-mode: screen; /* transparent bg vanishes; coloured 3D objects glow over content */
-}
-.spline-bg canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 /* ═══════════════════════════════════════════════════════
    HERO PAGE  ·  page 00 / 04
    Mikka Chinbaatar portfolio
@@ -6292,10 +6274,6 @@ canvas.fluid-canvas {
 
   <!-- ───── INTERACTIVE STAGE (vertical strings + name) ───── -->
   <section class="stage" id="stage" data-bg="gradient" aria-label="Mikka Chinbaatar — interactive title">
-    <!-- 3D SCENE 1 · Hero — drifting particle nebula -->
-    <div class="spline-bg behind">
-      <canvas id="spline-hero"></canvas>
-    </div>
     <canvas class="stage-canvas" id="stageCanvas"></canvas>
     <div class="cursor-dot hidden" id="cursorDot"></div>
 
@@ -6718,12 +6696,7 @@ canvas.fluid-canvas {
      existing 5-page booklet.
      ═══════════════════════════════════════════════════════ -->
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 02 / 04 —</span><span class="line"></span></div>
-<section class="page page-02" id="awards" data-page="02" data-name="Awards" style="position:relative; overflow:hidden;">
-
-<!-- 3D SCENE 4 · Awards — floating wireframe gems -->
-<div class="spline-bg behind">
-  <canvas id="spline-awards"></canvas>
-</div>
+<section class="page page-02" id="awards" data-page="02" data-name="Awards">
 
 <div class="wrap">
 
@@ -6896,11 +6869,6 @@ canvas.fluid-canvas {
 <div class="program-column">
 
 
-
-<!-- 3D SCENE 2 · Keyboard — animated 3D piano keys banner -->
-<div style="position:relative; height:280px; overflow:hidden;">
-  <canvas id="spline-keyboard" style="width:100%;height:100%;display:block;"></canvas>
-</div>
 
 <div class="kb-strip" id="kbStrip">
   <div class="kb-label">
@@ -7135,11 +7103,7 @@ canvas.fluid-canvas {
 
   
 
-  <section class="intermission" id="intermission" style="position:relative; overflow:hidden;">
-    <!-- 3D SCENE 3 · Intermission — flowing fabric curtain -->
-    <div class="spline-bg behind">
-      <canvas id="spline-intermission"></canvas>
-    </div>
+  <section class="intermission" id="intermission">
     <div class="int-eye">INTERMISSION</div>
     <div class="int-name">
       15 MIN
@@ -7263,12 +7227,8 @@ canvas.fluid-canvas {
 
 </section>
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 04 / 04 —</span><span class="line"></span></div>
-<section class="page page-04" id="teaching" data-page="04" data-name="Teaching" style="position:relative; overflow:hidden;">
+<section class="page page-04" id="teaching" data-page="04" data-name="Teaching">
 
-<!-- 3D SCENE 5 · Teaching — grand piano -->
-<div class="spline-bg behind">
-  <canvas id="spline-teaching"></canvas>
-</div>
 
 <div class="shell">
 
@@ -10161,253 +10121,6 @@ window.__mikkaLazyInit("page-04", function(){
        opaque smoke. */
     return { r: r * 0.18, g: g * 0.18, b: b * 0.18 };
   };
-})();
-</script>
-
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     THREE.JS 3D SCENES  ·  5 slots
-     Site palette:  --ink #2A1528  --accent #C44860
-                    --plum #8A4A95  --warm #EE9078  --bg #F5E4DC
-     ═══════════════════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-(function(){
-  if(typeof THREE==='undefined') return;
-
-  /* ── helpers ── */
-  function renderer(cvs){ var r=new THREE.WebGLRenderer({canvas:cvs,alpha:true,antialias:true}); r.setPixelRatio(Math.min(devicePixelRatio,1.5)); return r; }
-  function resizer(r,cam,cvs){
-    var fn=function(){
-      var w=cvs.parentElement.offsetWidth||cvs.offsetWidth||300;
-      var h=cvs.parentElement.offsetHeight||cvs.offsetHeight||200;
-      r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix();
-    };
-    window.addEventListener('resize',fn); fn(); return fn;
-  }
-
-  /* ════════════════════════════════════════════════════════════════
-     SCENE 1 · HERO · Drifting particle nebula
-     Three layers: rose drift, plum shimmer, warm accent spin
-     Mouse moves the camera slightly for parallax
-     ════════════════════════════════════════════════════════════════ */
-  (function(){
-    var cvs=document.getElementById('spline-hero'); if(!cvs) return;
-    var R=renderer(cvs);
-    var scene=new THREE.Scene();
-    var cam=new THREE.PerspectiveCamera(70,2,0.1,100); cam.position.z=7;
-    resizer(R,cam,cvs);
-
-    function pts(n,spread,size,color,opacity){
-      var a=new Float32Array(n*3);
-      for(var i=0;i<n*3;i++) a[i]=(Math.random()-.5)*spread;
-      var g=new THREE.BufferGeometry();
-      g.setAttribute('position',new THREE.BufferAttribute(a,3));
-      return new THREE.Points(g,new THREE.PointsMaterial({color:color,size:size,transparent:true,opacity:opacity,sizeAttenuation:true,depthWrite:false}));
-    }
-
-    var p1=pts(900,24,0.07,0xFF6080,0.85);
-    var p2=pts(600,20,0.045,0xBB88FF,0.65);
-    var p3=pts(350,16,0.10,0xFFAA88,0.55);
-    scene.add(p1,p2,p3);
-
-    var tx=0,ty=0;
-    document.addEventListener('mousemove',function(e){ tx=(e.clientX/innerWidth-.5)*.9; ty=(e.clientY/innerHeight-.5)*.5; });
-
-    var a1=p1.geometry.attributes.position.array;
-    var a2=p2.geometry.attributes.position.array;
-    var tf=0;
-    (function tick(){
-      requestAnimationFrame(tick); tf+=0.0006;
-      for(var i=1;i<a1.length;i+=3){ a1[i]+=0.0025; if(a1[i]>12) a1[i]=-12; }
-      for(var i=1;i<a2.length;i+=3){ a2[i]+=0.0015; if(a2[i]>10) a2[i]=-10; }
-      p1.geometry.attributes.position.needsUpdate=true;
-      p2.geometry.attributes.position.needsUpdate=true;
-      p3.rotation.y=tf*.25; p3.rotation.x=tf*.12;
-      cam.position.x+=(tx-cam.position.x)*.02;
-      cam.position.y+=(-ty-cam.position.y)*.02;
-      R.render(scene,cam);
-    })();
-  })();
-
-  /* ════════════════════════════════════════════════════════════════
-     SCENE 2 · KEYBOARD · Animated 3D piano keys
-     3 octaves of white + black keys, dramatic spotlight,
-     random keys press down and release continuously
-     ════════════════════════════════════════════════════════════════ */
-  (function(){
-    var cvs=document.getElementById('spline-keyboard'); if(!cvs) return;
-    var R=renderer(cvs);
-    R.shadowMap.enabled=true;
-    var scene=new THREE.Scene();
-    scene.fog=new THREE.FogExp2(0x14080F,0.17);
-    var cam=new THREE.PerspectiveCamera(42,2,0.1,50);
-    cam.position.set(0,2.6,5.8); cam.lookAt(0,-0.15,0);
-    resizer(R,cam,cvs);
-
-    scene.add(new THREE.AmbientLight(0x2A1528,1.4));
-    var sp1=new THREE.SpotLight(0xEE9078,3.5,20,Math.PI/5,0.5); sp1.position.set(1,7,3); sp1.castShadow=true; scene.add(sp1);
-    var sp2=new THREE.SpotLight(0xC44860,1.8,16,Math.PI/7,0.6); sp2.position.set(-3,5,4); scene.add(sp2);
-
-    var wMat=new THREE.MeshStandardMaterial({color:0xF5E4DC,roughness:0.25,metalness:0.1});
-    var bMat=new THREE.MeshStandardMaterial({color:0x120810,roughness:0.3,metalness:0.3});
-    var wkw=0.36,wkh=0.16,wkd=1.75,gap=0.014;
-    var bkw=0.21,bkh=0.26,bkd=1.08;
-    var NOC=3, NW=NOC*7;
-    var ox=-(NW/2-0.5)*(wkw+gap);
-
-    var whiteKeys=[];
-    for(var oct=0;oct<NOC;oct++){
-      for(var k=0;k<7;k++){
-        var m=new THREE.Mesh(new THREE.BoxGeometry(wkw,wkh,wkd),wMat);
-        m.position.x=ox+(oct*7+k)*(wkw+gap); m.castShadow=true; m.receiveShadow=true;
-        scene.add(m); whiteKeys.push(m);
-      }
-      [0.5,1.5,3.5,4.5,5.5].forEach(function(bk){
-        var bm=new THREE.Mesh(new THREE.BoxGeometry(bkw,bkh,bkd),bMat);
-        bm.position.x=ox+(oct*7+bk)*(wkw+gap);
-        bm.position.y=bkh/2; bm.position.z=-(wkd-bkd)/2;
-        bm.castShadow=true; scene.add(bm);
-      });
-    }
-
-    var floor=new THREE.Mesh(new THREE.PlaneGeometry(30,20),new THREE.MeshStandardMaterial({color:0x14080F,roughness:0.85,metalness:0.15}));
-    floor.rotation.x=-Math.PI/2; floor.position.y=-wkh/2-.01; floor.receiveShadow=true; scene.add(floor);
-
-    var kst=whiteKeys.map(function(_,i){ return {on:false,t:0,next:Math.random()*3000+i*200}; });
-    var prev=0;
-    (function tick(ts){
-      requestAnimationFrame(tick);
-      var dt=ts-prev; prev=ts;
-      kst.forEach(function(s,i){
-        s.next-=dt;
-        if(s.next<0&&!s.on){ s.on=true; s.t=0; s.next=1800+Math.random()*5000; }
-        if(s.on){ s.t+=dt*.003; whiteKeys[i].position.y=-Math.sin(s.t*Math.PI)*.07; if(s.t>=1){ s.on=false; whiteKeys[i].position.y=0; } }
-      });
-      sp1.position.x=Math.sin(ts*.0003)*2.5;
-      R.render(scene,cam);
-    })(0);
-  })();
-
-  /* ════════════════════════════════════════════════════════════════
-     SCENE 3 · INTERMISSION · Flowing fabric curtain
-     High-res plane mesh deformed by layered sine waves,
-     sweeping coloured spotlights, deep plum fabric material
-     ════════════════════════════════════════════════════════════════ */
-  (function(){
-    var cvs=document.getElementById('spline-intermission'); if(!cvs) return;
-    var R=renderer(cvs);
-    var scene=new THREE.Scene();
-    var cam=new THREE.PerspectiveCamera(55,2,0.1,100); cam.position.set(0,.4,5.5); cam.lookAt(0,0,0);
-    resizer(R,cam,cvs);
-
-    scene.add(new THREE.AmbientLight(0x6E3E5A,1.2));
-    var d1=new THREE.DirectionalLight(0xC44860,4.5); d1.position.set(2,4,3); scene.add(d1);
-    var d2=new THREE.DirectionalLight(0x8A4A95,3.0); d2.position.set(-3,3,2); scene.add(d2);
-    var d3=new THREE.DirectionalLight(0xEE9078,2.0); d3.position.set(0,-2,4); scene.add(d3);
-    var sweep=new THREE.SpotLight(0xFBF2EC,2.5,14,Math.PI/10,.35); sweep.position.set(0,5,4); scene.add(sweep);
-
-    var WS=80,HS=32;
-    var geo=new THREE.PlaneGeometry(14,5.5,WS,HS);
-    var mat=new THREE.MeshStandardMaterial({color:0x7A3055,roughness:.55,metalness:.25,side:THREE.DoubleSide,emissive:0x3A1030,emissiveIntensity:0.6});
-    var mesh=new THREE.Mesh(geo,mat); scene.add(mesh);
-    var base=geo.attributes.position.array.slice();
-
-    (function tick(t){
-      requestAnimationFrame(tick);
-      var s=t*.001, arr=geo.attributes.position.array;
-      for(var i=0;i<arr.length;i+=3){
-        var x=base[i],y=base[i+1];
-        arr[i+2]=Math.sin(x*.7+s*1.1)*.38+Math.sin(y*1.2+s*.75)*.22+Math.sin(x*1.4-y*.45+s*.55)*.16;
-      }
-      geo.attributes.position.needsUpdate=true; geo.computeVertexNormals();
-      sweep.position.x=Math.sin(s*.32)*5.5; d1.position.x=Math.sin(s*.18)*3.5;
-      R.render(scene,cam);
-    })(0);
-  })();
-
-  /* ════════════════════════════════════════════════════════════════
-     SCENE 4 · AWARDS · Floating wireframe gems
-     22 octahedra & icosahedra, site palette colours,
-     independent rotation speeds + gentle vertical float
-     ════════════════════════════════════════════════════════════════ */
-  (function(){
-    var cvs=document.getElementById('spline-awards'); if(!cvs) return;
-    var R=renderer(cvs);
-    var scene=new THREE.Scene();
-    var cam=new THREE.PerspectiveCamera(60,2,.1,100); cam.position.z=9;
-    resizer(R,cam,cvs);
-
-    var pal=[0xC44860,0x8A4A95,0xEE9078,0x6E3E5A,0xC44860,0x8A4A95];
-    var gems=[];
-    for(var i=0;i<22;i++){
-      var r=.15+Math.random()*.48;
-      var geo=Math.random()>.5?new THREE.OctahedronGeometry(r,0):new THREE.IcosahedronGeometry(r,0);
-      var mat=new THREE.MeshBasicMaterial({color:pal[i%pal.length],wireframe:true,transparent:true,opacity:.35+Math.random()*.45});
-      var m=new THREE.Mesh(geo,mat);
-      m.position.set((Math.random()-.5)*22,(Math.random()-.5)*12,(Math.random()-.5)*6);
-      m.userData={rx:(Math.random()-.5)*.006,ry:(Math.random()-.5)*.008,fy:.0002+Math.random()*.0004,fp:Math.random()*Math.PI*2};
-      scene.add(m); gems.push(m);
-    }
-
-    (function tick(t){
-      requestAnimationFrame(tick);
-      gems.forEach(function(g){ g.rotation.x+=g.userData.rx; g.rotation.y+=g.userData.ry; g.position.y+=Math.sin(t*g.userData.fy+g.userData.fp)*.0009; });
-      R.render(scene,cam);
-    })(0);
-  })();
-
-  /* ════════════════════════════════════════════════════════════════
-     SCENE 5 · TEACHING · Grand piano
-     Box-geometry grand piano: body, lid, legs, keys, pedals,
-     music stand. Slow breathing rotation, coloured spotlights.
-     ════════════════════════════════════════════════════════════════ */
-  (function(){
-    var cvs=document.getElementById('spline-teaching'); if(!cvs) return;
-    var R=renderer(cvs);
-    R.shadowMap.enabled=true;
-    var scene=new THREE.Scene();
-    scene.fog=new THREE.FogExp2(0x0a0408,.052);
-    var cam=new THREE.PerspectiveCamera(42,2,.1,80); cam.position.set(-3,3.5,7); cam.lookAt(0,.2,0);
-    resizer(R,cam,cvs);
-
-    scene.add(new THREE.AmbientLight(0x2A1528,1));
-    var kl=new THREE.SpotLight(0xC44860,4,22,Math.PI/5,.4); kl.position.set(4,9,4); kl.castShadow=true; scene.add(kl);
-    var fl=new THREE.SpotLight(0x8A4A95,2,18,Math.PI/4,.5); fl.position.set(-5,5,3); scene.add(fl);
-    var rl=new THREE.SpotLight(0xEE9078,1.5,15,Math.PI/6,.3); rl.position.set(0,3,-4); scene.add(rl);
-
-    var piMat=new THREE.MeshStandardMaterial({color:0x180C14,roughness:.15,metalness:.85});
-    var glMat=new THREE.MeshStandardMaterial({color:0x100810,roughness:.05,metalness:.95});
-    var ivMat=new THREE.MeshStandardMaterial({color:0xF5E4DC,roughness:.3,metalness:.05});
-    var bkMat=new THREE.MeshStandardMaterial({color:0x0a0408,roughness:.3,metalness:.2});
-    var gdMat=new THREE.MeshStandardMaterial({color:0xB8960C,roughness:.2,metalness:.9});
-
-    var G=new THREE.Group();
-
-    var body=new THREE.Mesh(new THREE.BoxGeometry(5,.3,3.5),piMat); body.castShadow=true; body.receiveShadow=true; G.add(body);
-    var lid=new THREE.Mesh(new THREE.BoxGeometry(5,.06,3.5),glMat); lid.position.set(0,.28,0); lid.rotation.z=-.06; lid.castShadow=true; G.add(lid);
-    var sideR=new THREE.Mesh(new THREE.BoxGeometry(.3,.3,3),piMat); sideR.position.set(2.5,0,.25); G.add(sideR);
-    var keys=new THREE.Mesh(new THREE.BoxGeometry(3.8,.12,.65),ivMat); keys.position.set(.3,.21,1.42); G.add(keys);
-    var bkeys=new THREE.Mesh(new THREE.BoxGeometry(3.4,.18,.38),bkMat); bkeys.position.set(.3,.28,1.28); G.add(bkeys);
-    var stand=new THREE.Mesh(new THREE.BoxGeometry(2,.05,.04),piMat); stand.position.set(.3,.65,-1); stand.rotation.x=-.6; G.add(stand);
-
-    var legGeo=new THREE.BoxGeometry(.14,1.6,.14);
-    [[2,-1,1.4],[-2,-1,1.4],[0,-1,-1.3]].forEach(function(p){ var l=new THREE.Mesh(legGeo,piMat); l.position.set(p[0],p[1],p[2]); l.castShadow=true; G.add(l); });
-    [[-.2,-.94,1.7],[0,-.94,1.7],[.2,-.94,1.7]].forEach(function(p){ var pd=new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.04),gdMat); pd.position.set(p[0],p[1],p[2]); G.add(pd); });
-
-    scene.add(G); G.position.set(.8,-.2,0);
-
-    var flr=new THREE.Mesh(new THREE.PlaneGeometry(30,20),new THREE.MeshStandardMaterial({color:0x0a0408,roughness:.9,metalness:.1}));
-    flr.rotation.x=-Math.PI/2; flr.position.y=-1.01; flr.receiveShadow=true; scene.add(flr);
-
-    (function tick(t){
-      requestAnimationFrame(tick);
-      G.rotation.y=Math.sin(t*.00022)*.12-.05; G.position.y=Math.sin(t*.0003)*.04-.2;
-      kl.position.x=Math.sin(t*.00015)*2+4;
-      R.render(scene,cam);
-    })(0);
-  })();
-
 })();
 </script>
 
