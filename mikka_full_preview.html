@@ -10124,55 +10124,5 @@ window.__mikkaLazyInit("page-04", function(){
 })();
 </script>
 
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SCROLL TRANSITIONS — content-driven, IntersectionObserver
-     Real section elements animate as they enter the viewport.
-     No overlay, no blank panels — always real content.
-═══════════════════════════════════════════════════════════════ -->
-<style>
-.tx-hidden {
-  opacity: 0 !important;
-  transform: translateY(var(--tx-dy, 55px)) !important;
-}
-.tx-revealed {
-  transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1),
-              transform 0.95s cubic-bezier(0.16,1,0.3,1) !important;
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-}
-</style>
-<script>
-(function () {
-  'use strict';
-  if (!window.IntersectionObserver) return;
-
-  var targets = [
-    { sel: '#about .section-divider',  dy: '44px' },
-    { sel: '#awards .band.center',     dy: '65px' },
-    { sel: '#awards .legend',          dy: '45px' },
-    { sel: '#work #kbStrip',           dy: '55px' },
-    { sel: '#teaching .topmeta',       dy: '30px' },
-    { sel: '#teaching .title-block',   dy: '65px' }
-  ];
-
-  targets.forEach(function (t) {
-    var el = document.querySelector(t.sel);
-    if (!el) return;
-    /* Leave alone if already on screen when page loads */
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) return;
-    el.style.setProperty('--tx-dy', t.dy);
-    el.classList.add('tx-hidden');
-
-    new IntersectionObserver(function (entries, obs) {
-      if (!entries[0].isIntersecting) return;
-      el.classList.remove('tx-hidden');
-      el.classList.add('tx-revealed');
-      obs.disconnect();
-    }, { rootMargin: '0px 0px -5% 0px', threshold: 0.05 }).observe(el);
-  });
-}());
-</script>
-
 </body>
 </html>
