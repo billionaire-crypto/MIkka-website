@@ -10136,58 +10136,35 @@ window.__mikkaLazyInit("page-04", function(){
   };
 })();
 
-/* Ambient drift — gently push splats into the sim every ~700ms so the
-   smoke stays subtly alive without requiring cursor movement. Splats
-   are constrained to the side panels (outside the centered 480px
-   booklet column) and given a small random velocity so they read as
-   slow currents drifting across the dark cradle. */
+/* Ambient drift — keep the smoke subtly alive without requiring
+   cursor movement. We push into Pavel's `splatStack` (the same path
+   his initial splats use), one splat at a time on a steady cadence.
+   Splats land at random positions across the canvas; the opaque
+   booklet hides the ones that fall behind it, so visually they
+   only register in the dark side panels. Pauses on hidden tab and
+   respects reduced-motion. */
 (function(){
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
   if (window.innerWidth < 1200) return;
 
-  var BOOKLET_HALF = 240;            /* booklet is 480px wide, centered */
-  var SIDE_PADDING = 36;             /* keep splats off the very edge   */
-  var INTERVAL_MS  = 480;            /* ambient splat cadence            */
-  var FORCE        = 460;            /* gentle velocity (px/sec-ish)     */
+  var INTERVAL_MS  = 520;     /* cadence between ambient splats          */
+  var BURST_EVERY  = 14;      /* every Nth tick, push 2 instead of 1     */
+  var tick = 0;
 
-  function ambientSplat(){
-    if (typeof splat !== 'function' || typeof generateColor !== 'function') return;
-    if (document.hidden) return;     /* pause when tab is backgrounded   */
-
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    var bookletLeftEdge  = vw / 2 - BOOKLET_HALF;
-    var bookletRightEdge = vw / 2 + BOOKLET_HALF;
-
-    /* Alternate sides so both panels stay alive. */
-    var onLeft = Math.random() < 0.5;
-    var x;
-    if (onLeft) {
-      var maxX = Math.max(SIDE_PADDING + 1, bookletLeftEdge - SIDE_PADDING);
-      x = SIDE_PADDING + Math.random() * (maxX - SIDE_PADDING);
-    } else {
-      var minX = Math.min(vw - SIDE_PADDING - 1, bookletRightEdge + SIDE_PADDING);
-      x = minX + Math.random() * (vw - SIDE_PADDING - minX);
-    }
-    var y  = SIDE_PADDING + Math.random() * (vh - SIDE_PADDING * 2);
-    var dx = (Math.random() - 0.5) * FORCE;
-    var dy = (Math.random() - 0.5) * FORCE - 60;   /* slight upward bias */
-
-    /* Pavel's splat() expects pointer-style coords (canvas pixel space).
-       His script syncs canvas size to the window, so window pixels work. */
-    try { splat(x, y, dx, dy, generateColor()); } catch(e){ /* ignore */ }
+  function pushAmbient(){
+    if (typeof splatStack === 'undefined') return;
+    if (document.hidden) return;
+    tick++;
+    /* Most ticks add 1 wisp; occasional larger breath keeps it alive. */
+    splatStack.push(tick % BURST_EVERY === 0 ? 2 : 1);
   }
 
-  /* Wait for the script to define `splat` before starting the loop. */
+  /* Wait for splatStack to exist (Pavel's script defines it at load). */
   var waitId = setInterval(function(){
-    if (typeof splat === 'function' && typeof generateColor === 'function') {
+    if (typeof splatStack !== 'undefined') {
       clearInterval(waitId);
-      /* Initial breath — fill both panels with drifting wisps so the
-         page never reads as flat-dark, even before the first ambient
-         tick. Twelve splats, half on each side. */
-      for (var i = 0; i < 12; i++) ambientSplat();
-      setInterval(ambientSplat, INTERVAL_MS);
+      setInterval(pushAmbient, INTERVAL_MS);
     }
   }, 200);
 })();
