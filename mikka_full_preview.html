@@ -6233,6 +6233,107 @@ canvas.fluid-canvas {
   z-index: 2;
 }
 
+/* ═══════════════════════════════════════════════════════
+   PAGE-STAGE TILT — scroll-driven 3D rotation per section
+   Body hosts the perspective so each .page-stage wrapper
+   rotates as a card. JS writes --p (-1..0..+1), --abs-p
+   (|p|), and --rx (rotateX in degrees) on every Lenis tick.
+   ═══════════════════════════════════════════════════════ */
+body { perspective: 2200px; perspective-origin: 50% 50%; }
+
+.page-stage,
+.page-stage-inner {
+  --p: 0; --abs-p: 0; --rx: 0;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+  transition: transform .1s linear,
+              opacity   .1s linear,
+              filter    .1s linear;
+  transform:
+    translateY(calc(var(--p)     * -40px))
+    translateZ(calc(var(--abs-p) * -220px))
+    rotateX(calc(var(--rx)       * 1deg))
+    scale(calc(1 - 0.06 * var(--abs-p)));
+  opacity: calc(1 - 0.65 * var(--abs-p) * var(--abs-p));
+  filter:  blur(calc(2.2px * var(--abs-p) * var(--abs-p)));
+}
+/* Ghost wrapper carries data-stage attr without contributing
+   a transform / containing block — used around page-03 so the
+   sticky keyboard inside it keeps its pinning. */
+.page-stage--ghost {
+  display: contents;
+}
+
+@media (prefers-reduced-motion: reduce), (max-width: 720px) {
+  .page-stage,
+  .page-stage-inner {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   LEFT GUTTER INDEX — static thumb-index, four sections,
+   active row highlighted by JS as the corresponding stage
+   becomes centered in the viewport. Desktop-only.
+   ═══════════════════════════════════════════════════════ */
+.gutter-index {
+  display: none;
+  position: fixed;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(245, 228, 220, 0.45);
+  pointer-events: none;
+  line-height: 1.9;
+}
+@media (min-width: 1200px) {
+  .gutter-index { display: block; }
+}
+.gutter-index .gi-eyebrow {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.36em;
+  color: var(--accent-warm, #EE9078);
+  opacity: 0.7;
+  margin-bottom: 14px;
+}
+.gutter-index .gi-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 4px 0;
+  transition: color 0.35s ease, opacity 0.35s ease;
+}
+.gutter-index .gi-num {
+  color: rgba(245, 228, 220, 0.35);
+  min-width: 22px;
+}
+.gutter-index .gi-label { color: inherit; }
+.gutter-index .gi-item.is-active {
+  color: var(--bg, #F5E4DC);
+}
+.gutter-index .gi-item.is-active .gi-num {
+  color: var(--accent, #C44860);
+}
+.gutter-index .gi-rule {
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  margin: 14px 0 0;
+}
+
 </style>
 </head>
 <body>
@@ -6252,6 +6353,19 @@ canvas.fluid-canvas {
 <!-- Site-wide custom cursor (desktop only — hidden on touch via CSS) -->
 <div class="site-cursor" id="siteCursor" aria-hidden="true"></div>
 
+<!-- ───── LEFT GUTTER INDEX (desktop only)
+       Static thumb-index of the four sections. JS toggles the
+       .is-active class on the row whose stage is centered in
+       the viewport. Hidden under 1200px. ───── -->
+<nav class="gutter-index" aria-hidden="true">
+  <span class="gi-eyebrow">— On File</span>
+  <div class="gi-item" data-stage-key="stage-a"><span class="gi-num">00</span><span class="gi-label">Frontispiece &middot; About</span></div>
+  <div class="gi-item" data-stage-key="stage-b"><span class="gi-num">02</span><span class="gi-label">Awards</span></div>
+  <div class="gi-item" data-stage-key="stage-c"><span class="gi-num">03</span><span class="gi-label">Work</span></div>
+  <div class="gi-item" data-stage-key="stage-d"><span class="gi-num">04</span><span class="gi-label">Teaching</span></div>
+  <span class="gi-rule"></span>
+</nav>
+
 <!-- ───── STICKY LEGEND BAR (lives outside the booklet so it stays
        fixed across the whole page scroll). Runner row is still inside
        the booklet header-stack so only the top bar is sticky. ───── -->
@@ -6268,6 +6382,7 @@ canvas.fluid-canvas {
   </nav>
 </header>
 
+<div class="page-stage" data-stage="stage-a">
 <main class="booklet" id="booklet">
 
   <!-- ───── HEADER STACK — runner only now; legend was lifted out
@@ -6702,11 +6817,13 @@ canvas.fluid-canvas {
 
 
 </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
      APPENDED — Awards / Work / Teaching pages from the
      existing 5-page booklet.
      ═══════════════════════════════════════════════════════ -->
+<div class="page-stage" data-stage="stage-b">
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 02 / 04 —</span><span class="line"></span></div>
 <section class="page page-02" id="awards" data-page="02" data-name="Awards">
 
@@ -6874,6 +6991,8 @@ canvas.fluid-canvas {
 </div>
 
 </section>
+</div>
+<div class="page-stage page-stage--ghost" data-stage="stage-c">
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 03 / 04 —</span><span class="line"></span></div>
 <section class="page page-03" id="work" data-page="03" data-name="Work">
 
@@ -6946,6 +7065,7 @@ canvas.fluid-canvas {
 
 
 
+<div class="page-stage-inner" data-stage="stage-c">
 <main class="page">
 
   
@@ -7223,6 +7343,7 @@ canvas.fluid-canvas {
   </div>
 
 </main>
+</div>
 
 
 
@@ -7238,6 +7359,8 @@ canvas.fluid-canvas {
 
 
 </section>
+</div>
+<div class="page-stage" data-stage="stage-d">
 <div class="page-boundary" aria-hidden="true"><span class="line"></span><span class="label">— 04 / 04 —</span><span class="line"></span></div>
 <section class="page page-04" id="teaching" data-page="04" data-name="Teaching">
 
@@ -7826,6 +7949,7 @@ canvas.fluid-canvas {
 
 
 </section>
+</div>
 
 
 <script>
@@ -10333,6 +10457,71 @@ html { scroll-behavior: auto !important; }
     }, { passive: true });
     updateGlyphs();
   }
+
+  /* ── 5. Page-stage 3D scroll tilt + gutter index ──────────────── */
+  (function () {
+    var rmq = window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 720px)');
+    if (rmq.matches) return;
+
+    var stages = Array.prototype.slice.call(
+      document.querySelectorAll('.page-stage:not(.page-stage--ghost), .page-stage-inner')
+    );
+    if (!stages.length) return;
+
+    var gItems = {};
+    document.querySelectorAll('.gutter-index .gi-item').forEach(function (it) {
+      gItems[it.getAttribute('data-stage-key')] = it;
+    });
+
+    var prevP = new WeakMap();
+    var activeKey = '';
+
+    function update() {
+      var vh = window.innerHeight;
+      var vc = vh / 2;
+      var bestAbs = 99, bestKey = '';
+      for (var i = 0; i < stages.length; i++) {
+        var el = stages[i];
+        var r  = el.getBoundingClientRect();
+        var pc = r.top + r.height / 2;
+        var denom = r.height / 2 + vh / 2;
+        var p  = (pc - vc) / denom;
+        if (p > 1.2) p = 1.2; else if (p < -1.2) p = -1.2;
+        var ap = p < 0 ? -p : p;
+        var rx = p < 0 ? p * 45 : p * 38;   /* cinematic: 45° in, 38° out */
+
+        var prev = prevP.get(el);
+        if (prev === undefined || Math.abs(prev - p) >= 0.002) {
+          el.style.setProperty('--p',     p.toFixed(3));
+          el.style.setProperty('--abs-p', ap.toFixed(3));
+          el.style.setProperty('--rx',    rx.toFixed(2));
+          prevP.set(el, p);
+        }
+
+        var key = el.getAttribute('data-stage');
+        if (key && ap < bestAbs) { bestAbs = ap; bestKey = key; }
+      }
+
+      if (bestKey && bestKey !== activeKey) {
+        if (gItems[activeKey]) gItems[activeKey].classList.remove('is-active');
+        if (gItems[bestKey])   gItems[bestKey].classList.add('is-active');
+        activeKey = bestKey;
+      }
+    }
+
+    if (typeof lenis !== 'undefined' && lenis && typeof lenis.on === 'function') {
+      lenis.on('scroll', update);
+    } else {
+      var ticking2 = false;
+      window.addEventListener('scroll', function () {
+        if (ticking2) return;
+        ticking2 = true;
+        requestAnimationFrame(function () { update(); ticking2 = false; });
+      }, { passive: true });
+    }
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }());
 
 }());
 </script>
