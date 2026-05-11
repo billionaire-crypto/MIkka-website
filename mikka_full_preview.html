@@ -9815,6 +9815,22 @@ window.__mikkaLazyInit("page-04", function(){
 
   // ============ MODAL CONTROL ============
   const modal = document.getElementById('booking-modal');
+
+  // FIX: re-parent the modal to <body> so position:fixed escapes the
+  // .page perspective containing block. The .page ancestor sets
+  // `perspective: 1400px`, which makes fixed descendants position
+  // relative to that 480px column instead of the viewport — the modal
+  // was opening, just tucked off-screen inside the teaching section.
+  // Wrap in a stub .page-04 div so the .page-04-scoped CSS still
+  // matches all the modal selectors.
+  if (modal && modal.parentElement && modal.parentElement.id !== 'modal-host') {
+    const host = document.createElement('div');
+    host.id = 'modal-host';
+    host.className = 'page-04';
+    document.body.appendChild(host);
+    host.appendChild(modal);
+  }
+
   const modalClose = document.getElementById('modal-close');
   const formView = document.getElementById('modal-form-view');
   const confView = document.getElementById('modal-confirmation');
