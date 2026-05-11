@@ -6275,12 +6275,20 @@ body { perspective: 2200px; perspective-origin: 50% 50%; }
     transition: none !important;
   }
 }
-/* On phones keep the tilt but drop filter:blur — it's expensive on
-   mobile GPUs and reads as muddy at small sizes. */
+/* On phones the tilt and depth need to be much gentler — pages
+   nearly fill the viewport so adjacent pages overlap visually if
+   they tilt 45°. Also drop filter:blur (expensive on mobile GPUs)
+   and shrink translateZ so pages don't visually intersect. */
 @media (max-width: 720px) {
   .page-stage,
   .page-stage-inner {
     filter: none !important;
+    transform:
+      translateY(calc(var(--p)     * -16px))
+      translateZ(calc(var(--abs-p) * -60px))
+      rotateX(calc(var(--rx)       * 0.35deg))
+      scale(calc(1 - 0.04 * var(--abs-p)));
+    opacity: calc(1 - 0.4 * var(--abs-p) * var(--abs-p));
   }
 }
 
