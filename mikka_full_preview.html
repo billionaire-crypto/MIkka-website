@@ -6266,13 +6266,21 @@ body { perspective: 2200px; perspective-origin: 50% 50%; }
   display: contents;
 }
 
-@media (prefers-reduced-motion: reduce), (max-width: 720px) {
+@media (prefers-reduced-motion: reduce) {
   .page-stage,
   .page-stage-inner {
     transform: none !important;
     opacity: 1 !important;
     filter: none !important;
     transition: none !important;
+  }
+}
+/* On phones keep the tilt but drop filter:blur — it's expensive on
+   mobile GPUs and reads as muddy at small sizes. */
+@media (max-width: 720px) {
+  .page-stage,
+  .page-stage-inner {
+    filter: none !important;
   }
 }
 
@@ -10460,7 +10468,7 @@ html { scroll-behavior: auto !important; }
 
   /* ── 5. Page-stage 3D scroll tilt + gutter index ──────────────── */
   (function () {
-    var rmq = window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 720px)');
+    var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (rmq.matches) return;
 
     var stages = Array.prototype.slice.call(
