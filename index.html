@@ -3916,6 +3916,24 @@ box-shadow: 0 4px 10px -3px rgba(42, 21, 40, 0.4);
 }
 .page-03 .yt-fallback:hover{ background: var(--ink); color: var(--accent-warm); }
 
+/* Video preview photo — real YouTube thumbnail under the liner-notes chrome */
+.page-03 .yt-card .yt-thumb{
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: 1;
+}
+/* Soft paper halo on the lettering only — keeps it legible over the photo
+   without washing the image out */
+.page-03 .yt-card.has-thumb .track-tag,
+.page-03 .yt-card.has-thumb .listen-bar .lb-action,
+.page-03 .yt-card.has-thumb .listen-bar .lb-side{
+text-shadow: 0 1px 12px rgba(245, 228, 220, 0.95), 0 0 4px rgba(245, 228, 220, 0.85);
+}
+.page-03 .yt-card.playing .yt-thumb{ display: none; }
+
 .page-03 .piece-meta{
 padding: 14px 16px 16px;
 }
@@ -4869,64 +4887,49 @@ justify-content: space-between;
 align-items: baseline;
 }
 .page-04 .reels-eyebrow b{ color: var(--accent); font-weight: 500; }
-.page-04 .reels-wrap{
-/* Horizontal carousel — shows 2 reels at a time, swipe to reveal next pair.
-Uses JS-controlled translate (not native scroll) so we can slow down the swipe. */
+/* Native horizontal scroller — one smooth momentum swipe through all reels,
+   each snapping to centre. All reels autoplay muted at once. */
+.page-04 .reels-scroller{
 display: flex;
-gap: 10px;
+gap: 12px;
 margin: 0 22px;
-overflow: hidden;
-position: relative;
-touch-action: pan-y;
-user-select: none;
--webkit-user-select: none;
-cursor: grab;
+padding: 2px 0 2px;
+overflow-x: auto;
+overflow-y: hidden;
+scroll-snap-type: x mandatory;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+overscroll-behavior-x: contain;
 }
-.page-04 .reels-wrap.is-dragging{ cursor: grabbing; }
-.page-04 .reels-track{
-display: flex;
-gap: 10px;
-width: 100%;
-transition: transform 1.2s cubic-bezier(0.22, 0.61, 0.36, 1);
-will-change: transform;
+.page-04 .reels-scroller::-webkit-scrollbar{ display: none; }
+.page-04 .reels-scroller .reel{
+flex: 0 0 45%;
+scroll-snap-align: center;
 }
-.page-04 .reels-track.is-dragging{ transition: none; }
-.page-04 .reels-wrap .reel{
-/* Each reel is exactly half the row (minus half the gap) */
-flex: 0 0 calc((100% - 10px) / 2);
+/* Desktop drag-to-scroll cursor + smoother free drag (snap off while held) */
+@media (hover: hover) and (pointer: fine){
+.page-04 .reels-scroller{ cursor: grab; }
+.page-04 .reels-scroller.is-grabbing{ cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.page-04 .reels-scroller.is-grabbing .reel,
+.page-04 .reels-scroller.is-grabbing .reel *{ cursor: grabbing; }
 }
 
-/* Pagination dots beneath the reels */
-.page-04 .reels-pager{
-display: flex;
-justify-content: center;
-gap: 8px;
-margin: 14px 22px 0;
+/* Slim progress rail that follows the scroll position */
+.page-04 .reels-progress{
+position: relative;
+height: 2px;
+margin: 16px 22px 0;
+background: rgba(42, 21, 40, 0.14);
+overflow: hidden;
+border-radius: 2px;
 }
-.page-04 .reels-pager .dot{
-width: 28px;
-height: 3px;
-background: rgba(42, 21, 40, 0.2);
-cursor: pointer;
-transition: background 0.25s ease;
-border: none;
-padding: 0;
-}
-.page-04 .reels-pager .dot.active{
+.page-04 .reels-progress span{
+position: absolute;
+top: 0; left: 0; height: 100%;
+width: 28%;
 background: var(--accent);
-}
-.page-04 .reels-pager .dot:hover{
-background: rgba(196, 72, 96, 0.5);
-}
-.page-04 .reels-hint{
-margin: 6px 22px 0;
-font-family: var(--mono);
-font-size: 9px;
-letter-spacing: 0.18em;
-color: var(--muted);
-text-transform: uppercase;
-text-align: center;
-opacity: 0.7;
+transition: transform 0.12s ease-out;
+will-change: transform;
 }
 .page-04 .reel{
 position: relative;
@@ -4944,6 +4947,160 @@ repeating-linear-gradient(45deg, transparent 0, transparent 8px, rgba(42, 21, 40
 transition: transform 0.2s ease;
 }
 .page-04 .reel:hover{ transform: translateY(-2px); }
+
+/* Video fills the 9:16 frame, behind the caption chrome.
+   Graded to sit in the booklet's warm palette — softened brightness and
+   saturation so the footage no longer reads bright/clinical. */
+.page-04 .reel-video{
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: 0;
+background: #140810;
+filter: brightness(var(--reel-b, 0.76)) saturate(0.72) contrast(1.07) sepia(0.14);
+}
+/* The girl clip is filmed in a brighter room — dim it further so it
+   sits at the same level as the others. */
+.page-04 .reel-dim{ --reel-b: 0.58; }
+/* Warm colour wash — peach → plum, blended into the footage so it matches
+   the rest of the page. soft-light warms the mid-tones; a faint plum
+   multiply deepens the highlights so bright rooms stop glaring. */
+.page-04 .reel::before{
+content: "";
+position: absolute;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+background:
+linear-gradient(155deg,
+rgba(238, 144, 120, 0.30) 0%,
+rgba(196, 72, 96, 0.26) 45%,
+rgba(138, 74, 149, 0.42) 100%);
+mix-blend-mode: soft-light;
+}
+/* Legibility scrim — soft, only where the label and caption sit */
+.page-04 .reel::after{
+content: "";
+position: absolute;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+background: linear-gradient(180deg,
+rgba(20, 8, 15, 0.28) 0%,
+rgba(20, 8, 15, 0) 15%,
+rgba(20, 8, 15, 0) 64%,
+rgba(20, 8, 15, 0.42) 100%);
+}
+.page-04 .reel-head,
+.page-04 .reel-foot{ position: relative; z-index: 2; }
+.page-04 .reel-foot{ padding-right: 40px; }
+/* Enlarge affordance — bottom-right corner badge */
+.page-04 .reel-expand{
+position: absolute;
+z-index: 2;
+right: 12px;
+bottom: 12px;
+width: 30px;
+height: 30px;
+border-radius: 50%;
+border: 1px solid rgba(245, 228, 220, 0.65);
+background: rgba(42, 21, 40, 0.32);
+-webkit-backdrop-filter: blur(2px);
+backdrop-filter: blur(2px);
+display: flex;
+align-items: center;
+justify-content: center;
+transition: transform 0.2s ease, background 0.2s ease;
+}
+.page-04 .reel-expand::before{
+content: "\2922";           /* ⤢ diagonal expand */
+color: var(--bg);
+font-size: 15px;
+line-height: 1;
+}
+.page-04 .reel:hover .reel-expand{ background: var(--accent); }
+.page-04 .reel:active .reel-expand{ transform: scale(0.9); }
+
+/* ============ REEL LIGHTBOX — tap to enlarge with sound ============ */
+.reel-lightbox{
+position: fixed;
+inset: 0;
+z-index: 10001;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+background: rgba(20, 8, 15, 0);
+-webkit-backdrop-filter: blur(0);
+backdrop-filter: blur(0);
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.34s ease, background 0.34s ease, backdrop-filter 0.34s ease, visibility 0s linear 0.34s;
+}
+.reel-lightbox.open{
+opacity: 1;
+visibility: visible;
+background: rgba(20, 8, 15, 0.82);
+-webkit-backdrop-filter: blur(12px);
+backdrop-filter: blur(12px);
+transition: opacity 0.34s ease, background 0.34s ease, backdrop-filter 0.34s ease;
+}
+.rlb-stage{
+position: relative;
+width: min(86vw, 420px);
+max-height: 86vh;
+aspect-ratio: 9 / 16;
+overflow: hidden;
+border: 1px solid rgba(245, 228, 220, 0.22);
+box-shadow: 0 30px 90px -24px rgba(0, 0, 0, 0.75);
+transform: scale(0.92);
+opacity: 0.6;
+transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+.reel-lightbox.open .rlb-stage{ transform: scale(1); opacity: 1; }
+.rlb-video{
+width: 100%;
+height: 100%;
+object-fit: cover;
+background: #140810;
+display: block;
+/* milder grade than the inline reels — toned to match, still watchable */
+filter: brightness(0.94) saturate(0.88) contrast(1.02) sepia(0.05);
+}
+.rlb-cap{
+position: absolute;
+left: 0; right: 0; top: 0;
+padding: 16px 60px 26px 18px;
+font-family: var(--serif);
+font-style: italic;
+font-size: 16px;
+color: var(--bg);
+background: linear-gradient(180deg, rgba(20, 8, 15, 0.72), rgba(20, 8, 15, 0));
+pointer-events: none;
+}
+.rlb-close{
+position: absolute;
+top: 18px;
+right: 18px;
+z-index: 2;
+width: 42px;
+height: 42px;
+border-radius: 50%;
+border: 1px solid rgba(245, 228, 220, 0.45);
+background: rgba(20, 8, 15, 0.5);
+color: var(--bg);
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: background 0.2s ease, transform 0.2s ease;
+}
+.rlb-close:hover{ background: var(--accent); }
+.rlb-close:active{ transform: scale(0.92); }
 .page-04 .reel.dark{
 background:
 linear-gradient(160deg, rgba(42, 21, 40, 0.55), rgba(110, 62, 90, 0.65)),
@@ -5134,6 +5291,11 @@ rgba(42, 21, 40, 0.42) 4px
 }
 .page-04 .grid .cell.open{
 background: rgba(238, 144, 120, 0.22);
+/* cursor:pointer is required for iOS Safari to deliver taps to the
+   delegated click handler on .grid — without it, taps do nothing */
+cursor: pointer;
+touch-action: manipulation;
+-webkit-tap-highlight-color: rgba(196, 72, 96, 0.18);
 }
 .page-04 .grid .cell.open:hover{
 background: rgba(238, 144, 120, 0.45);
@@ -5617,7 +5779,7 @@ inset: 0;
 background: rgba(42, 21, 40, 0.78);
 backdrop-filter: blur(0);
 -webkit-backdrop-filter: blur(0);
-z-index: 100;
+z-index: 10000;
 display: none;
 align-items: flex-end;
 justify-content: center;
@@ -5932,6 +6094,15 @@ transition: height 0.2s ease;
 40%, 60%  { transform: translateX(5px); }
 }
 
+.page-04 .book-error{
+margin: 0 0 12px;
+font-family: var(--mono);
+font-size: 11px;
+letter-spacing: 0.04em;
+line-height: 1.5;
+color: var(--accent);
+text-align: center;
+}
 .page-04 .book-btn{
 width: 100%;
 margin-top: 6px;
@@ -6988,7 +7159,7 @@ canvas.fluid-canvas {
   </div>
   <div class="cover-meta-box">
     <div class="cover-meta">
-      <div class="meta-line"><b>PROGRAM</b><span>06 PIECES · 04 YEARS</span></div>
+      <div class="meta-line"><b>PROGRAM</b><span>06 PIECES · 02 YEARS</span></div>
       <div class="meta-line"><b>RUNTIME</b><span>12 MIN · ON SCROLL</span></div>
       <div class="meta-line"><b>FILED</b><span>APR 2026</span></div>
     </div>
@@ -7015,13 +7186,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">I.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer or arranger</em>
+      Graduate Collaborative Recital
+      <em>collaborative piano</em>
     </div>
     <span class="mh-tempo"><i>Andante</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_01_YOUTUBE_ID">
+    <div class="yt-card" data-yt="pGp0LlzjrP4">
       <div class="track-tag"><b>Track A1</b>Movement I</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7030,12 +7201,12 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2025 · STUDIO</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short italic line — composer, occasion, one-line context]</div>
+      <div class="pm-tag">2025 · RECITAL</div>
+      <div class="pm-title">Graduate Collaborative Recital</div>
+      <div class="pm-sub">an evening of partnership — the capstone of her graduate study</div>
       <div class="pm-credits">
-        <b>VENUE</b> [venue]<br>
-        <b>RECORDED</b> [date · city]
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Jun 3, 2025 · Carbondale, IL
       </div>
     </div>
   </div>
@@ -7047,13 +7218,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">II.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer</em>
+      Nomadic Harmonies
+      <em>heritage ensemble</em>
     </div>
     <span class="mh-tempo"><i>Allegro</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_02_YOUTUBE_ID">
+    <div class="yt-card" data-yt="H48CuZUqDN8">
       <div class="track-tag"><b>Track A2</b>Movement II</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7062,10 +7233,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · RECITAL</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2025 · HERITAGE</div>
+      <div class="pm-title">Nomadic Harmonies</div>
+      <div class="pm-sub">Mongolian folk voices in conversation with the concert hall</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Mar 28, 2025 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7076,13 +7250,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">III.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer</em>
+      Folk Song — “The Sunrise”
+      <em>traditional</em>
     </div>
     <span class="mh-tempo"><i>Cantabile</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_03_YOUTUBE_ID">
+    <div class="yt-card" data-yt="6N8oxKNKKAM">
       <div class="track-tag"><b>Track A3</b>Movement III</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7091,10 +7265,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · CHAMBER</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2024 · FOLK SONG</div>
+      <div class="pm-title">Folk Song — “The Sunrise”</div>
+      <div class="pm-sub">a traditional melody of first light, carried far from home</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> May 14, 2024 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7117,7 +7294,7 @@ canvas.fluid-canvas {
   <div class="act-divider">
     <div class="ad-num">SECOND HALF · ACT II</div>
     <div class="ad-title">Collabs &amp; Heritage</div>
-    <div class="ad-meta">THREE SELECTIONS · 2022–2024</div>
+    <div class="ad-meta">THREE SELECTIONS · 2024–2025</div>
   </div>
   <div class="act">
 
@@ -7127,13 +7304,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">IV.</span>
     <div class="mh-name">
-      [ Title ]
-      <em>with [collaborator]</em>
+      Jantsannorov Natsag
+      <em>Mongolian composer</em>
     </div>
     <span class="mh-tempo"><i>Largo</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_04_YOUTUBE_ID">
+    <div class="yt-card" data-yt="uj90ZjYMlO0">
       <div class="track-tag"><b>Track B1</b>Movement IV</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7142,10 +7319,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · WITH [NAME]</div>
-      <div class="pm-title">[ Title ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2025 · HERITAGE</div>
+      <div class="pm-title">Jantsannorov Natsag</div>
+      <div class="pm-sub">the voice of a nation’s composer, given to the yatga’s strings</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Mar 20, 2025 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7156,13 +7336,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">V.</span>
     <div class="mh-name">
-      [ Title ]
-      <em>yatga · heritage</em>
+      Trio Spring Recital
+      <em>W. A. Mozart</em>
     </div>
     <span class="mh-tempo"><i>Solenne</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_05_YOUTUBE_ID">
+    <div class="yt-card" data-yt="aiR2FzyZlVk">
       <div class="track-tag"><b>Track B2</b>Movement V</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7171,10 +7351,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · HERITAGE</div>
-      <div class="pm-title">[ Title ]</div>
-      <div class="pm-sub">[heritage piece — short italic line]</div>
-      <div class="pm-credits"><b>OCCASION</b> [occasion]</div>
+      <div class="pm-tag">2024 · CHAMBER</div>
+      <div class="pm-title">Trio Spring Recital — W. A. Mozart</div>
+      <div class="pm-sub">three voices in balance — Mozart, played among friends</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> May 14, 2024 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7185,13 +7368,13 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">VI.</span>
     <div class="mh-name">
-      [ Encore ]
-      <em>by request</em>
+      “Edifice”
+      <em>David Bennett Thomas</em>
     </div>
     <span class="mh-tempo"><i>Vivace</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_06_YOUTUBE_ID">
+    <div class="yt-card" data-yt="zQmdu9Nd26o">
       <div class="track-tag"><b>Track B3</b>Movement VI</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7200,10 +7383,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2022 · ENCORE</div>
-      <div class="pm-title">[ Encore Piece ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2024 · CONTEMPORARY</div>
+      <div class="pm-title">David Bennett Thomas — “Edifice”</div>
+      <div class="pm-sub">a modern architecture of sound, raised line by line</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Nov 22, 2024 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7359,58 +7545,71 @@ canvas.fluid-canvas {
 
   
 
-  <div class="reels-wrap" id="reels-wrap">
-    <div class="reels-track" id="reels-track">
+  <div class="reels-scroller" id="reels-scroller">
 
 
-<div class="reel" id="reel-1">
-  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:24</span></div>
-  <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. a first lesson, four hands ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
-  </div>
-</div>
-
-
-<div class="reel dark" id="reel-2">
-  <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:18</span></div>
-  <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. student recital, age 9 ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
-  </div>
-</div>
-
-
-<div class="reel" id="reel-3">
-  <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:22</span></div>
-  <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. duet with a student ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+<div class="reel" id="reel-2">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
+    <source src="reels/reel-2.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:18</span></div>
+  <div class="reel-expand" aria-hidden="true"></div>
+  <div class="reel-foot">
+    <div class="reel-cap">a first melody, side by side</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel dark" id="reel-4">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
+    <source src="reels/reel-4.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:17</span></div>
+  <div class="reel-expand" aria-hidden="true"></div>
+  <div class="reel-foot">
+    <div class="reel-cap">playing it back by heart</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
+  </div>
+</div>
+
+
+<div class="reel" id="reel-3">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-3.jpg">
+    <source src="reels/reel-3.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:18</span></div>
+  <div class="reel-expand" aria-hidden="true"></div>
+  <div class="reel-foot">
+    <div class="reel-cap">working through a new piece</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
+  </div>
+</div>
+
+
+<div class="reel dark reel-dim" id="reel-1">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
+    <source src="reels/reel-1.mp4" type="video/mp4">
+  </video>
   <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:20</span></div>
-  <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. winter recital, group ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+  <div class="reel-expand" aria-hidden="true"></div>
+  <div class="reel-foot">
+    <div class="reel-cap">four hands at the keys</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
-</div>
-
   </div>
 
-  <div class="reels-pager" id="reels-pager">
-    <button class="dot active" data-page="0" aria-label="Show reels 1-2"></button>
-    <button class="dot" data-page="1" aria-label="Show reels 3-4"></button>
+  <div class="reels-progress" id="reels-progress"><span></span></div>
+
+  <div class="reel-lightbox" id="reel-lightbox" aria-hidden="true">
+    <button class="rlb-close" id="rlb-close" aria-label="Close">&times;</button>
+    <div class="rlb-stage">
+      <video class="rlb-video" id="rlb-video" playsinline controls></video>
+      <div class="rlb-cap" id="rlb-cap"></div>
+    </div>
   </div>
-  <div class="reels-hint">PAIR 01 / 02 · FIG. I–II</div>
 
   
 
@@ -7690,11 +7889,11 @@ canvas.fluid-canvas {
     <div class="inquiry-sub">Send a short note: who's learning, age, and an ideal time. I write back within 48 hours.</div>
 
 <div class="inquiry-actions">
-  <a href="mailto:[mikka-email]?subject=Piano%20Lesson%20Inquiry&amp;body=Hi%20Mikka%2C%0A%0AI%27d%20like%20to%20schedule%20a%20first%20meeting.%0A%0AStudent%27s%20name%3A%20%0AAge%2Flevel%3A%20%0AIdeal%20day%2Ftime%3A%20%0AAnything%20else%3A%20%0A%0AThanks!%0A" class="btn btn-primary">
+  <a href="mailto:Mikka.chinbaatar@littlemissionstudio.com?subject=Piano%20Lesson%20Inquiry&amp;body=Hi%20Mikka%2C%0A%0AI%27d%20like%20to%20schedule%20a%20first%20meeting.%0A%0AStudent%27s%20name%3A%20%0AAge%2Flevel%3A%20%0AIdeal%20day%2Ftime%3A%20%0AAnything%20else%3A%20%0A%0AThanks!%0A" class="btn btn-primary">
     <span>EMAIL MIKKA</span>
     <span class="arrow">→</span>
   </a>
-  <a href="sms:[mikka-phone]?&amp;body=Hi%20Mikka%20%E2%80%94%20I%27d%20like%20to%20ask%20about%20piano%20lessons." class="btn btn-secondary">
+  <a href="sms:+16182036972?&amp;body=Hi%20Mikka%20%E2%80%94%20I%27d%20like%20to%20ask%20about%20piano%20lessons." class="btn btn-secondary">
     <span>OR TEXT</span>
     <span class="arrow">→</span>
   </a>
@@ -9454,11 +9653,25 @@ document.querySelectorAll('.mvmt, .intermission').forEach(el => ioFade.observe(e
 // ═══════════════════════════════════════════════════════
 // YOUTUBE CARDS — try iframe embed; if blocked, link out to YouTube
 // ═══════════════════════════════════════════════════════
+const isRealYtId = id => /^[A-Za-z0-9_-]{11}$/.test(id || '');
+
 document.querySelectorAll('.yt-card').forEach(card => {
+  // Real video wired up → show its YouTube preview photo under the liner-notes chrome
+  if (isRealYtId(card.dataset.yt)) {
+    const thumb = document.createElement('img');
+    thumb.className = 'yt-thumb';
+    thumb.src = `https://i.ytimg.com/vi/${card.dataset.yt}/hqdefault.jpg`;
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    thumb.addEventListener('error', () => { thumb.remove(); card.classList.remove('has-thumb'); });
+    card.prepend(thumb);
+    card.classList.add('has-thumb');
+  }
+
   card.addEventListener('click', (e) => {
     if (card.classList.contains('playing')) return;
     const id = card.dataset.yt;
-    if (!id) return;
+    if (!isRealYtId(id)) return;
 
     // Build the iframe
     const iframe = document.createElement('iframe');
@@ -9503,126 +9716,129 @@ function showFallback(card, id) {
 window.__mikkaLazyInit("page-04", function(){
   "use strict";
 
-  // ============ REELS — JS-controlled carousel (slow swipe) ============
-  const reelsWrap = document.getElementById('reels-wrap');
-  const reelsTrack = document.getElementById('reels-track');
-  const reelsPager = document.getElementById('reels-pager');
-  const reelsHint = document.querySelector('.reels-hint');
+  // ============ REELS — smooth native swipe · autoplay all · tap to enlarge ============
+  const reelsScroller = document.getElementById('reels-scroller');
+  const reelsProgress = document.querySelector('#reels-progress span');
 
-  // Tap a reel — placeholder, wire to actual video later
-  document.querySelectorAll('.reel').forEach(reel => {
-    reel.addEventListener('click', () => {
-      console.log('Reel tapped:', reel.id);
+  if (reelsScroller) {
+    const reels = Array.from(reelsScroller.querySelectorAll('.reel'));
+    const reelVideos = reels.map(function(r){ return r.querySelector('.reel-video'); });
+    let inView = false;
+
+    // --- all reels autoplay muted together while on screen; pause off-screen ---
+    function playAll(){ reelVideos.forEach(function(v){ if(v){ v.muted = true; var p = v.play(); if(p && p.catch) p.catch(function(){}); } }); }
+    function pauseAll(){ reelVideos.forEach(function(v){ if(v) v.pause(); }); }
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) { if (!inView) { inView = true; playAll(); } }
+          else if (inView) { inView = false; pauseAll(); }
+        });
+      }, { threshold: 0.25 });
+      io.observe(reelsScroller);
+    } else { inView = true; playAll(); }
+
+    // --- progress rail follows the scroll position ---
+    // The bar is 28% wide, so it travels (100/28 - 1) = 257% of its own width.
+    function updateProgress(){
+      if (!reelsProgress) return;
+      const max = reelsScroller.scrollWidth - reelsScroller.clientWidth;
+      const ratio = max > 0 ? reelsScroller.scrollLeft / max : 0;
+      reelsProgress.style.transform = 'translateX(' + (ratio * (100/28*100 - 100)) + '%)';
+    }
+    reelsScroller.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+    window.addEventListener('resize', updateProgress);
+
+    // --- desktop: drag-to-scroll + wheel-to-horizontal (there's no touch) ---
+    let isDown = false, dragStartX = 0, dragStartScroll = 0, dragMoved = false;
+    reelsScroller.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'touch') return;   // native touch scroll already works
+      isDown = true; dragMoved = false;
+      dragStartX = e.clientX;
+      dragStartScroll = reelsScroller.scrollLeft;
+      reelsScroller.classList.add('is-grabbing');
     });
-  });
-
-  if (reelsWrap && reelsTrack && reelsPager) {
-    const dots = reelsPager.querySelectorAll('.dot');
-    const reels = reelsTrack.querySelectorAll('.reel');
-    const PAIRS = Math.ceil(reels.length / 2);
-    let currentPair = 0;
-
-    function pairWidth() {
-      // Width of one full "page" = wrap width (each pair fills the visible row)
-      return reelsWrap.offsetWidth;
+    reelsScroller.addEventListener('pointermove', function(e){
+      if (!isDown) return;
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) > 4) dragMoved = true;
+      reelsScroller.scrollLeft = dragStartScroll - dx;
+      if (dragMoved && e.cancelable) e.preventDefault();
+    });
+    function endReelDrag(){
+      if (!isDown) return;
+      isDown = false;
+      reelsScroller.classList.remove('is-grabbing');
     }
+    reelsScroller.addEventListener('pointerup', endReelDrag);
+    reelsScroller.addEventListener('pointerleave', endReelDrag);
+    reelsScroller.addEventListener('pointercancel', endReelDrag);
+    // A drag ends in a click — swallow it (capture phase) so it doesn't open
+    // the lightbox.
+    reelsScroller.addEventListener('click', function(e){
+      if (dragMoved) { e.stopPropagation(); e.preventDefault(); dragMoved = false; }
+    }, true);
 
-    function goToPair(idx, animated = true) {
-      idx = Math.max(0, Math.min(PAIRS - 1, idx));
-      currentPair = idx;
-      reelsTrack.classList.toggle('is-dragging', !animated);
-      // Each pair is shifted by (wrap width + gap-correction). Since both pairs span the full wrap,
-      // we translate by full multiples of pairWidth().
-      const offset = -idx * pairWidth();
-      reelsTrack.style.transform = `translateX(${offset}px)`;
+    // Vertical wheel / trackpad → horizontal scroll, but only while the row
+    // still has room to move that way, so the page keeps scrolling at the ends.
+    reelsScroller.addEventListener('wheel', function(e){
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!delta) return;
+      const max = reelsScroller.scrollWidth - reelsScroller.clientWidth;
+      const atStart = reelsScroller.scrollLeft <= 0;
+      const atEnd = reelsScroller.scrollLeft >= max - 1;
+      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return; // let the page scroll
+      reelsScroller.scrollLeft += delta;
+      e.preventDefault();
+    }, { passive: false });
 
-      // Sync dots + hint
-      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-      if (reelsHint) {
-        const start = idx * 2 + 1;
-        const end = Math.min(start + 1, reels.length);
-        reelsHint.textContent = `PAIR ${String(idx + 1).padStart(2, '0')} / ${String(PAIRS).padStart(2, '0')} · FIG. ${toRoman(start)}–${toRoman(end)}`;
-      }
-    }
+    // --- tap a reel → enlarge with sound (a swipe must not trigger it) ---
+    const lightbox = document.getElementById('reel-lightbox');
+    if (lightbox && lightbox.parentNode !== document.body) document.body.appendChild(lightbox);
+    const lbVideo  = document.getElementById('rlb-video');
+    const lbCap    = document.getElementById('rlb-cap');
+    const lbClose  = document.getElementById('rlb-close');
+    let downX = 0, downY = 0, moved = false;
 
-    // Pager dot click
-    dots.forEach(dot => {
-      dot.addEventListener('click', () => {
-        const page = parseInt(dot.dataset.page, 10);
-        goToPair(page, true);
+    reels.forEach(function(reel, i){
+      reel.addEventListener('pointerdown', function(e){ downX = e.clientX; downY = e.clientY; moved = false; });
+      reel.addEventListener('pointermove', function(e){
+        if (Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) moved = true;
       });
+      reel.addEventListener('click', function(){ if (!moved) openLightbox(i); });
     });
 
-    // Initial position
-    goToPair(0, false);
-    // Keep alignment correct on resize
-    window.addEventListener('resize', () => goToPair(currentPair, false));
-
-    // ===== Pointer swipe gesture =====
-    const SWIPE_THRESHOLD = 60;
-    const VELOCITY_THRESHOLD = 0.4;
-    let startX = 0, startY = 0, startT = 0;
-    let dragging = false;
-    let baseOffset = 0;
-
-    reelsWrap.addEventListener('pointerdown', (e) => {
-      // Only start dragging on the carousel surface (not on a reel-play button etc.)
-      if (e.button !== undefined && e.button !== 0) return;
-      startX = e.clientX;
-      startY = e.clientY;
-      startT = performance.now();
-      dragging = true;
-      baseOffset = -currentPair * pairWidth();
-      reelsTrack.classList.add('is-dragging');
-      reelsWrap.classList.add('is-dragging');
-      try { reelsWrap.setPointerCapture(e.pointerId); } catch (_) {}
-    });
-
-    reelsWrap.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      // Cancel if dragging vertically (allow page scroll)
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 12) {
-        dragging = false;
-        reelsTrack.classList.remove('is-dragging');
-        reelsWrap.classList.remove('is-dragging');
-        goToPair(currentPair, true);
-        return;
-      }
-      // Apply drag with edge resistance — slows past first/last pair
-      let drag = dx;
-      const offset = baseOffset + drag;
-      const maxOffset = 0;
-      const minOffset = -(PAIRS - 1) * pairWidth();
-      let displayOffset = offset;
-      if (offset > maxOffset) displayOffset = maxOffset + (offset - maxOffset) * 0.3;
-      else if (offset < minOffset) displayOffset = minOffset + (offset - minOffset) * 0.3;
-      reelsTrack.style.transform = `translateX(${displayOffset}px)`;
-    });
-
-    function endReelDrag(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dt = performance.now() - startT;
-      const velocity = Math.abs(dx) / Math.max(dt, 1);
-      const passed = Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
-
-      reelsTrack.classList.remove('is-dragging');
-      reelsWrap.classList.remove('is-dragging');
-
-      let target = currentPair;
-      if (passed) {
-        if (dx < 0) target = Math.min(PAIRS - 1, currentPair + 1);
-        else        target = Math.max(0, currentPair - 1);
-      }
-      goToPair(target, true);
-      dragging = false;
+    function openLightbox(i){
+      if (!lightbox || !lbVideo) return;
+      const srcEl = reelVideos[i] ? reelVideos[i].querySelector('source') : null;
+      lbVideo.src = srcEl ? srcEl.src : (reelVideos[i] ? reelVideos[i].currentSrc : '');
+      const capEl = reels[i].querySelector('.reel-cap');
+      if (lbCap) lbCap.textContent = capEl ? capEl.textContent : '';
+      pauseAll();
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      lbVideo.muted = false;
+      try { lbVideo.currentTime = 0; } catch(_){}
+      const p = lbVideo.play(); if (p && p.catch) p.catch(function(){});
     }
-
-    reelsWrap.addEventListener('pointerup', endReelDrag);
-    reelsWrap.addEventListener('pointercancel', endReelDrag);
-    reelsWrap.addEventListener('pointerleave', endReelDrag);
+    function closeLightbox(){
+      if (!lightbox) return;
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      lbVideo.pause();
+      lbVideo.removeAttribute('src');
+      lbVideo.load();
+      if (inView) playAll();
+    }
+    if (lbClose)  lbClose.addEventListener('click', closeLightbox);
+    if (lightbox) lightbox.addEventListener('click', function(e){ if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && lightbox && lightbox.classList.contains('open')) closeLightbox();
+    });
   }
 
   function toRoman(n) {
@@ -9760,13 +9976,23 @@ window.__mikkaLazyInit("page-04", function(){
     { label: '9:00 PM',  hour24: 21 }
   ];
   // ============================================================
-  // [FILL_IN] · CONTACT INFO
-  // Replace these with Mikka's real email and phone before going live.
-  // The booking form prefills emails to MIKKA_EMAIL.
-  // The "OR TEXT" CTA in HTML uses sms:[mikka-phone] — update there too.
+  // CONTACT INFO
   // ============================================================
-  const MIKKA_EMAIL = '[mikka-email]'; // [FILL_IN] e.g. 'mikka@example.com'
+  const MIKKA_EMAIL = 'Mikka.chinbaatar@littlemissionstudio.com';
+  const MIKKA_PHONE = '+16182036972';
   const MIKKA_NAME  = 'Mikka';
+
+  // ============================================================
+  // [FILL_IN] · BOOKING ENDPOINT
+  // Where a booking request is sent. On submit the form POSTs here and the
+  // user just sees the "request received" screen — no email client opens.
+  // Set up a free Formspree form (https://formspree.io) with Mikka's email;
+  // it will email her every request AND keep them in a submissions dashboard
+  // she can view/export like a spreadsheet. Paste the form's endpoint below.
+  // (Any service that accepts a JSON POST works — e.g. Web3Forms, a Supabase
+  //  edge function, etc. — just swap the URL and, if needed, the body.)
+  // ============================================================
+  const BOOKING_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID'; // [FILL_IN]
 
   // Find next occurrence of a given weekday (1=Mon..7=Sun, ISO style)
   // dayCol is 0-based: 0=Mon..6=Sun
@@ -9803,6 +10029,18 @@ window.__mikkaLazyInit("page-04", function(){
 
   // ============ MODAL CONTROL ============
   const modal = document.getElementById('booking-modal');
+  // The page has `perspective`, which makes it the containing block for any
+  // position:fixed descendant — so the booking modal would open off-screen
+  // (anchored to the section, not the viewport). Move it under a
+  // display:contents host on <body> so it escapes that context; the host
+  // keeps the `.page-04` class so the modal's scoped styles still apply.
+  if (modal && !modal.closest('.p04-modal-host')) {
+    const host = document.createElement('div');
+    host.className = 'page-04 p04-modal-host';
+    host.style.display = 'contents';
+    document.body.appendChild(host);
+    host.appendChild(modal);
+  }
   const modalClose = document.getElementById('modal-close');
   const formView = document.getElementById('modal-form-view');
   const confView = document.getElementById('modal-confirmation');
@@ -9943,6 +10181,19 @@ window.__mikkaLazyInit("page-04", function(){
   }
 
   // ============ FORM SUBMIT ============
+  function clearBookError() {
+    const el = document.getElementById('book-error');
+    if (el) el.remove();
+  }
+  function showBookError() {
+    clearBookError();
+    const el = document.createElement('p');
+    el.id = 'book-error';
+    el.className = 'book-error';
+    el.textContent = "Couldn't send just now — please try again, or email Mikka directly.";
+    bookBtn.parentNode.insertBefore(el, bookBtn);
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!currentBooking) return;
@@ -9978,44 +10229,61 @@ window.__mikkaLazyInit("page-04", function(){
       return;
     }
 
-    // Build mailto for Mikka
-    const subject = `Lesson booking · ${currentBooking.dayFull}, ${currentBooking.dateString} · ${currentBooking.timeString}`;
-    const body = [
-      `Hi ${MIKKA_NAME},`,
-      ``,
-      `I'd like to book a first lesson for the slot below:`,
-      ``,
-      `Day:    ${currentBooking.dayFull}`,
-      `Date:   ${currentBooking.dateString}`,
-      `Time:   ${currentBooking.timeString}`,
-      ``,
-      `My details:`,
-      `Name:   ${name.value.trim()}`,
-      `Phone:  ${phone.value.trim()}`,
-      `Email:  ${email.value.trim()}`,
-      ``,
-      `Looking forward to hearing from you to confirm.`,
-      ``,
-      `Thanks!`
-    ].join('\n');
+    // Send the request to Mikka in the background (no email client opens).
+    const details = {
+      _subject: `New lesson request · ${currentBooking.dayFull}, ${currentBooking.dateString} · ${currentBooking.timeString}`,
+      name: name.value.trim(),
+      phone: phone.value.trim(),
+      email: email.value.trim(),
+      _replyto: email.value.trim(),      // so Mikka can just hit "reply"
+      day: currentBooking.dayFull,
+      date: currentBooking.dateString,
+      time: currentBooking.timeString,
+      requested_slot: `${currentBooking.dayFull}, ${currentBooking.dateString} at ${currentBooking.timeString}`
+    };
 
-    const mailto = `mailto:${MIKKA_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
+    function goToConfirmation() {
+      confSummary.innerHTML = `
+        <div class="row"><span>Day</span><b>${currentBooking.dayFull}</b></div>
+        <div class="row"><span>Date</span><b>${currentBooking.dateString}</b></div>
+        <div class="row"><span>Time</span><b>${currentBooking.timeString}</b></div>
+        <div class="row"><span>Name</span><b>${name.value.trim()}</b></div>
+      `;
+      formView.style.display = 'none';
+      confView.classList.remove('show');
+      void confView.offsetWidth;
+      confView.classList.add('show');
+      confView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-    // Fill confirmation summary
-    confSummary.innerHTML = `
-      <div class="row"><span>Day</span><b>${currentBooking.dayFull}</b></div>
-      <div class="row"><span>Date</span><b>${currentBooking.dateString}</b></div>
-      <div class="row"><span>Time</span><b>${currentBooking.timeString}</b></div>
-      <div class="row"><span>Name</span><b>${name.value.trim()}</b></div>
-    `;
+    const origBtn = bookBtn.innerHTML;
+    bookBtn.disabled = true;
+    bookBtn.textContent = 'Sending…';
+    clearBookError();
 
-    // Swap to confirmation
-    formView.style.display = 'none';
-    confView.classList.remove('show');
-    void confView.offsetWidth;
-    confView.classList.add('show');
-    confView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Endpoint not configured yet → still show the confirmation so the flow
+    // works, but warn (nothing is actually delivered until the URL is set).
+    if (!BOOKING_ENDPOINT || BOOKING_ENDPOINT.indexOf('YOUR_FORM_ID') !== -1) {
+      console.warn('Booking endpoint not configured — request was NOT sent anywhere.');
+      bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+      goToConfirmation();
+      return;
+    }
+
+    fetch(BOOKING_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(details)
+    })
+      .then((res) => {
+        bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+        if (res.ok) goToConfirmation();
+        else showBookError();
+      })
+      .catch(() => {
+        bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+        showBookError();
+      });
   });
 
 });
