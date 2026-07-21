@@ -3916,6 +3916,29 @@ box-shadow: 0 4px 10px -3px rgba(42, 21, 40, 0.4);
 }
 .page-03 .yt-fallback:hover{ background: var(--ink); color: var(--accent-warm); }
 
+/* Video preview photo — real YouTube thumbnail under the liner-notes chrome */
+.page-03 .yt-card .yt-thumb{
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: 1;
+}
+/* Paper-tint scrim top & bottom so the track tag and listen bar stay legible */
+.page-03 .yt-card.has-thumb:not(.playing)::after{
+display: block;
+content: "";
+position: absolute;
+inset: 0;
+z-index: 2;
+pointer-events: none;
+background:
+linear-gradient(180deg, rgba(245, 228, 220, 0.88) 0%, rgba(245, 228, 220, 0) 34%),
+linear-gradient(0deg, rgba(245, 228, 220, 0.88) 0%, rgba(245, 228, 220, 0) 30%);
+}
+.page-03 .yt-card.playing .yt-thumb{ display: none; }
+
 .page-03 .piece-meta{
 padding: 14px 16px 16px;
 }
@@ -7021,7 +7044,7 @@ canvas.fluid-canvas {
     <span class="mh-tempo"><i>Andante</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_01_YOUTUBE_ID">
+    <div class="yt-card" data-yt="pGp0LlzjrP4">
       <div class="track-tag"><b>Track A1</b>Movement I</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7053,7 +7076,7 @@ canvas.fluid-canvas {
     <span class="mh-tempo"><i>Allegro</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_02_YOUTUBE_ID">
+    <div class="yt-card" data-yt="H48CuZUqDN8">
       <div class="track-tag"><b>Track A2</b>Movement II</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -7082,7 +7105,7 @@ canvas.fluid-canvas {
     <span class="mh-tempo"><i>Cantabile</i></span>
   </div>
     
-    <div class="yt-card" data-yt="REPLACE_WITH_VIDEO_03_YOUTUBE_ID">
+    <div class="yt-card" data-yt="6N8oxKNKKAM">
       <div class="track-tag"><b>Track A3</b>Movement III</div>
       <div class="listen-bar">
         <span class="lb-action">Listen</span>
@@ -9454,11 +9477,25 @@ document.querySelectorAll('.mvmt, .intermission').forEach(el => ioFade.observe(e
 // ═══════════════════════════════════════════════════════
 // YOUTUBE CARDS — try iframe embed; if blocked, link out to YouTube
 // ═══════════════════════════════════════════════════════
+const isRealYtId = id => /^[A-Za-z0-9_-]{11}$/.test(id || '');
+
 document.querySelectorAll('.yt-card').forEach(card => {
+  // Real video wired up → show its YouTube preview photo under the liner-notes chrome
+  if (isRealYtId(card.dataset.yt)) {
+    const thumb = document.createElement('img');
+    thumb.className = 'yt-thumb';
+    thumb.src = `https://i.ytimg.com/vi/${card.dataset.yt}/hqdefault.jpg`;
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    thumb.addEventListener('error', () => { thumb.remove(); card.classList.remove('has-thumb'); });
+    card.prepend(thumb);
+    card.classList.add('has-thumb');
+  }
+
   card.addEventListener('click', (e) => {
     if (card.classList.contains('playing')) return;
     const id = card.dataset.yt;
-    if (!id) return;
+    if (!isRealYtId(id)) return;
 
     // Build the iframe
     const iframe = document.createElement('iframe');
