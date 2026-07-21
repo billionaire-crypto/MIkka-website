@@ -4906,6 +4906,13 @@ overscroll-behavior-x: contain;
 flex: 0 0 45%;
 scroll-snap-align: center;
 }
+/* Desktop drag-to-scroll cursor + smoother free drag (snap off while held) */
+@media (hover: hover) and (pointer: fine){
+.page-04 .reels-scroller{ cursor: grab; }
+.page-04 .reels-scroller.is-grabbing{ cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.page-04 .reels-scroller.is-grabbing .reel,
+.page-04 .reels-scroller.is-grabbing .reel *{ cursor: grabbing; }
+}
 
 /* Slim progress rail that follows the scroll position */
 .page-04 .reels-progress{
@@ -9743,6 +9750,49 @@ window.__mikkaLazyInit("page-04", function(){
     reelsScroller.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
     window.addEventListener('resize', updateProgress);
+
+    // --- desktop: drag-to-scroll + wheel-to-horizontal (there's no touch) ---
+    let isDown = false, dragStartX = 0, dragStartScroll = 0, dragMoved = false;
+    reelsScroller.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'touch') return;   // native touch scroll already works
+      isDown = true; dragMoved = false;
+      dragStartX = e.clientX;
+      dragStartScroll = reelsScroller.scrollLeft;
+      reelsScroller.classList.add('is-grabbing');
+    });
+    reelsScroller.addEventListener('pointermove', function(e){
+      if (!isDown) return;
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) > 4) dragMoved = true;
+      reelsScroller.scrollLeft = dragStartScroll - dx;
+      if (dragMoved && e.cancelable) e.preventDefault();
+    });
+    function endReelDrag(){
+      if (!isDown) return;
+      isDown = false;
+      reelsScroller.classList.remove('is-grabbing');
+    }
+    reelsScroller.addEventListener('pointerup', endReelDrag);
+    reelsScroller.addEventListener('pointerleave', endReelDrag);
+    reelsScroller.addEventListener('pointercancel', endReelDrag);
+    // A drag ends in a click — swallow it (capture phase) so it doesn't open
+    // the lightbox.
+    reelsScroller.addEventListener('click', function(e){
+      if (dragMoved) { e.stopPropagation(); e.preventDefault(); dragMoved = false; }
+    }, true);
+
+    // Vertical wheel / trackpad → horizontal scroll, but only while the row
+    // still has room to move that way, so the page keeps scrolling at the ends.
+    reelsScroller.addEventListener('wheel', function(e){
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!delta) return;
+      const max = reelsScroller.scrollWidth - reelsScroller.clientWidth;
+      const atStart = reelsScroller.scrollLeft <= 0;
+      const atEnd = reelsScroller.scrollLeft >= max - 1;
+      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return; // let the page scroll
+      reelsScroller.scrollLeft += delta;
+      e.preventDefault();
+    }, { passive: false });
 
     // --- tap a reel → enlarge with sound (a swipe must not trigger it) ---
     const lightbox = document.getElementById('reel-lightbox');
