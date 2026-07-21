@@ -4887,64 +4887,42 @@ justify-content: space-between;
 align-items: baseline;
 }
 .page-04 .reels-eyebrow b{ color: var(--accent); font-weight: 500; }
-.page-04 .reels-wrap{
-/* Horizontal carousel — shows 2 reels at a time, swipe to reveal next pair.
-Uses JS-controlled translate (not native scroll) so we can slow down the swipe. */
+/* Native horizontal scroller — one smooth momentum swipe through all reels,
+   each snapping to centre. All reels autoplay muted at once. */
+.page-04 .reels-scroller{
 display: flex;
-gap: 10px;
+gap: 12px;
 margin: 0 22px;
-overflow: hidden;
-position: relative;
-touch-action: pan-y;
-user-select: none;
--webkit-user-select: none;
-cursor: grab;
+padding: 2px 0 2px;
+overflow-x: auto;
+overflow-y: hidden;
+scroll-snap-type: x mandatory;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+overscroll-behavior-x: contain;
 }
-.page-04 .reels-wrap.is-dragging{ cursor: grabbing; }
-.page-04 .reels-track{
-display: flex;
-gap: 10px;
-width: 100%;
-transition: transform 1.2s cubic-bezier(0.22, 0.61, 0.36, 1);
-will-change: transform;
-}
-.page-04 .reels-track.is-dragging{ transition: none; }
-.page-04 .reels-wrap .reel{
-/* Each reel is exactly half the row (minus half the gap) */
-flex: 0 0 calc((100% - 10px) / 2);
+.page-04 .reels-scroller::-webkit-scrollbar{ display: none; }
+.page-04 .reels-scroller .reel{
+flex: 0 0 72%;
+scroll-snap-align: center;
 }
 
-/* Pagination dots beneath the reels */
-.page-04 .reels-pager{
-display: flex;
-justify-content: center;
-gap: 8px;
-margin: 14px 22px 0;
+/* Slim progress rail that follows the scroll position */
+.page-04 .reels-progress{
+position: relative;
+height: 2px;
+margin: 16px 22px 0;
+background: rgba(42, 21, 40, 0.14);
+overflow: hidden;
+border-radius: 2px;
 }
-.page-04 .reels-pager .dot{
-width: 28px;
-height: 3px;
-background: rgba(42, 21, 40, 0.2);
-cursor: pointer;
-transition: background 0.25s ease;
-border: none;
-padding: 0;
-}
-.page-04 .reels-pager .dot.active{
+.page-04 .reels-progress span{
+position: absolute;
+top: 0; left: 0; height: 100%;
+width: 28%;
 background: var(--accent);
-}
-.page-04 .reels-pager .dot:hover{
-background: rgba(196, 72, 96, 0.5);
-}
-.page-04 .reels-hint{
-margin: 6px 22px 0;
-font-family: var(--mono);
-font-size: 9px;
-letter-spacing: 0.18em;
-color: var(--muted);
-text-transform: uppercase;
-text-align: center;
-opacity: 0.7;
+transition: transform 0.12s ease-out;
+will-change: transform;
 }
 .page-04 .reel{
 position: relative;
@@ -4973,7 +4951,8 @@ object-fit: cover;
 z-index: 0;
 background: #140810;
 }
-/* Legibility scrim — darkens only the top and bottom edges */
+/* Legibility scrim — soft, only where the label and caption sit, so the
+   footage reads at its true colour (no heavy tint) */
 .page-04 .reel::after{
 content: "";
 position: absolute;
@@ -4981,19 +4960,117 @@ inset: 0;
 z-index: 1;
 pointer-events: none;
 background: linear-gradient(180deg,
-rgba(20, 8, 15, 0.5) 0%,
-rgba(20, 8, 15, 0) 24%,
-rgba(20, 8, 15, 0) 56%,
-rgba(20, 8, 15, 0.62) 100%);
+rgba(20, 8, 15, 0.28) 0%,
+rgba(20, 8, 15, 0) 15%,
+rgba(20, 8, 15, 0) 64%,
+rgba(20, 8, 15, 0.42) 100%);
 }
 .page-04 .reel-head,
 .page-04 .reel-foot{ position: relative; z-index: 2; }
-.page-04 .reel-play{ z-index: 2; }
-/* While a reel is actively playing, hide the big center triangle */
-.page-04 .reel.is-playing .reel-play{ opacity: 0; pointer-events: none; }
-/* Sound-on cue: warm ring + brighter footer */
-.page-04 .reel.sound-on{ box-shadow: 0 0 0 2px var(--accent-warm) inset; }
-.page-04 .reel.sound-on .reel-meta{ color: var(--bg); }
+.page-04 .reel-foot{ padding-right: 40px; }
+/* Enlarge affordance — bottom-right corner badge */
+.page-04 .reel-expand{
+position: absolute;
+z-index: 2;
+right: 12px;
+bottom: 12px;
+width: 30px;
+height: 30px;
+border-radius: 50%;
+border: 1px solid rgba(245, 228, 220, 0.65);
+background: rgba(42, 21, 40, 0.32);
+-webkit-backdrop-filter: blur(2px);
+backdrop-filter: blur(2px);
+display: flex;
+align-items: center;
+justify-content: center;
+transition: transform 0.2s ease, background 0.2s ease;
+}
+.page-04 .reel-expand::before{
+content: "\2922";           /* ⤢ diagonal expand */
+color: var(--bg);
+font-size: 15px;
+line-height: 1;
+}
+.page-04 .reel:hover .reel-expand{ background: var(--accent); }
+.page-04 .reel:active .reel-expand{ transform: scale(0.9); }
+
+/* ============ REEL LIGHTBOX — tap to enlarge with sound ============ */
+.reel-lightbox{
+position: fixed;
+inset: 0;
+z-index: 10001;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+background: rgba(20, 8, 15, 0);
+-webkit-backdrop-filter: blur(0);
+backdrop-filter: blur(0);
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.34s ease, background 0.34s ease, backdrop-filter 0.34s ease, visibility 0s linear 0.34s;
+}
+.reel-lightbox.open{
+opacity: 1;
+visibility: visible;
+background: rgba(20, 8, 15, 0.82);
+-webkit-backdrop-filter: blur(12px);
+backdrop-filter: blur(12px);
+transition: opacity 0.34s ease, background 0.34s ease, backdrop-filter 0.34s ease;
+}
+.rlb-stage{
+position: relative;
+width: min(86vw, 420px);
+max-height: 86vh;
+aspect-ratio: 9 / 16;
+overflow: hidden;
+border: 1px solid rgba(245, 228, 220, 0.22);
+box-shadow: 0 30px 90px -24px rgba(0, 0, 0, 0.75);
+transform: scale(0.92);
+opacity: 0.6;
+transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+.reel-lightbox.open .rlb-stage{ transform: scale(1); opacity: 1; }
+.rlb-video{
+width: 100%;
+height: 100%;
+object-fit: cover;
+background: #140810;
+display: block;
+}
+.rlb-cap{
+position: absolute;
+left: 0; right: 0; top: 0;
+padding: 16px 60px 26px 18px;
+font-family: var(--serif);
+font-style: italic;
+font-size: 16px;
+color: var(--bg);
+background: linear-gradient(180deg, rgba(20, 8, 15, 0.72), rgba(20, 8, 15, 0));
+pointer-events: none;
+}
+.rlb-close{
+position: absolute;
+top: 18px;
+right: 18px;
+z-index: 2;
+width: 42px;
+height: 42px;
+border-radius: 50%;
+border: 1px solid rgba(245, 228, 220, 0.45);
+background: rgba(20, 8, 15, 0.5);
+color: var(--bg);
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: background 0.2s ease, transform 0.2s ease;
+}
+.rlb-close:hover{ background: var(--accent); }
+.rlb-close:active{ transform: scale(0.92); }
 .page-04 .reel.dark{
 background:
 linear-gradient(160deg, rgba(42, 21, 40, 0.55), rgba(110, 62, 90, 0.65)),
@@ -7429,70 +7506,71 @@ canvas.fluid-canvas {
 
   
 
-  <div class="reels-wrap" id="reels-wrap">
-    <div class="reels-track" id="reels-track">
+  <div class="reels-scroller" id="reels-scroller">
 
 
 <div class="reel" id="reel-1">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
+  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-1.jpg">
     <source src="reels/reel-1.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:20</span></div>
-  <div class="reel-play"></div>
+  <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
     <div class="reel-cap">four hands at the keys</div>
-    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel dark" id="reel-2">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
+  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-2.jpg">
     <source src="reels/reel-2.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:18</span></div>
-  <div class="reel-play"></div>
+  <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
     <div class="reel-cap">a first melody, side by side</div>
-    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel" id="reel-3">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-3.jpg">
+  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-3.jpg">
     <source src="reels/reel-3.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:18</span></div>
-  <div class="reel-play"></div>
+  <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
     <div class="reel-cap">working through a new piece</div>
-    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel dark" id="reel-4">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
+  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-4.jpg">
     <source src="reels/reel-4.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:17</span></div>
-  <div class="reel-play"></div>
+  <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
     <div class="reel-cap">playing it back by heart</div>
-    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
+    <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
-</div>
-
   </div>
 
-  <div class="reels-pager" id="reels-pager">
-    <button class="dot active" data-page="0" aria-label="Show reels 1-2"></button>
-    <button class="dot" data-page="1" aria-label="Show reels 3-4"></button>
+  <div class="reels-progress" id="reels-progress"><span></span></div>
+
+  <div class="reel-lightbox" id="reel-lightbox" aria-hidden="true">
+    <button class="rlb-close" id="rlb-close" aria-label="Close">&times;</button>
+    <div class="rlb-stage">
+      <video class="rlb-video" id="rlb-video" playsinline controls></video>
+      <div class="rlb-cap" id="rlb-cap"></div>
+    </div>
   </div>
-  <div class="reels-hint">PAIR 01 / 02 · FIG. I–II</div>
 
   
 
@@ -9599,214 +9677,86 @@ function showFallback(card, id) {
 window.__mikkaLazyInit("page-04", function(){
   "use strict";
 
-  // ============ REELS — JS-controlled carousel (slow swipe) ============
-  const reelsWrap = document.getElementById('reels-wrap');
-  const reelsTrack = document.getElementById('reels-track');
-  const reelsPager = document.getElementById('reels-pager');
-  const reelsHint = document.querySelector('.reels-hint');
+  // ============ REELS — smooth native swipe · autoplay all · tap to enlarge ============
+  const reelsScroller = document.getElementById('reels-scroller');
+  const reelsProgress = document.querySelector('#reels-progress span');
 
-  if (reelsWrap && reelsTrack && reelsPager) {
-    const dots = reelsPager.querySelectorAll('.dot');
-    const reels = reelsTrack.querySelectorAll('.reel');
-    const PAIRS = Math.ceil(reels.length / 2);
-    let currentPair = 0;
-    let justSwiped = false;
-
-    function pairWidth() {
-      // Width of one full "page" = wrap width (each pair fills the visible row)
-      return reelsWrap.offsetWidth;
-    }
-
-    function goToPair(idx, animated = true) {
-      idx = Math.max(0, Math.min(PAIRS - 1, idx));
-      currentPair = idx;
-      reelsTrack.classList.toggle('is-dragging', !animated);
-      // Each pair is shifted by (wrap width + gap-correction). Since both pairs span the full wrap,
-      // we translate by full multiples of pairWidth().
-      const offset = -idx * pairWidth();
-      reelsTrack.style.transform = `translateX(${offset}px)`;
-
-      // Sync dots + hint
-      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-      if (reelsHint) {
-        const start = idx * 2 + 1;
-        const end = Math.min(start + 1, reels.length);
-        reelsHint.textContent = `PAIR ${String(idx + 1).padStart(2, '0')} / ${String(PAIRS).padStart(2, '0')} · FIG. ${toRoman(start)}–${toRoman(end)}`;
-      }
-    }
-
-    // Pager dot click
-    dots.forEach(dot => {
-      dot.addEventListener('click', () => {
-        const page = parseInt(dot.dataset.page, 10);
-        goToPair(page, true);
-      });
-    });
-
-    // Initial position
-    goToPair(0, false);
-    // Keep alignment correct on resize
-    window.addEventListener('resize', () => goToPair(currentPair, false));
-
-    // ===== Pointer swipe gesture =====
-    const SWIPE_THRESHOLD = 60;
-    const VELOCITY_THRESHOLD = 0.4;
-    let startX = 0, startY = 0, startT = 0;
-    let dragging = false;
-    let baseOffset = 0;
-
-    reelsWrap.addEventListener('pointerdown', (e) => {
-      // Only start dragging on the carousel surface (not on a reel-play button etc.)
-      if (e.button !== undefined && e.button !== 0) return;
-      startX = e.clientX;
-      startY = e.clientY;
-      startT = performance.now();
-      dragging = true;
-      baseOffset = -currentPair * pairWidth();
-      reelsTrack.classList.add('is-dragging');
-      reelsWrap.classList.add('is-dragging');
-      try { reelsWrap.setPointerCapture(e.pointerId); } catch (_) {}
-    });
-
-    reelsWrap.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      // Cancel if dragging vertically (allow page scroll)
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 12) {
-        dragging = false;
-        reelsTrack.classList.remove('is-dragging');
-        reelsWrap.classList.remove('is-dragging');
-        goToPair(currentPair, true);
-        return;
-      }
-      // Apply drag with edge resistance — slows past first/last pair
-      let drag = dx;
-      const offset = baseOffset + drag;
-      const maxOffset = 0;
-      const minOffset = -(PAIRS - 1) * pairWidth();
-      let displayOffset = offset;
-      if (offset > maxOffset) displayOffset = maxOffset + (offset - maxOffset) * 0.3;
-      else if (offset < minOffset) displayOffset = minOffset + (offset - minOffset) * 0.3;
-      reelsTrack.style.transform = `translateX(${displayOffset}px)`;
-    });
-
-    function endReelDrag(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dt = performance.now() - startT;
-      const velocity = Math.abs(dx) / Math.max(dt, 1);
-      const passed = Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
-
-      reelsTrack.classList.remove('is-dragging');
-      reelsWrap.classList.remove('is-dragging');
-
-      let target = currentPair;
-      if (passed) {
-        if (dx < 0) target = Math.min(PAIRS - 1, currentPair + 1);
-        else        target = Math.max(0, currentPair - 1);
-      }
-      const changedPair = target !== currentPair;
-      goToPair(target, true);
-      if (passed) { justSwiped = true; setTimeout(() => { justSwiped = false; }, 320); }
-      if (changedPair && inView) playReel(target * 2, false);
-      dragging = false;
-    }
-
-    reelsWrap.addEventListener('pointerup', endReelDrag);
-    reelsWrap.addEventListener('pointercancel', endReelDrag);
-    reelsWrap.addEventListener('pointerleave', endReelDrag);
-
-    // ============ REELS — video playback controller ============
-    // Muted sequential autoplay: reel I plays; when it ends, reel II plays,
-    // then III, IV, looping back to I. Only one plays at a time. Tapping a
-    // reel turns its sound on (and pauses the auto-advance); tapping again
-    // mutes it and resumes the muted sequence. Nothing plays off-screen.
-    const reelVideos = Array.from(reels).map(r => r.querySelector('.reel-video'));
-    let activeReel = 0;
-    let soundOn = false;
-    let autoAdvance = true;
+  if (reelsScroller) {
+    const reels = Array.from(reelsScroller.querySelectorAll('.reel'));
+    const reelVideos = reels.map(function(r){ return r.querySelector('.reel-video'); });
     let inView = false;
 
-    function resetReel(i) {
-      const v = reelVideos[i];
-      if (!v) return;
-      v.pause();
-      try { v.currentTime = 0; } catch (_) {}
-      v.muted = true;
-      v.loop = false;
-      reels[i].classList.remove('is-playing', 'sound-on');
-      const meta = reels[i].querySelector('.reel-meta');
-      if (meta) meta.textContent = 'TAP FOR SOUND · 9:16';
-    }
+    // --- all reels autoplay muted together while on screen; pause off-screen ---
+    function playAll(){ reelVideos.forEach(function(v){ if(v){ v.muted = true; var p = v.play(); if(p && p.catch) p.catch(function(){}); } }); }
+    function pauseAll(){ reelVideos.forEach(function(v){ if(v) v.pause(); }); }
 
-    function playReel(idx, withSound) {
-      const v = reelVideos[idx];
-      if (!v) return;
-      activeReel = idx;
-      soundOn = !!withSound;
-      reelVideos.forEach((_, i) => { if (i !== idx) resetReel(i); });
-
-      const targetPair = Math.floor(idx / 2);
-      if (targetPair !== currentPair) goToPair(targetPair, true);
-
-      v.muted = !withSound;
-      v.loop = !!withSound;               // sound mode loops; muted mode ends → advance
-      if (withSound) { try { v.currentTime = 0; } catch (_) {} }
-      reels[idx].classList.add('is-playing');
-      reels[idx].classList.toggle('sound-on', !!withSound);
-      const meta = reels[idx].querySelector('.reel-meta');
-      if (meta) meta.textContent = withSound ? '♪  SOUND ON · TAP TO MUTE' : 'TAP FOR SOUND · 9:16';
-
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {/* autoplay may defer; poster stays */});
-    }
-
-    // Advance the muted sequence when a reel finishes
-    reelVideos.forEach((v, i) => {
-      if (!v) return;
-      v.addEventListener('ended', () => {
-        if (autoAdvance && !soundOn && activeReel === i) {
-          playReel((i + 1) % reelVideos.length, false);
-        }
-      });
-    });
-
-    // Tap a reel → toggle its sound
-    reels.forEach((reel, i) => {
-      reel.addEventListener('click', () => {
-        if (justSwiped) return;
-        if (i === activeReel && soundOn) {
-          autoAdvance = true;
-          playReel(i, false);           // mute + resume the muted sequence
-        } else {
-          autoAdvance = false;
-          playReel(i, true);            // unmute this one, hold here
-        }
-      });
-    });
-
-    // Start the muted sequence only while the reels are on screen; pause off-screen
     if ('IntersectionObserver' in window) {
-      const reelIO = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (!inView) {
-              inView = true;
-              autoAdvance = true;
-              playReel(activeReel, false);
-            }
-          } else if (inView) {
-            inView = false;
-            reelVideos.forEach((v) => v && v.pause());
-          }
+      const io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) { if (!inView) { inView = true; playAll(); } }
+          else if (inView) { inView = false; pauseAll(); }
         });
-      }, { threshold: 0.35 });
-      reelIO.observe(reelsWrap);
-    } else {
-      inView = true;
-      playReel(0, false);
+      }, { threshold: 0.25 });
+      io.observe(reelsScroller);
+    } else { inView = true; playAll(); }
+
+    // --- progress rail follows the scroll position ---
+    // The bar is 28% wide, so it travels (100/28 - 1) = 257% of its own width.
+    function updateProgress(){
+      if (!reelsProgress) return;
+      const max = reelsScroller.scrollWidth - reelsScroller.clientWidth;
+      const ratio = max > 0 ? reelsScroller.scrollLeft / max : 0;
+      reelsProgress.style.transform = 'translateX(' + (ratio * (100/28*100 - 100)) + '%)';
     }
+    reelsScroller.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+    window.addEventListener('resize', updateProgress);
+
+    // --- tap a reel → enlarge with sound (a swipe must not trigger it) ---
+    const lightbox = document.getElementById('reel-lightbox');
+    if (lightbox && lightbox.parentNode !== document.body) document.body.appendChild(lightbox);
+    const lbVideo  = document.getElementById('rlb-video');
+    const lbCap    = document.getElementById('rlb-cap');
+    const lbClose  = document.getElementById('rlb-close');
+    let downX = 0, downY = 0, moved = false;
+
+    reels.forEach(function(reel, i){
+      reel.addEventListener('pointerdown', function(e){ downX = e.clientX; downY = e.clientY; moved = false; });
+      reel.addEventListener('pointermove', function(e){
+        if (Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) moved = true;
+      });
+      reel.addEventListener('click', function(){ if (!moved) openLightbox(i); });
+    });
+
+    function openLightbox(i){
+      if (!lightbox || !lbVideo) return;
+      const srcEl = reelVideos[i] ? reelVideos[i].querySelector('source') : null;
+      lbVideo.src = srcEl ? srcEl.src : (reelVideos[i] ? reelVideos[i].currentSrc : '');
+      const capEl = reels[i].querySelector('.reel-cap');
+      if (lbCap) lbCap.textContent = capEl ? capEl.textContent : '';
+      pauseAll();
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      lbVideo.muted = false;
+      try { lbVideo.currentTime = 0; } catch(_){}
+      const p = lbVideo.play(); if (p && p.catch) p.catch(function(){});
+    }
+    function closeLightbox(){
+      if (!lightbox) return;
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      lbVideo.pause();
+      lbVideo.removeAttribute('src');
+      lbVideo.load();
+      if (inView) playAll();
+    }
+    if (lbClose)  lbClose.addEventListener('click', closeLightbox);
+    if (lightbox) lightbox.addEventListener('click', function(e){ if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && lightbox && lightbox.classList.contains('open')) closeLightbox();
+    });
   }
 
   function toRoman(n) {
