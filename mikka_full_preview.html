@@ -6087,6 +6087,15 @@ transition: height 0.2s ease;
 40%, 60%  { transform: translateX(5px); }
 }
 
+.page-04 .book-error{
+margin: 0 0 12px;
+font-family: var(--mono);
+font-size: 11px;
+letter-spacing: 0.04em;
+line-height: 1.5;
+color: var(--accent);
+text-align: center;
+}
 .page-04 .book-btn{
 width: 100%;
 margin-top: 6px;
@@ -9919,11 +9928,22 @@ window.__mikkaLazyInit("page-04", function(){
   // ============================================================
   // [FILL_IN] · CONTACT INFO
   // Replace these with Mikka's real email and phone before going live.
-  // The booking form prefills emails to MIKKA_EMAIL.
   // The "OR TEXT" CTA in HTML uses sms:[mikka-phone] — update there too.
   // ============================================================
   const MIKKA_EMAIL = '[mikka-email]'; // [FILL_IN] e.g. 'mikka@example.com'
   const MIKKA_NAME  = 'Mikka';
+
+  // ============================================================
+  // [FILL_IN] · BOOKING ENDPOINT
+  // Where a booking request is sent. On submit the form POSTs here and the
+  // user just sees the "request received" screen — no email client opens.
+  // Set up a free Formspree form (https://formspree.io) with Mikka's email;
+  // it will email her every request AND keep them in a submissions dashboard
+  // she can view/export like a spreadsheet. Paste the form's endpoint below.
+  // (Any service that accepts a JSON POST works — e.g. Web3Forms, a Supabase
+  //  edge function, etc. — just swap the URL and, if needed, the body.)
+  // ============================================================
+  const BOOKING_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID'; // [FILL_IN]
 
   // Find next occurrence of a given weekday (1=Mon..7=Sun, ISO style)
   // dayCol is 0-based: 0=Mon..6=Sun
@@ -10112,6 +10132,19 @@ window.__mikkaLazyInit("page-04", function(){
   }
 
   // ============ FORM SUBMIT ============
+  function clearBookError() {
+    const el = document.getElementById('book-error');
+    if (el) el.remove();
+  }
+  function showBookError() {
+    clearBookError();
+    const el = document.createElement('p');
+    el.id = 'book-error';
+    el.className = 'book-error';
+    el.textContent = "Couldn't send just now — please try again, or email Mikka directly.";
+    bookBtn.parentNode.insertBefore(el, bookBtn);
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!currentBooking) return;
@@ -10147,44 +10180,61 @@ window.__mikkaLazyInit("page-04", function(){
       return;
     }
 
-    // Build mailto for Mikka
-    const subject = `Lesson booking · ${currentBooking.dayFull}, ${currentBooking.dateString} · ${currentBooking.timeString}`;
-    const body = [
-      `Hi ${MIKKA_NAME},`,
-      ``,
-      `I'd like to book a first lesson for the slot below:`,
-      ``,
-      `Day:    ${currentBooking.dayFull}`,
-      `Date:   ${currentBooking.dateString}`,
-      `Time:   ${currentBooking.timeString}`,
-      ``,
-      `My details:`,
-      `Name:   ${name.value.trim()}`,
-      `Phone:  ${phone.value.trim()}`,
-      `Email:  ${email.value.trim()}`,
-      ``,
-      `Looking forward to hearing from you to confirm.`,
-      ``,
-      `Thanks!`
-    ].join('\n');
+    // Send the request to Mikka in the background (no email client opens).
+    const details = {
+      _subject: `New lesson request · ${currentBooking.dayFull}, ${currentBooking.dateString} · ${currentBooking.timeString}`,
+      name: name.value.trim(),
+      phone: phone.value.trim(),
+      email: email.value.trim(),
+      _replyto: email.value.trim(),      // so Mikka can just hit "reply"
+      day: currentBooking.dayFull,
+      date: currentBooking.dateString,
+      time: currentBooking.timeString,
+      requested_slot: `${currentBooking.dayFull}, ${currentBooking.dateString} at ${currentBooking.timeString}`
+    };
 
-    const mailto = `mailto:${MIKKA_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
+    function goToConfirmation() {
+      confSummary.innerHTML = `
+        <div class="row"><span>Day</span><b>${currentBooking.dayFull}</b></div>
+        <div class="row"><span>Date</span><b>${currentBooking.dateString}</b></div>
+        <div class="row"><span>Time</span><b>${currentBooking.timeString}</b></div>
+        <div class="row"><span>Name</span><b>${name.value.trim()}</b></div>
+      `;
+      formView.style.display = 'none';
+      confView.classList.remove('show');
+      void confView.offsetWidth;
+      confView.classList.add('show');
+      confView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-    // Fill confirmation summary
-    confSummary.innerHTML = `
-      <div class="row"><span>Day</span><b>${currentBooking.dayFull}</b></div>
-      <div class="row"><span>Date</span><b>${currentBooking.dateString}</b></div>
-      <div class="row"><span>Time</span><b>${currentBooking.timeString}</b></div>
-      <div class="row"><span>Name</span><b>${name.value.trim()}</b></div>
-    `;
+    const origBtn = bookBtn.innerHTML;
+    bookBtn.disabled = true;
+    bookBtn.textContent = 'Sending…';
+    clearBookError();
 
-    // Swap to confirmation
-    formView.style.display = 'none';
-    confView.classList.remove('show');
-    void confView.offsetWidth;
-    confView.classList.add('show');
-    confView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Endpoint not configured yet → still show the confirmation so the flow
+    // works, but warn (nothing is actually delivered until the URL is set).
+    if (!BOOKING_ENDPOINT || BOOKING_ENDPOINT.indexOf('YOUR_FORM_ID') !== -1) {
+      console.warn('Booking endpoint not configured — request was NOT sent anywhere.');
+      bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+      goToConfirmation();
+      return;
+    }
+
+    fetch(BOOKING_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(details)
+    })
+      .then((res) => {
+        bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+        if (res.ok) goToConfirmation();
+        else showBookError();
+      })
+      .catch(() => {
+        bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
+        showBookError();
+      });
   });
 
 });
