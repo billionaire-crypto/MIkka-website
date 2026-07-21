@@ -4903,7 +4903,7 @@ overscroll-behavior-x: contain;
 }
 .page-04 .reels-scroller::-webkit-scrollbar{ display: none; }
 .page-04 .reels-scroller .reel{
-flex: 0 0 72%;
+flex: 0 0 45%;
 scroll-snap-align: center;
 }
 
@@ -4941,7 +4941,9 @@ transition: transform 0.2s ease;
 }
 .page-04 .reel:hover{ transform: translateY(-2px); }
 
-/* Video fills the 9:16 frame, behind the caption chrome */
+/* Video fills the 9:16 frame, behind the caption chrome.
+   Graded to sit in the booklet's warm palette — softened brightness and
+   saturation so the footage no longer reads bright/clinical. */
 .page-04 .reel-video{
 position: absolute;
 inset: 0;
@@ -4950,9 +4952,23 @@ height: 100%;
 object-fit: cover;
 z-index: 0;
 background: #140810;
+filter: brightness(0.86) saturate(0.78) contrast(1.03) sepia(0.10);
 }
-/* Legibility scrim — soft, only where the label and caption sit, so the
-   footage reads at its true colour (no heavy tint) */
+/* Warm colour wash — peach → plum, blended into the footage so it matches
+   the rest of the page (soft-light keeps it from going dark) */
+.page-04 .reel::before{
+content: "";
+position: absolute;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+background: linear-gradient(155deg,
+rgba(238, 144, 120, 0.30) 0%,
+rgba(196, 72, 96, 0.24) 45%,
+rgba(138, 74, 149, 0.34) 100%);
+mix-blend-mode: soft-light;
+}
+/* Legibility scrim — soft, only where the label and caption sit */
 .page-04 .reel::after{
 content: "";
 position: absolute;
@@ -5038,6 +5054,8 @@ height: 100%;
 object-fit: cover;
 background: #140810;
 display: block;
+/* milder grade than the inline reels — toned to match, still watchable */
+filter: brightness(0.94) saturate(0.88) contrast(1.02) sepia(0.05);
 }
 .rlb-cap{
 position: absolute;
