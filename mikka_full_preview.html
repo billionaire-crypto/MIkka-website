@@ -3925,17 +3925,12 @@ height: 100%;
 object-fit: cover;
 z-index: 1;
 }
-/* Paper-tint scrim top & bottom so the track tag and listen bar stay legible */
-.page-03 .yt-card.has-thumb:not(.playing)::after{
-display: block;
-content: "";
-position: absolute;
-inset: 0;
-z-index: 2;
-pointer-events: none;
-background:
-linear-gradient(180deg, rgba(245, 228, 220, 0.88) 0%, rgba(245, 228, 220, 0) 34%),
-linear-gradient(0deg, rgba(245, 228, 220, 0.88) 0%, rgba(245, 228, 220, 0) 30%);
+/* Soft paper halo on the lettering only — keeps it legible over the photo
+   without washing the image out */
+.page-03 .yt-card.has-thumb .track-tag,
+.page-03 .yt-card.has-thumb .listen-bar .lb-action,
+.page-03 .yt-card.has-thumb .listen-bar .lb-side{
+text-shadow: 0 1px 12px rgba(245, 228, 220, 0.95), 0 0 4px rgba(245, 228, 220, 0.85);
 }
 .page-03 .yt-card.playing .yt-thumb{ display: none; }
 
@@ -7038,8 +7033,8 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">I.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer or arranger</em>
+      Graduate Collaborative Recital
+      <em>collaborative piano</em>
     </div>
     <span class="mh-tempo"><i>Andante</i></span>
   </div>
@@ -7053,12 +7048,12 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2025 · STUDIO</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short italic line — composer, occasion, one-line context]</div>
+      <div class="pm-tag">2025 · RECITAL</div>
+      <div class="pm-title">Graduate Collaborative Recital</div>
+      <div class="pm-sub">an evening of partnership — the capstone of her graduate study</div>
       <div class="pm-credits">
-        <b>VENUE</b> [venue]<br>
-        <b>RECORDED</b> [date · city]
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Jun 3, 2025 · Carbondale, IL
       </div>
     </div>
   </div>
@@ -7070,8 +7065,8 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">II.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer</em>
+      Nomadic Harmonies
+      <em>heritage ensemble</em>
     </div>
     <span class="mh-tempo"><i>Allegro</i></span>
   </div>
@@ -7085,10 +7080,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · RECITAL</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2025 · HERITAGE</div>
+      <div class="pm-title">Nomadic Harmonies</div>
+      <div class="pm-sub">Mongolian folk voices in conversation with the concert hall</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> Mar 28, 2025 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
@@ -7099,8 +7097,8 @@ canvas.fluid-canvas {
     <div class="mvmt-head">
     <span class="mh-no">III.</span>
     <div class="mh-name">
-      [ Piece Title ]
-      <em>composer</em>
+      Folk Song — “The Sunrise”
+      <em>traditional</em>
     </div>
     <span class="mh-tempo"><i>Cantabile</i></span>
   </div>
@@ -7114,10 +7112,13 @@ canvas.fluid-canvas {
       </div>
     </div>
     <div class="piece-meta">
-      <div class="pm-tag">2024 · CHAMBER</div>
-      <div class="pm-title">[ Piece Title ]</div>
-      <div class="pm-sub">[short]</div>
-      <div class="pm-credits"><b>VENUE</b> [venue]</div>
+      <div class="pm-tag">2024 · FOLK SONG</div>
+      <div class="pm-title">Folk Song — “The Sunrise”</div>
+      <div class="pm-sub">a traditional melody of first light, carried far from home</div>
+      <div class="pm-credits">
+        <b>VENUE</b> SIUC Old Baptist Foundation Recital Hall<br>
+        <b>RECORDED</b> May 14, 2024 · Carbondale, IL
+      </div>
     </div>
   </div>
 </article>
