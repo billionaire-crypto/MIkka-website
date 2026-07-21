@@ -6,19 +6,30 @@ Personal website for Mikka Chinbaatar — piano instructor / collaborative piani
 
 | File | Purpose |
 | --- | --- |
-| [`hero_page_clean.html`](hero_page_clean.html) | Hero section (production) |
-| [`awards_page_clean.html`](awards_page_clean.html) | Awards & Distinctions section (production) |
-| [`index.html`](index.html) | Local preview — stacks both pages in iframes |
-| [`_prep.py`](_prep.py) | One-shot cleanup script: rewrites smart quotes, en-dashes, and stray glyphs from the source `.txt` files into clean `.html` |
-| [`LOCKED V! CODE.txt`](LOCKED%20V%21%20CODE.txt) | Signed-off design spec — palette, typography, type scale, hero v2, awards v4 |
+| [`index.html`](index.html) | The site — hero + Awards & Distinctions sections in one page |
+| [`IMG_3282.jpeg`](IMG_3282.jpeg) | Hero portrait (Naru Photography) |
+| [`vercel.json`](vercel.json) | Vercel static-hosting config (clean URLs, image caching) |
+
+> **Note:** the Awards section currently contains `[placeholder]` entries —
+> replace them with the real awards before sharing the live site.
 
 ## Local preview
 
 ```bash
-cd "Mikka website"
 python -m http.server 8765
 # open http://localhost:8765/
 ```
+
+## Deploying on Vercel
+
+The repo is a plain static site — no build step.
+
+1. Go to [vercel.com/new](https://vercel.com/new) and import
+   `billionaire-crypto/MIkka-website` from GitHub.
+2. Leave **Framework Preset** as **Other**; no build command, no output
+   directory — the defaults are correct.
+3. Deploy. Every push to `main` redeploys production automatically;
+   every branch push gets a preview URL.
 
 ## Versioning workflow
 
