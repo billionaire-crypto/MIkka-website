@@ -9934,18 +9934,16 @@ window.__mikkaLazyInit("page-04", function(){
   const MIKKA_NAME  = 'Mikka';
 
   // ============================================================
-  // [FILL_IN] · SUPABASE BOOKINGS
-  // On submit, the booking is inserted straight into a Supabase table
-  // (no email client opens — the user just sees "request received").
-  // Mikka sees every booking in the Supabase Table editor, and an email
-  // notification is sent by a database trigger set up on the Supabase side.
-  // The anon key is safe to expose in front-end code AS LONG AS the table
-  // has Row Level Security with an insert-only policy (see the setup SQL).
-  // Paste the Project URL and the anon/public key from
-  //   Supabase → Project Settings → API
+  // [FILL_IN] · BOOKING ENDPOINT
+  // Where a booking request is sent. On submit the form POSTs here and the
+  // user just sees the "request received" screen — no email client opens.
+  // Set up a free Formspree form (https://formspree.io) with Mikka's email;
+  // it will email her every request AND keep them in a submissions dashboard
+  // she can view/export like a spreadsheet. Paste the form's endpoint below.
+  // (Any service that accepts a JSON POST works — e.g. Web3Forms, a Supabase
+  //  edge function, etc. — just swap the URL and, if needed, the body.)
   // ============================================================
-  const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';   // [FILL_IN]
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';        // [FILL_IN]
+  const BOOKING_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID'; // [FILL_IN]
 
   // Find next occurrence of a given weekday (1=Mon..7=Sun, ISO style)
   // dayCol is 0-based: 0=Mon..6=Sun
@@ -10182,14 +10180,16 @@ window.__mikkaLazyInit("page-04", function(){
       return;
     }
 
-    // The row to insert into Supabase (column names match the setup SQL).
+    // Send the request to Mikka in the background (no email client opens).
     const details = {
+      _subject: `New lesson request · ${currentBooking.dayFull}, ${currentBooking.dateString} · ${currentBooking.timeString}`,
       name: name.value.trim(),
       phone: phone.value.trim(),
       email: email.value.trim(),
+      _replyto: email.value.trim(),      // so Mikka can just hit "reply"
       day: currentBooking.dayFull,
-      slot_date: currentBooking.dateString,
-      slot_time: currentBooking.timeString,
+      date: currentBooking.dateString,
+      time: currentBooking.timeString,
       requested_slot: `${currentBooking.dayFull}, ${currentBooking.dateString} at ${currentBooking.timeString}`
     };
 
@@ -10212,23 +10212,18 @@ window.__mikkaLazyInit("page-04", function(){
     bookBtn.textContent = 'Sending…';
     clearBookError();
 
-    // Supabase not configured yet → still show the confirmation so the flow
-    // works, but warn (nothing is actually stored until the keys are set).
-    if (SUPABASE_URL.indexOf('YOUR-PROJECT') !== -1 || SUPABASE_ANON_KEY.indexOf('YOUR_') !== -1) {
-      console.warn('Supabase not configured — booking was NOT stored anywhere.');
+    // Endpoint not configured yet → still show the confirmation so the flow
+    // works, but warn (nothing is actually delivered until the URL is set).
+    if (!BOOKING_ENDPOINT || BOOKING_ENDPOINT.indexOf('YOUR_FORM_ID') !== -1) {
+      console.warn('Booking endpoint not configured — request was NOT sent anywhere.');
       bookBtn.disabled = false; bookBtn.innerHTML = origBtn;
       goToConfirmation();
       return;
     }
 
-    fetch(SUPABASE_URL + '/rest/v1/bookings', {
+    fetch(BOOKING_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(details)
     })
       .then((res) => {
