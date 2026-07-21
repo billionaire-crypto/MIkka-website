@@ -4962,6 +4962,38 @@ repeating-linear-gradient(45deg, transparent 0, transparent 8px, rgba(42, 21, 40
 transition: transform 0.2s ease;
 }
 .page-04 .reel:hover{ transform: translateY(-2px); }
+
+/* Video fills the 9:16 frame, behind the caption chrome */
+.page-04 .reel-video{
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: 0;
+background: #140810;
+}
+/* Legibility scrim — darkens only the top and bottom edges */
+.page-04 .reel::after{
+content: "";
+position: absolute;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+background: linear-gradient(180deg,
+rgba(20, 8, 15, 0.5) 0%,
+rgba(20, 8, 15, 0) 24%,
+rgba(20, 8, 15, 0) 56%,
+rgba(20, 8, 15, 0.62) 100%);
+}
+.page-04 .reel-head,
+.page-04 .reel-foot{ position: relative; z-index: 2; }
+.page-04 .reel-play{ z-index: 2; }
+/* While a reel is actively playing, hide the big center triangle */
+.page-04 .reel.is-playing .reel-play{ opacity: 0; pointer-events: none; }
+/* Sound-on cue: warm ring + brighter footer */
+.page-04 .reel.sound-on{ box-shadow: 0 0 0 2px var(--accent-warm) inset; }
+.page-04 .reel.sound-on .reel-meta{ color: var(--bg); }
 .page-04 .reel.dark{
 background:
 linear-gradient(160deg, rgba(42, 21, 40, 0.55), rgba(110, 62, 90, 0.65)),
@@ -7402,41 +7434,53 @@ canvas.fluid-canvas {
 
 
 <div class="reel" id="reel-1">
-  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:24</span></div>
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
+    <source src="reels/reel-1.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:20</span></div>
   <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. a first lesson, four hands ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+  <div class="reel-foot">
+    <div class="reel-cap">four hands at the keys</div>
+    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel dark" id="reel-2">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
+    <source src="reels/reel-2.mp4" type="video/mp4">
+  </video>
   <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:18</span></div>
   <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. student recital, age 9 ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+  <div class="reel-foot">
+    <div class="reel-cap">a first melody, side by side</div>
+    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel" id="reel-3">
-  <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:22</span></div>
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-3.jpg">
+    <source src="reels/reel-3.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:18</span></div>
   <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. duet with a student ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+  <div class="reel-foot">
+    <div class="reel-cap">working through a new piece</div>
+    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
   </div>
 </div>
 
 
 <div class="reel dark" id="reel-4">
-  <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:20</span></div>
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
+    <source src="reels/reel-4.mp4" type="video/mp4">
+  </video>
+  <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:17</span></div>
   <div class="reel-play"></div>
-  <div>
-    <div class="reel-cap">[ caption — e.g. winter recital, group ]</div>
-    <div class="reel-meta">[ REEL · VERTICAL 9:16 ]</div>
+  <div class="reel-foot">
+    <div class="reel-cap">playing it back by heart</div>
+    <div class="reel-meta">TAP FOR SOUND · 9:16</div>
   </div>
 </div>
 
@@ -9561,18 +9605,12 @@ window.__mikkaLazyInit("page-04", function(){
   const reelsPager = document.getElementById('reels-pager');
   const reelsHint = document.querySelector('.reels-hint');
 
-  // Tap a reel — placeholder, wire to actual video later
-  document.querySelectorAll('.reel').forEach(reel => {
-    reel.addEventListener('click', () => {
-      console.log('Reel tapped:', reel.id);
-    });
-  });
-
   if (reelsWrap && reelsTrack && reelsPager) {
     const dots = reelsPager.querySelectorAll('.dot');
     const reels = reelsTrack.querySelectorAll('.reel');
     const PAIRS = Math.ceil(reels.length / 2);
     let currentPair = 0;
+    let justSwiped = false;
 
     function pairWidth() {
       // Width of one full "page" = wrap width (each pair fills the visible row)
@@ -9668,13 +9706,107 @@ window.__mikkaLazyInit("page-04", function(){
         if (dx < 0) target = Math.min(PAIRS - 1, currentPair + 1);
         else        target = Math.max(0, currentPair - 1);
       }
+      const changedPair = target !== currentPair;
       goToPair(target, true);
+      if (passed) { justSwiped = true; setTimeout(() => { justSwiped = false; }, 320); }
+      if (changedPair && inView) playReel(target * 2, false);
       dragging = false;
     }
 
     reelsWrap.addEventListener('pointerup', endReelDrag);
     reelsWrap.addEventListener('pointercancel', endReelDrag);
     reelsWrap.addEventListener('pointerleave', endReelDrag);
+
+    // ============ REELS — video playback controller ============
+    // Muted sequential autoplay: reel I plays; when it ends, reel II plays,
+    // then III, IV, looping back to I. Only one plays at a time. Tapping a
+    // reel turns its sound on (and pauses the auto-advance); tapping again
+    // mutes it and resumes the muted sequence. Nothing plays off-screen.
+    const reelVideos = Array.from(reels).map(r => r.querySelector('.reel-video'));
+    let activeReel = 0;
+    let soundOn = false;
+    let autoAdvance = true;
+    let inView = false;
+
+    function resetReel(i) {
+      const v = reelVideos[i];
+      if (!v) return;
+      v.pause();
+      try { v.currentTime = 0; } catch (_) {}
+      v.muted = true;
+      v.loop = false;
+      reels[i].classList.remove('is-playing', 'sound-on');
+      const meta = reels[i].querySelector('.reel-meta');
+      if (meta) meta.textContent = 'TAP FOR SOUND · 9:16';
+    }
+
+    function playReel(idx, withSound) {
+      const v = reelVideos[idx];
+      if (!v) return;
+      activeReel = idx;
+      soundOn = !!withSound;
+      reelVideos.forEach((_, i) => { if (i !== idx) resetReel(i); });
+
+      const targetPair = Math.floor(idx / 2);
+      if (targetPair !== currentPair) goToPair(targetPair, true);
+
+      v.muted = !withSound;
+      v.loop = !!withSound;               // sound mode loops; muted mode ends → advance
+      if (withSound) { try { v.currentTime = 0; } catch (_) {} }
+      reels[idx].classList.add('is-playing');
+      reels[idx].classList.toggle('sound-on', !!withSound);
+      const meta = reels[idx].querySelector('.reel-meta');
+      if (meta) meta.textContent = withSound ? '♪  SOUND ON · TAP TO MUTE' : 'TAP FOR SOUND · 9:16';
+
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {/* autoplay may defer; poster stays */});
+    }
+
+    // Advance the muted sequence when a reel finishes
+    reelVideos.forEach((v, i) => {
+      if (!v) return;
+      v.addEventListener('ended', () => {
+        if (autoAdvance && !soundOn && activeReel === i) {
+          playReel((i + 1) % reelVideos.length, false);
+        }
+      });
+    });
+
+    // Tap a reel → toggle its sound
+    reels.forEach((reel, i) => {
+      reel.addEventListener('click', () => {
+        if (justSwiped) return;
+        if (i === activeReel && soundOn) {
+          autoAdvance = true;
+          playReel(i, false);           // mute + resume the muted sequence
+        } else {
+          autoAdvance = false;
+          playReel(i, true);            // unmute this one, hold here
+        }
+      });
+    });
+
+    // Start the muted sequence only while the reels are on screen; pause off-screen
+    if ('IntersectionObserver' in window) {
+      const reelIO = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (!inView) {
+              inView = true;
+              autoAdvance = true;
+              playReel(activeReel, false);
+            }
+          } else if (inView) {
+            inView = false;
+            reelVideos.forEach((v) => v && v.pause());
+          }
+        });
+      }, { threshold: 0.35 });
+      reelIO.observe(reelsWrap);
+    } else {
+      inView = true;
+      playReel(0, false);
+    }
   }
 
   function toRoman(n) {
