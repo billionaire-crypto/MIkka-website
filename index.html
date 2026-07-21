@@ -4952,20 +4952,22 @@ height: 100%;
 object-fit: cover;
 z-index: 0;
 background: #140810;
-filter: brightness(0.86) saturate(0.78) contrast(1.03) sepia(0.10);
+filter: brightness(0.76) saturate(0.72) contrast(1.07) sepia(0.14);
 }
 /* Warm colour wash — peach → plum, blended into the footage so it matches
-   the rest of the page (soft-light keeps it from going dark) */
+   the rest of the page. soft-light warms the mid-tones; a faint plum
+   multiply deepens the highlights so bright rooms stop glaring. */
 .page-04 .reel::before{
 content: "";
 position: absolute;
 inset: 0;
 z-index: 1;
 pointer-events: none;
-background: linear-gradient(155deg,
+background:
+linear-gradient(155deg,
 rgba(238, 144, 120, 0.30) 0%,
-rgba(196, 72, 96, 0.24) 45%,
-rgba(138, 74, 149, 0.34) 100%);
+rgba(196, 72, 96, 0.26) 45%,
+rgba(138, 74, 149, 0.42) 100%);
 mix-blend-mode: soft-light;
 }
 /* Legibility scrim — soft, only where the label and caption sit */
@@ -7528,7 +7530,7 @@ canvas.fluid-canvas {
 
 
 <div class="reel" id="reel-1">
-  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-1.jpg">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
     <source src="reels/reel-1.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:20</span></div>
@@ -7541,7 +7543,7 @@ canvas.fluid-canvas {
 
 
 <div class="reel dark" id="reel-2">
-  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-2.jpg">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
     <source src="reels/reel-2.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:18</span></div>
@@ -7554,7 +7556,7 @@ canvas.fluid-canvas {
 
 
 <div class="reel" id="reel-3">
-  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-3.jpg">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-3.jpg">
     <source src="reels/reel-3.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. III</span><span>0:18</span></div>
@@ -7567,7 +7569,7 @@ canvas.fluid-canvas {
 
 
 <div class="reel dark" id="reel-4">
-  <video class="reel-video" playsinline muted loop preload="auto" poster="reels/reel-4.jpg">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
     <source src="reels/reel-4.mp4" type="video/mp4">
   </video>
   <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:17</span></div>
