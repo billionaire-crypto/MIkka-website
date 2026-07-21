@@ -5152,6 +5152,11 @@ rgba(42, 21, 40, 0.42) 4px
 }
 .page-04 .grid .cell.open{
 background: rgba(238, 144, 120, 0.22);
+/* cursor:pointer is required for iOS Safari to deliver taps to the
+   delegated click handler on .grid — without it, taps do nothing */
+cursor: pointer;
+touch-action: manipulation;
+-webkit-tap-highlight-color: rgba(196, 72, 96, 0.18);
 }
 .page-04 .grid .cell.open:hover{
 background: rgba(238, 144, 120, 0.45);
