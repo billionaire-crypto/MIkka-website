@@ -4952,8 +4952,11 @@ height: 100%;
 object-fit: cover;
 z-index: 0;
 background: #140810;
-filter: brightness(0.76) saturate(0.72) contrast(1.07) sepia(0.14);
+filter: brightness(var(--reel-b, 0.76)) saturate(0.72) contrast(1.07) sepia(0.14);
 }
+/* The girl clip is filmed in a brighter room — dim it further so it
+   sits at the same level as the others. */
+.page-04 .reel-dim{ --reel-b: 0.58; }
 /* Warm colour wash — peach → plum, blended into the footage so it matches
    the rest of the page. soft-light warms the mid-tones; a faint plum
    multiply deepens the highlights so bright rooms stop glaring. */
@@ -5769,7 +5772,7 @@ inset: 0;
 background: rgba(42, 21, 40, 0.78);
 backdrop-filter: blur(0);
 -webkit-backdrop-filter: blur(0);
-z-index: 100;
+z-index: 10000;
 display: none;
 align-items: flex-end;
 justify-content: center;
@@ -7529,27 +7532,27 @@ canvas.fluid-canvas {
   <div class="reels-scroller" id="reels-scroller">
 
 
-<div class="reel" id="reel-1">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
-    <source src="reels/reel-1.mp4" type="video/mp4">
+<div class="reel" id="reel-2">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
+    <source src="reels/reel-2.mp4" type="video/mp4">
   </video>
-  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:20</span></div>
+  <div class="reel-head"><span class="reel-num">FIG. I</span><span>0:18</span></div>
   <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
-    <div class="reel-cap">four hands at the keys</div>
+    <div class="reel-cap">a first melody, side by side</div>
     <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
 
 
-<div class="reel dark" id="reel-2">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-2.jpg">
-    <source src="reels/reel-2.mp4" type="video/mp4">
+<div class="reel dark" id="reel-4">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
+    <source src="reels/reel-4.mp4" type="video/mp4">
   </video>
-  <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:18</span></div>
+  <div class="reel-head"><span class="reel-num">FIG. II</span><span>0:17</span></div>
   <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
-    <div class="reel-cap">a first melody, side by side</div>
+    <div class="reel-cap">playing it back by heart</div>
     <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
@@ -7568,14 +7571,14 @@ canvas.fluid-canvas {
 </div>
 
 
-<div class="reel dark" id="reel-4">
-  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-4.jpg">
-    <source src="reels/reel-4.mp4" type="video/mp4">
+<div class="reel dark reel-dim" id="reel-1">
+  <video class="reel-video" playsinline muted loop preload="metadata" poster="reels/reel-1.jpg">
+    <source src="reels/reel-1.mp4" type="video/mp4">
   </video>
-  <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:17</span></div>
+  <div class="reel-head"><span class="reel-num">FIG. IV</span><span>0:20</span></div>
   <div class="reel-expand" aria-hidden="true"></div>
   <div class="reel-foot">
-    <div class="reel-cap">playing it back by heart</div>
+    <div class="reel-cap">four hands at the keys</div>
     <div class="reel-meta">TAP TO ENLARGE · 9:16</div>
   </div>
 </div>
@@ -9957,6 +9960,18 @@ window.__mikkaLazyInit("page-04", function(){
 
   // ============ MODAL CONTROL ============
   const modal = document.getElementById('booking-modal');
+  // The page has `perspective`, which makes it the containing block for any
+  // position:fixed descendant — so the booking modal would open off-screen
+  // (anchored to the section, not the viewport). Move it under a
+  // display:contents host on <body> so it escapes that context; the host
+  // keeps the `.page-04` class so the modal's scoped styles still apply.
+  if (modal && !modal.closest('.p04-modal-host')) {
+    const host = document.createElement('div');
+    host.className = 'page-04 p04-modal-host';
+    host.style.display = 'contents';
+    document.body.appendChild(host);
+    host.appendChild(modal);
+  }
   const modalClose = document.getElementById('modal-close');
   const formView = document.getElementById('modal-form-view');
   const confView = document.getElementById('modal-confirmation');
